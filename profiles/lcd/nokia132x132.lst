@@ -1,0 +1,4364 @@
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 1
+
+
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.file	"nokia132x132.c"
+  13              	@ GNU C (Sourcery G++ Lite 2010.09-51) version 4.5.1 (arm-none-eabi)
+  14              	@	compiled by GNU C version 4.3.2, GMP version 4.3.2, MPFR version 2.4.2, MPC version 0.8.1
+  15              	@ GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+  16              	@ options passed:  -I . -I./pygmy -Ic:/users/mightydubster/ride7/pygmy/
+  17              	@ -imultilib thumb2 -iprefix
+  18              	@ c:\program files (x86)\raisonance\ride\arm-gcc\bin\../lib/gcc/arm-none-eabi/4.5.1/
+  19              	@ -isysroot
+  20              	@ c:\program files (x86)\raisonance\ride\arm-gcc\bin\../arm-none-eabi -MD
+  21              	@ c:/users/mightydubster/ride7/pygmy/profiles/lcd/nokia132x132.d -MF
+  22              	@ .dep/nokia132x132.o.d -MP -MQ
+  23              	@ c:/users/mightydubster/ride7/pygmy/profiles/lcd/nokia132x132.o
+  24              	@ -D__USES_INITFINI__ -D_STM32F100R8_ -D_STM3x_ -D_STM32x_
+  25              	@ -DRUN_FROM_FLASH=1 -D__CS_SOURCERYGXX_MAJ__=2010
+  26              	@ -D__CS_SOURCERYGXX_MIN__=9 -D__CS_SOURCERYGXX_REV__=51
+  27              	@ c:/users/mightydubster/ride7/pygmy/profiles/lcd/nokia132x132.c
+  28              	@ -mcpu=cortex-m3 -mthumb -mlittle-endian -auxbase-strip
+  29              	@ c:/users/mightydubster/ride7/pygmy/profiles/lcd/nokia132x132.o -gdwarf-2
+  30              	@ -Os -Wall -Wstrict-prototypes -fomit-frame-pointer -ffunction-sections
+  31              	@ -fverbose-asm
+  32              	@ options enabled:  -falign-loops -fargument-alias -fauto-inc-dec
+  33              	@ -fbranch-count-reg -fcaller-saves -fcommon -fcprop-registers
+  34              	@ -fcrossjumping -fcse-follow-jumps -fdefer-pop
+  35              	@ -fdelete-null-pointer-checks -fdwarf2-cfi-asm -fearly-inlining
+  36              	@ -feliminate-unused-debug-types -fexpensive-optimizations
+  37              	@ -fforward-propagate -ffunction-cse -ffunction-sections -fgcse -fgcse-lm
+  38              	@ -fguess-branch-probability -fident -fif-conversion -fif-conversion2
+  39              	@ -findirect-inlining -finline -finline-functions
+  40              	@ -finline-functions-called-once -finline-small-functions -fipa-cp
+  41              	@ -fipa-pure-const -fipa-reference -fipa-sra -fira-share-save-slots
+  42              	@ -fira-share-spill-slots -fivopts -fkeep-static-consts
+  43              	@ -fleading-underscore -fmath-errno -fmerge-constants -fmerge-debug-strings
+  44              	@ -fomit-frame-pointer -foptimize-register-move -foptimize-sibling-calls
+  45              	@ -fpeephole -fpeephole2 -freg-struct-return -fregmove -freorder-blocks
+  46              	@ -freorder-functions -frerun-cse-after-loop
+  47              	@ -fsched-critical-path-heuristic -fsched-dep-count-heuristic
+  48              	@ -fsched-group-heuristic -fsched-interblock -fsched-last-insn-heuristic
+  49              	@ -fsched-rank-heuristic -fsched-spec -fsched-spec-insn-heuristic
+  50              	@ -fsched-stalled-insns-dep -fschedule-insns2 -fsection-anchors
+  51              	@ -fshow-column -fsigned-zeros -fsplit-ivs-in-unroller -fsplit-wide-types
+  52              	@ -fstrict-aliasing -fstrict-overflow -fstrict-volatile-bitfields
+  53              	@ -fthread-jumps -ftoplevel-reorder -ftrapping-math -ftree-builtin-call-dce
+  54              	@ -ftree-ccp -ftree-ch -ftree-copy-prop -ftree-copyrename -ftree-cselim
+  55              	@ -ftree-dce -ftree-dominator-opts -ftree-dse -ftree-forwprop -ftree-fre
+  56              	@ -ftree-loop-im -ftree-loop-ivcanon -ftree-loop-optimize
+  57              	@ -ftree-parallelize-loops= -ftree-phiprop -ftree-pta -ftree-reassoc
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 2
+
+
+  58              	@ -ftree-scev-cprop -ftree-sink -ftree-slp-vectorize -ftree-sra
+  59              	@ -ftree-switch-conversion -ftree-ter -ftree-vect-loop-version -ftree-vrp
+  60              	@ -funit-at-a-time -fvar-tracking -fvar-tracking-assignments -fverbose-asm
+  61              	@ -fzero-initialized-in-bss -mfix-cortex-m3-ldrd -mlittle-endian
+  62              	@ -msched-prolog -mthumb
+  63              	
+  64              		.section	.debug_abbrev,"",%progbits
+  65              	.Ldebug_abbrev0:
+  66              		.section	.debug_info,"",%progbits
+  67              	.Ldebug_info0:
+  68              		.section	.debug_line,"",%progbits
+  69              	.Ldebug_line0:
+  70 0000 B5020000 		.text
+  70      0200C500 
+  70      00000201 
+  70      FB0E0D00 
+  70      01010101 
+  71              	.Ltext0:
+  72              	@ Compiler executable checksum: 352febfaba11ed73bc3949f13db5155f
+  73              	
+  74              		.cfi_sections	.debug_frame
+  75              		.section	.text.lcdWriteCommand,"ax",%progbits
+  76              		.align	1
+  77              		.global	lcdWriteCommand
+  78              		.thumb
+  79              		.thumb_func
+  80              		.type	lcdWriteCommand, %function
+  81              	lcdWriteCommand:
+  82              	.LFB0:
+  83              		.file 1 "c:/users/mightydubster/ride7/pygmy/profiles/lcd/nokia132x132.c"
+   1:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** /**************************************************************************
+   2:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     PygmyOS ( Pygmy Operating System )
+   3:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     Copyright (C) 2011  Warren D Greenway
+   4:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+   5:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     This program is free software: you can redistribute it and/or modify
+   6:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     it under the terms of the GNU General Public License as published by
+   7:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     the Free Software Foundation, either version 3 of the License, or
+   8:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     (at your option) any later version.
+   9:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  10:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     This program is distributed in the hope that it will be useful,
+  11:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     but WITHOUT ANY WARRANTY; without even the implied warranty of
+  12:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  13:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     GNU General Public License for more details.
+  14:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  15:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     You should have received a copy of the GNU General Public License
+  16:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  17:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** ***************************************************************************/
+  18:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  19:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #include "pygmy_profile.h"
+  20:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  21:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** //********************************************************************
+  22:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** //****************************Nokia 132x132***************************
+  23:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** //*************************Epson S1D15G10D08BE************************
+  24:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** //********************************************************************
+  25:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_DISON       0xAF
+  26:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_DISOFF      0xAE
+  27:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_DISNOR      0xA6
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 3
+
+
+  28:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_DISINV      0xA7
+  29:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_SLPIN       0x95
+  30:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_SLPOUT      0x94
+  31:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_COMSCN      0xBB
+  32:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_DISCTL      0xCA
+  33:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_PAGESET     0x75
+  34:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_COLSET      0x15
+  35:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_DATCTL      0xBC
+  36:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_RGBSET8     0xCE
+  37:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_RAMWR       0x5C
+  38:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_RAMRD       0x5D
+  39:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_PTLIN       0xA8
+  40:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_PTLOUT      0xA9
+  41:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_RMWIN       0xE0
+  42:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_RMWOUT      0xEE
+  43:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_ASCSET      0xAA
+  44:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_SCSTART     0xAB
+  45:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_OSCON       0xD1
+  46:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_OSCOFF      0xD2
+  47:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_PWRCTR      0x20
+  48:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_VOLCTR      0x81
+  49:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_VOLUP       0xD6
+  50:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_VOLDOWN     0xD7
+  51:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_TMPGRD      0x82
+  52:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_EPCTIN      0xCD
+  53:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_EPCOUT      0xCC
+  54:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_EPMWR       0xFC
+  55:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_EPMRD       0xFD
+  56:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_EPSRRD1     0x7C
+  57:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_EPSRRD2     0x7D
+  58:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_NOP         0x25
+  59:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_ENDCOL      131
+  60:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_ENDROW      131
+  61:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  62:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_ROWS	132
+  63:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** #define LCD_COLS	132
+  64:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** // !!! Note, LCD_CS, LCD_RESET, LCD_SCK_, LCD_MISO, LCD_MOSI
+  65:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** // !!!   must be defined in the local copy of pygmy_profile.h
+  66:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  67:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** PYGMYGUI pygmyGlobalColors;
+  68:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** PYGMYSPIPORT pygmyLCD;
+  69:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  70:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdWriteCommand( u16 uiCommand )
+  71:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+  84              		.loc 1 71 0
+  85              		.cfi_startproc
+  86              		@ args = 0, pretend = 0, frame = 0
+  87              		@ frame_needed = 0, uses_anonymous_args = 0
+  88              	.LVL0:
+  89 0000 38B5     		push	{r3, r4, r5, lr}	@
+  90              	.LCFI0:
+  91              		.cfi_def_cfa_offset 16
+  72:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortCS->BRR = pygmyLCD.PinCS; // Enables chip
+  92              		.loc 1 72 0
+  93 0002 094C     		ldr	r4, .L2	@ tmp147,
+  94              		.cfi_offset 14, -4
+  95              		.cfi_offset 5, -8
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 4
+
+
+  96              		.cfi_offset 4, -12
+  97              		.cfi_offset 3, -16
+  98 0004 228A     		ldrh	r2, [r4, #16]	@ D.3874, pygmyLCD.PinCS
+  99 0006 2368     		ldr	r3, [r4, #0]	@ D.3872, pygmyLCD.PortCS
+  73:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortSCK->BRR = pygmyLCD.PinSCK; // verify SCK low
+  74:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortMOSI->BRR = pygmyLCD.PinMOSI; // LOW MSB ( 9th bit ) is command 
+ 100              		.loc 1 74 0
+ 101 0008 A168     		ldr	r1, [r4, #8]	@ D.3878, pygmyLCD.PortMOSI
+  72:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortCS->BRR = pygmyLCD.PinCS; // Enables chip
+ 102              		.loc 1 72 0
+ 103 000a 5A61     		str	r2, [r3, #20]	@ D.3874, D.3872_1->BRR
+ 104              		.loc 1 74 0
+ 105 000c A58A     		ldrh	r5, [r4, #20]	@ D.3880, pygmyLCD.PinMOSI
+  73:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortSCK->BRR = pygmyLCD.PinSCK; // verify SCK low
+ 106              		.loc 1 73 0
+ 107 000e 6368     		ldr	r3, [r4, #4]	@ D.3875, pygmyLCD.PortSCK
+ 108 0010 628A     		ldrh	r2, [r4, #18]	@ D.3877, pygmyLCD.PinSCK
+ 109 0012 5A61     		str	r2, [r3, #20]	@ D.3877, D.3875_4->BRR
+ 110              		.loc 1 74 0
+ 111 0014 4D61     		str	r5, [r1, #20]	@ D.3880, D.3878_7->BRR
+  75:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortSCK->BSRR= pygmyLCD.PinSCK; // Clock out 9th bit
+ 112              		.loc 1 75 0
+ 113 0016 1A61     		str	r2, [r3, #16]	@ D.3877, D.3875_4->BSRR
+  76:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     spiWriteByte( &pygmyLCD, (u8)uiCommand );
+ 114              		.loc 1 76 0
+ 115 0018 C1B2     		uxtb	r1, r0	@ uiCommand, uiCommand
+ 116 001a 2046     		mov	r0, r4	@, tmp147
+ 117              	.LVL1:
+ 118 001c FFF7FEFF 		bl	spiWriteByte	@
+  77:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortCS->BSRR = pygmyLCD.PinCS; // Disables chip
+ 119              		.loc 1 77 0
+ 120 0020 2368     		ldr	r3, [r4, #0]	@ D.3872, pygmyLCD.PortCS
+ 121 0022 228A     		ldrh	r2, [r4, #16]	@ D.3874, pygmyLCD.PinCS
+ 122 0024 1A61     		str	r2, [r3, #16]	@ D.3874, D.3872_15->BSRR
+  78:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 123              		.loc 1 78 0
+ 124 0026 38BD     		pop	{r3, r4, r5, pc}	@
+ 125              	.L3:
+ 126              		.align	2
+ 127              	.L2:
+ 128 0028 00000000 		.word	pygmyLCD
+ 129              		.cfi_endproc
+ 130              	.LFE0:
+ 131              		.size	lcdWriteCommand, .-lcdWriteCommand
+ 132              		.section	.text.lcdWriteData,"ax",%progbits
+ 133              		.align	1
+ 134              		.global	lcdWriteData
+ 135              		.thumb
+ 136              		.thumb_func
+ 137              		.type	lcdWriteData, %function
+ 138              	lcdWriteData:
+ 139              	.LFB1:
+  79:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  80:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdWriteData( u16 uiData )
+  81:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 140              		.loc 1 81 0
+ 141              		.cfi_startproc
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 5
+
+
+ 142              		@ args = 0, pretend = 0, frame = 0
+ 143              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144              	.LVL2:
+ 145 0000 38B5     		push	{r3, r4, r5, lr}	@
+ 146              	.LCFI1:
+ 147              		.cfi_def_cfa_offset 16
+  82:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortCS->BRR = pygmyLCD.PinCS; // Enables chip
+ 148              		.loc 1 82 0
+ 149 0002 094C     		ldr	r4, .L5	@ tmp147,
+ 150              		.cfi_offset 14, -4
+ 151              		.cfi_offset 5, -8
+ 152              		.cfi_offset 4, -12
+ 153              		.cfi_offset 3, -16
+ 154 0004 228A     		ldrh	r2, [r4, #16]	@ D.3864, pygmyLCD.PinCS
+ 155 0006 2368     		ldr	r3, [r4, #0]	@ D.3862, pygmyLCD.PortCS
+  83:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortSCK->BRR = pygmyLCD.PinSCK; // verify SCK low
+  84:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortMOSI->BSRR = pygmyLCD.PinMOSI; // HIGH MSB ( 9th bit ) is data 
+ 156              		.loc 1 84 0
+ 157 0008 A168     		ldr	r1, [r4, #8]	@ D.3868, pygmyLCD.PortMOSI
+  82:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortCS->BRR = pygmyLCD.PinCS; // Enables chip
+ 158              		.loc 1 82 0
+ 159 000a 5A61     		str	r2, [r3, #20]	@ D.3864, D.3862_1->BRR
+ 160              		.loc 1 84 0
+ 161 000c A58A     		ldrh	r5, [r4, #20]	@ D.3870, pygmyLCD.PinMOSI
+  83:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortSCK->BRR = pygmyLCD.PinSCK; // verify SCK low
+ 162              		.loc 1 83 0
+ 163 000e 628A     		ldrh	r2, [r4, #18]	@ D.3867, pygmyLCD.PinSCK
+ 164 0010 6368     		ldr	r3, [r4, #4]	@ D.3865, pygmyLCD.PortSCK
+ 165 0012 5A61     		str	r2, [r3, #20]	@ D.3867, D.3865_4->BRR
+ 166              		.loc 1 84 0
+ 167 0014 0D61     		str	r5, [r1, #16]	@ D.3870, D.3868_7->BSRR
+  85:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortSCK->BSRR = pygmyLCD.PinSCK; // Clock out 9th bit
+ 168              		.loc 1 85 0
+ 169 0016 1A61     		str	r2, [r3, #16]	@ D.3867, D.3865_4->BSRR
+  86:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     spiWriteByte( &pygmyLCD, (u8)uiData );
+ 170              		.loc 1 86 0
+ 171 0018 C1B2     		uxtb	r1, r0	@ uiData, uiData
+ 172 001a 2046     		mov	r0, r4	@, tmp147
+ 173              	.LVL3:
+ 174 001c FFF7FEFF 		bl	spiWriteByte	@
+  87:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyLCD.PortCS->BSRR = pygmyLCD.PinCS; // Disables chip
+ 175              		.loc 1 87 0
+ 176 0020 2368     		ldr	r3, [r4, #0]	@ D.3862, pygmyLCD.PortCS
+ 177 0022 228A     		ldrh	r2, [r4, #16]	@ D.3864, pygmyLCD.PinCS
+ 178 0024 1A61     		str	r2, [r3, #16]	@ D.3864, D.3862_15->BSRR
+  88:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 179              		.loc 1 88 0
+ 180 0026 38BD     		pop	{r3, r4, r5, pc}	@
+ 181              	.L6:
+ 182              		.align	2
+ 183              	.L5:
+ 184 0028 00000000 		.word	pygmyLCD
+ 185              		.cfi_endproc
+ 186              	.LFE1:
+ 187              		.size	lcdWriteData, .-lcdWriteData
+ 188              		.section	.text.lcdDrawPixel,"ax",%progbits
+ 189              		.align	1
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 6
+
+
+ 190              		.global	lcdDrawPixel
+ 191              		.thumb
+ 192              		.thumb_func
+ 193              		.type	lcdDrawPixel, %function
+ 194              	lcdDrawPixel:
+ 195              	.LFB3:
+  89:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+  90:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdInit( void )
+  91:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {	
+  92:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     spiConfig( &pygmyLCD, LCD_CS, LCD_SCK, LCD_MISO, LCD_MOSI );
+  93:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pinConfig( LCD_RESET, OUT ); // We will use USART1_RTS as CS
+  94:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****    
+  95:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     setPin( LCD_RESET, LOW );
+  96:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     delay( 2000 ); // microseconds
+  97:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     setPin( LCD_RESET, HIGH );
+  98:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     delay( 2000 ); // microseconds
+  99:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISCTL );
+ 100:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( 0x0C );   		
+ 101:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x20 );    
+ 102:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x00 );
+ 103:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x01 );
+ 104:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     
+ 105:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_OSCON );  	
+ 106:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_SLPOUT );  
+ 107:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_PWRCTR );  // all on
+ 108:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( 0x0F );    		// 
+ 109:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	 
+ 110:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DATCTL );
+ 111:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData(0x00);			    // P1
+ 112:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData(0x01);   		    // P2, Alternate RGB arrangement
+ 113:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData(0x04);			    // P3, 16-bit Grayscale Type B
+ 114:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	
+ 115:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_VOLCTR ); 
+ 116:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x24 );   		// fine
+ 117:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( 0x03 );   		// coarse
+ 118:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 119:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_NOP );  	
+ 120:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISON ); 
+ 121:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdSetColor( 0xFF, 0xFF, 0xFF );
+ 122:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdBackColor( 0x00, 0x00, 0x00 );
+ 123:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdClear();
+ 124:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 125:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 126:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdDrawPixel( u16 uiX, u16 uiY )
+ 127:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 196              		.loc 1 127 0
+ 197              		.cfi_startproc
+ 198              		@ args = 0, pretend = 0, frame = 0
+ 199              		@ frame_needed = 0, uses_anonymous_args = 0
+ 200              	.LVL4:
+ 201 0000 70B5     		push	{r4, r5, r6, lr}	@
+ 202              	.LCFI2:
+ 203              		.cfi_def_cfa_offset 16
+ 204              		.loc 1 127 0
+ 205 0002 0D46     		mov	r5, r1	@ uiY, uiY
+ 206              		.cfi_offset 14, -4
+ 207              		.cfi_offset 6, -8
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 7
+
+
+ 208              		.cfi_offset 5, -12
+ 209              		.cfi_offset 4, -16
+ 210 0004 0446     		mov	r4, r0	@ uiX, uiX
+ 128:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     u8 ucColor;
+ 129:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 130:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_PAGESET );   // page start/end ram
+ 211              		.loc 1 130 0
+ 212 0006 7520     		movs	r0, #117	@,
+ 213              	.LVL5:
+ 214 0008 FFF7FEFF 		bl	lcdWriteCommand	@
+ 215              	.LVL6:
+ 131:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( uiY );
+ 216              		.loc 1 131 0
+ 217 000c 2846     		mov	r0, r5	@, uiY
+ 218 000e FFF7FEFF 		bl	lcdWriteData	@
+ 132:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiY );
+ 219              		.loc 1 132 0
+ 220 0012 2846     		mov	r0, r5	@, uiY
+ 221 0014 FFF7FEFF 		bl	lcdWriteData	@
+ 133:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteCommand( LCD_COLSET );   // column start/end ram
+ 222              		.loc 1 133 0
+ 223 0018 1520     		movs	r0, #21	@,
+ 224 001a FFF7FEFF 		bl	lcdWriteCommand	@
+ 134:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( uiX );
+ 225              		.loc 1 134 0
+ 226 001e 2046     		mov	r0, r4	@, uiX
+ 227 0020 FFF7FEFF 		bl	lcdWriteData	@
+ 135:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiX );
+ 228              		.loc 1 135 0
+ 229 0024 2046     		mov	r0, r4	@, uiX
+ 136:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_RAMWR );    // write
+ 137:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     
+ 138:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( pygmyGlobalColors.Color.R );
+ 230              		.loc 1 138 0
+ 231 0026 094C     		ldr	r4, .L8	@ tmp146,
+ 135:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiX );
+ 232              		.loc 1 135 0
+ 233 0028 FFF7FEFF 		bl	lcdWriteData	@
+ 136:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_RAMWR );    // write
+ 234              		.loc 1 136 0
+ 235 002c 5C20     		movs	r0, #92	@,
+ 236 002e FFF7FEFF 		bl	lcdWriteCommand	@
+ 237              		.loc 1 138 0
+ 238 0032 E078     		ldrb	r0, [r4, #3]	@ zero_extendqisi2	@, pygmyGlobalColors.Color.R
+ 239 0034 FFF7FEFF 		bl	lcdWriteData	@
+ 240              	.LVL7:
+ 139:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     // 0x00B0 | 0x000R = 0x00B
+ 140:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     ucColor = ( pygmyGlobalColors.Color.G << 4 ) | pygmyGlobalColors.Color.B;
+ 241              		.loc 1 140 0
+ 242 0038 2079     		ldrb	r0, [r4, #4]	@ zero_extendqisi2	@ pygmyGlobalColors.Color.G, pygmyGlobalColors.Color.G
+ 243 003a 6379     		ldrb	r3, [r4, #5]	@ zero_extendqisi2	@ pygmyGlobalColors.Color.B, pygmyGlobalColors.Color.B
+ 244 003c 43EA0010 		orr	r0, r3, r0, lsl #4	@, tmp157, pygmyGlobalColors.Color.B, pygmyGlobalColors.Color.G,
+ 141:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( ucColor );
+ 245              		.loc 1 141 0
+ 246 0040 C0B2     		uxtb	r0, r0	@, tmp157
+ 142:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	//lcdWriteData( 0 ); // dummy write   
+ 143:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     //lcdWriteCommand( LCD_NOP ); //
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 8
+
+
+ 144:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     //lcdWriteData( pygmyGlobalColors.Color.R << 4 | pygmyGlobalColors.Color.G );
+ 145:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     //lcdWriteData( pygmyGlobalColors.Color.B << 4  );
+ 146:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 		
+ 147:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 247              		.loc 1 147 0
+ 248 0042 BDE87040 		pop	{r4, r5, r6, lr}	@
+ 141:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( ucColor );
+ 249              		.loc 1 141 0
+ 250 0046 FFF7FEBF 		b	lcdWriteData	@
+ 251              	.LVL8:
+ 252              	.L9:
+ 253 004a 00BF     		.align	2
+ 254              	.L8:
+ 255 004c 00000000 		.word	pygmyGlobalColors
+ 256              		.cfi_endproc
+ 257              	.LFE3:
+ 258              		.size	lcdDrawPixel, .-lcdDrawPixel
+ 259              		.section	.text.lcdClearPixel,"ax",%progbits
+ 260              		.align	1
+ 261              		.global	lcdClearPixel
+ 262              		.thumb
+ 263              		.thumb_func
+ 264              		.type	lcdClearPixel, %function
+ 265              	lcdClearPixel:
+ 266              	.LFB4:
+ 148:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 149:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdClearPixel( u16 uiX, u16 uiY )
+ 150:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 267              		.loc 1 150 0
+ 268              		.cfi_startproc
+ 269              		@ args = 0, pretend = 0, frame = 0
+ 270              		@ frame_needed = 0, uses_anonymous_args = 0
+ 271              	.LVL9:
+ 272 0000 70B5     		push	{r4, r5, r6, lr}	@
+ 273              	.LCFI3:
+ 274              		.cfi_def_cfa_offset 16
+ 275              		.loc 1 150 0
+ 276 0002 0D46     		mov	r5, r1	@ uiY, uiY
+ 277              		.cfi_offset 14, -4
+ 278              		.cfi_offset 6, -8
+ 279              		.cfi_offset 5, -12
+ 280              		.cfi_offset 4, -16
+ 281 0004 0446     		mov	r4, r0	@ uiX, uiX
+ 151:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     u8 ucColor;
+ 152:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 153:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_PAGESET );   // page start/end ram
+ 282              		.loc 1 153 0
+ 283 0006 7520     		movs	r0, #117	@,
+ 284              	.LVL10:
+ 285 0008 FFF7FEFF 		bl	lcdWriteCommand	@
+ 286              	.LVL11:
+ 154:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( uiY );
+ 287              		.loc 1 154 0
+ 288 000c 2846     		mov	r0, r5	@, uiY
+ 289 000e FFF7FEFF 		bl	lcdWriteData	@
+ 155:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiY );
+ 290              		.loc 1 155 0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 9
+
+
+ 291 0012 2846     		mov	r0, r5	@, uiY
+ 292 0014 FFF7FEFF 		bl	lcdWriteData	@
+ 156:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteCommand( LCD_COLSET );   // column start/end ram
+ 293              		.loc 1 156 0
+ 294 0018 1520     		movs	r0, #21	@,
+ 295 001a FFF7FEFF 		bl	lcdWriteCommand	@
+ 157:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( uiX );
+ 296              		.loc 1 157 0
+ 297 001e 2046     		mov	r0, r4	@, uiX
+ 298 0020 FFF7FEFF 		bl	lcdWriteData	@
+ 158:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiX );
+ 299              		.loc 1 158 0
+ 300 0024 2046     		mov	r0, r4	@, uiX
+ 159:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_RAMWR );    // write
+ 160:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     
+ 161:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( pygmyGlobalColors.BackColor.R );
+ 301              		.loc 1 161 0
+ 302 0026 0A4C     		ldr	r4, .L11	@ tmp146,
+ 158:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiX );
+ 303              		.loc 1 158 0
+ 304 0028 FFF7FEFF 		bl	lcdWriteData	@
+ 159:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_RAMWR );    // write
+ 305              		.loc 1 159 0
+ 306 002c 5C20     		movs	r0, #92	@,
+ 307 002e FFF7FEFF 		bl	lcdWriteCommand	@
+ 308              		.loc 1 161 0
+ 309 0032 2078     		ldrb	r0, [r4, #0]	@ zero_extendqisi2	@, pygmyGlobalColors.BackColor.R
+ 310 0034 FFF7FEFF 		bl	lcdWriteData	@
+ 311              	.LVL12:
+ 162:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     // 0x00B0 | 0x000R = 0x00B
+ 163:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     ucColor = ( pygmyGlobalColors.BackColor.G << 4 ) | pygmyGlobalColors.BackColor.B;
+ 312              		.loc 1 163 0
+ 313 0038 6078     		ldrb	r0, [r4, #1]	@ zero_extendqisi2	@ pygmyGlobalColors.BackColor.G, pygmyGlobalColors.BackColor.
+ 314 003a A378     		ldrb	r3, [r4, #2]	@ zero_extendqisi2	@ pygmyGlobalColors.BackColor.B, pygmyGlobalColors.BackColor.
+ 315 003c 43EA0010 		orr	r0, r3, r0, lsl #4	@, tmp157, pygmyGlobalColors.BackColor.B, pygmyGlobalColors.BackColor.G,
+ 164:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( ucColor );
+ 316              		.loc 1 164 0
+ 317 0040 C0B2     		uxtb	r0, r0	@, tmp157
+ 318 0042 FFF7FEFF 		bl	lcdWriteData	@
+ 319              	.LVL13:
+ 165:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0 ); // dummy write   
+ 320              		.loc 1 165 0
+ 321 0046 0020     		movs	r0, #0	@,
+ 166:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 167:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     //lcdWriteCommand( LCD_NOP ); //
+ 168:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     //lcdWriteData( pygmyGlobalColors.Color.R << 4 | pygmyGlobalColors.Color.G );
+ 169:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     //lcdWriteData( pygmyGlobalColors.Color.B << 4  );
+ 170:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 		
+ 171:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 322              		.loc 1 171 0
+ 323 0048 BDE87040 		pop	{r4, r5, r6, lr}	@
+ 165:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0 ); // dummy write   
+ 324              		.loc 1 165 0
+ 325 004c FFF7FEBF 		b	lcdWriteData	@
+ 326              	.L12:
+ 327              		.align	2
+ 328              	.L11:
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 10
+
+
+ 329 0050 00000000 		.word	pygmyGlobalColors
+ 330              		.cfi_endproc
+ 331              	.LFE4:
+ 332              		.size	lcdClearPixel, .-lcdClearPixel
+ 333              		.section	.text.lcdGetFont,"ax",%progbits
+ 334              		.align	1
+ 335              		.global	lcdGetFont
+ 336              		.thumb
+ 337              		.thumb_func
+ 338              		.type	lcdGetFont, %function
+ 339              	lcdGetFont:
+ 340              	.LFB5:
+ 172:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 173:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void *lcdGetFont( void )
+ 174:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 341              		.loc 1 174 0
+ 342              		.cfi_startproc
+ 343              		@ args = 0, pretend = 0, frame = 0
+ 344              		@ frame_needed = 0, uses_anonymous_args = 0
+ 345              		@ link register save eliminated.
+ 175:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     return( pygmyGlobalColors.Font );
+ 176:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 346              		.loc 1 176 0
+ 347 0000 014B     		ldr	r3, .L14	@ tmp136,
+ 348 0002 D868     		ldr	r0, [r3, #12]	@, pygmyGlobalColors.Font
+ 349 0004 7047     		bx	lr	@
+ 350              	.L15:
+ 351 0006 00BF     		.align	2
+ 352              	.L14:
+ 353 0008 00000000 		.word	pygmyGlobalColors
+ 354              		.cfi_endproc
+ 355              	.LFE5:
+ 356              		.size	lcdGetFont, .-lcdGetFont
+ 357              		.section	.text.lcdSetFont,"ax",%progbits
+ 358              		.align	1
+ 359              		.global	lcdSetFont
+ 360              		.thumb
+ 361              		.thumb_func
+ 362              		.type	lcdSetFont, %function
+ 363              	lcdSetFont:
+ 364              	.LFB6:
+ 177:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 178:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdSetFont( void *pygmyFont )
+ 179:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 365              		.loc 1 179 0
+ 366              		.cfi_startproc
+ 367              		@ args = 0, pretend = 0, frame = 0
+ 368              		@ frame_needed = 0, uses_anonymous_args = 0
+ 369              		@ link register save eliminated.
+ 370              	.LVL14:
+ 180:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****    pygmyGlobalColors.Font = pygmyFont;   
+ 371              		.loc 1 180 0
+ 372 0000 014B     		ldr	r3, .L17	@ tmp135,
+ 373 0002 D860     		str	r0, [r3, #12]	@ pygmyFont, pygmyGlobalColors.Font
+ 181:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 374              		.loc 1 181 0
+ 375 0004 7047     		bx	lr	@
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 11
+
+
+ 376              	.L18:
+ 377 0006 00BF     		.align	2
+ 378              	.L17:
+ 379 0008 00000000 		.word	pygmyGlobalColors
+ 380              		.cfi_endproc
+ 381              	.LFE6:
+ 382              		.size	lcdSetFont, .-lcdSetFont
+ 383              		.section	.text.lcdSetCursor,"ax",%progbits
+ 384              		.align	1
+ 385              		.global	lcdSetCursor
+ 386              		.thumb
+ 387              		.thumb_func
+ 388              		.type	lcdSetCursor, %function
+ 389              	lcdSetCursor:
+ 390              	.LFB7:
+ 182:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 183:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdSetCursor( u16 uiX, u16 uiY )
+ 184:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 391              		.loc 1 184 0
+ 392              		.cfi_startproc
+ 393              		@ args = 0, pretend = 0, frame = 0
+ 394              		@ frame_needed = 0, uses_anonymous_args = 0
+ 395              		@ link register save eliminated.
+ 396              	.LVL15:
+ 185:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.Cursor.X = uiX;
+ 397              		.loc 1 185 0
+ 398 0000 014B     		ldr	r3, .L20	@ tmp135,
+ 399 0002 D880     		strh	r0, [r3, #6]	@ movhi	@ uiX, pygmyGlobalColors.Cursor.X
+ 186:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.Cursor.Y = uiY;
+ 400              		.loc 1 186 0
+ 401 0004 1981     		strh	r1, [r3, #8]	@ movhi	@ uiY, pygmyGlobalColors.Cursor.Y
+ 187:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 402              		.loc 1 187 0
+ 403 0006 7047     		bx	lr	@
+ 404              	.L21:
+ 405              		.align	2
+ 406              	.L20:
+ 407 0008 00000000 		.word	pygmyGlobalColors
+ 408              		.cfi_endproc
+ 409              	.LFE7:
+ 410              		.size	lcdSetCursor, .-lcdSetCursor
+ 411              		.section	.text.lcdGetCursorX,"ax",%progbits
+ 412              		.align	1
+ 413              		.global	lcdGetCursorX
+ 414              		.thumb
+ 415              		.thumb_func
+ 416              		.type	lcdGetCursorX, %function
+ 417              	lcdGetCursorX:
+ 418              	.LFB8:
+ 188:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 189:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** u16 lcdGetCursorX( void )
+ 190:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 419              		.loc 1 190 0
+ 420              		.cfi_startproc
+ 421              		@ args = 0, pretend = 0, frame = 0
+ 422              		@ frame_needed = 0, uses_anonymous_args = 0
+ 423              		@ link register save eliminated.
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 12
+
+
+ 191:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     return( pygmyGlobalColors.Cursor.X );
+ 192:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 424              		.loc 1 192 0
+ 425 0000 014B     		ldr	r3, .L23	@ tmp136,
+ 426 0002 D888     		ldrh	r0, [r3, #6]	@, pygmyGlobalColors.Cursor.X
+ 427 0004 7047     		bx	lr	@
+ 428              	.L24:
+ 429 0006 00BF     		.align	2
+ 430              	.L23:
+ 431 0008 00000000 		.word	pygmyGlobalColors
+ 432              		.cfi_endproc
+ 433              	.LFE8:
+ 434              		.size	lcdGetCursorX, .-lcdGetCursorX
+ 435              		.section	.text.lcdGetCursorY,"ax",%progbits
+ 436              		.align	1
+ 437              		.global	lcdGetCursorY
+ 438              		.thumb
+ 439              		.thumb_func
+ 440              		.type	lcdGetCursorY, %function
+ 441              	lcdGetCursorY:
+ 442              	.LFB9:
+ 193:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 194:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** u16 lcdGetCursorY( void )
+ 195:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 443              		.loc 1 195 0
+ 444              		.cfi_startproc
+ 445              		@ args = 0, pretend = 0, frame = 0
+ 446              		@ frame_needed = 0, uses_anonymous_args = 0
+ 447              		@ link register save eliminated.
+ 196:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     return( pygmyGlobalColors.Cursor.Y );
+ 197:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 448              		.loc 1 197 0
+ 449 0000 014B     		ldr	r3, .L26	@ tmp136,
+ 450 0002 1889     		ldrh	r0, [r3, #8]	@, pygmyGlobalColors.Cursor.Y
+ 451 0004 7047     		bx	lr	@
+ 452              	.L27:
+ 453 0006 00BF     		.align	2
+ 454              	.L26:
+ 455 0008 00000000 		.word	pygmyGlobalColors
+ 456              		.cfi_endproc
+ 457              	.LFE9:
+ 458              		.size	lcdGetCursorY, .-lcdGetCursorY
+ 459              		.section	.text.lcdOn,"ax",%progbits
+ 460              		.align	1
+ 461              		.global	lcdOn
+ 462              		.thumb
+ 463              		.thumb_func
+ 464              		.type	lcdOn, %function
+ 465              	lcdOn:
+ 466              	.LFB10:
+ 198:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 199:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdOn( void )
+ 200:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 467              		.loc 1 200 0
+ 468              		.cfi_startproc
+ 469              		@ args = 0, pretend = 0, frame = 0
+ 470              		@ frame_needed = 0, uses_anonymous_args = 0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 13
+
+
+ 471              		@ link register save eliminated.
+ 201:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISON );
+ 472              		.loc 1 201 0
+ 473 0000 AF20     		movs	r0, #175	@,
+ 202:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 474              		.loc 1 202 0
+ 201:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISON );
+ 475              		.loc 1 201 0
+ 476 0002 FFF7FEBF 		b	lcdWriteCommand	@
+ 477              		.cfi_endproc
+ 478              	.LFE10:
+ 479              		.size	lcdOn, .-lcdOn
+ 480              		.section	.text.lcdOff,"ax",%progbits
+ 481              		.align	1
+ 482              		.global	lcdOff
+ 483              		.thumb
+ 484              		.thumb_func
+ 485              		.type	lcdOff, %function
+ 486              	lcdOff:
+ 487              	.LFB11:
+ 203:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 204:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdOff( void )
+ 205:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 488              		.loc 1 205 0
+ 489              		.cfi_startproc
+ 490              		@ args = 0, pretend = 0, frame = 0
+ 491              		@ frame_needed = 0, uses_anonymous_args = 0
+ 492              		@ link register save eliminated.
+ 206:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISOFF );
+ 493              		.loc 1 206 0
+ 494 0000 AE20     		movs	r0, #174	@,
+ 207:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 495              		.loc 1 207 0
+ 206:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISOFF );
+ 496              		.loc 1 206 0
+ 497 0002 FFF7FEBF 		b	lcdWriteCommand	@
+ 498              		.cfi_endproc
+ 499              	.LFE11:
+ 500              		.size	lcdOff, .-lcdOff
+ 501              		.section	.text.lcdSetBPP,"ax",%progbits
+ 502              		.align	1
+ 503              		.global	lcdSetBPP
+ 504              		.thumb
+ 505              		.thumb_func
+ 506              		.type	lcdSetBPP, %function
+ 507              	lcdSetBPP:
+ 508              	.LFB12:
+ 208:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 209:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdSetBPP( u8 ucBPP )
+ 210:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 509              		.loc 1 210 0
+ 510              		.cfi_startproc
+ 511              		@ args = 0, pretend = 0, frame = 0
+ 512              		@ frame_needed = 0, uses_anonymous_args = 0
+ 513              		@ link register save eliminated.
+ 514              	.LVL16:
+ 211:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.BPP = ucBPP;
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 14
+
+
+ 515              		.loc 1 211 0
+ 516 0000 014B     		ldr	r3, .L31	@ tmp134,
+ 517 0002 1874     		strb	r0, [r3, #16]	@ ucBPP, pygmyGlobalColors.BPP
+ 212:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 518              		.loc 1 212 0
+ 519 0004 7047     		bx	lr	@
+ 520              	.L32:
+ 521 0006 00BF     		.align	2
+ 522              	.L31:
+ 523 0008 00000000 		.word	pygmyGlobalColors
+ 524              		.cfi_endproc
+ 525              	.LFE12:
+ 526              		.size	lcdSetBPP, .-lcdSetBPP
+ 527              		.section	.text.lcdBackColor,"ax",%progbits
+ 528              		.align	1
+ 529              		.global	lcdBackColor
+ 530              		.thumb
+ 531              		.thumb_func
+ 532              		.type	lcdBackColor, %function
+ 533              	lcdBackColor:
+ 534              	.LFB13:
+ 213:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 214:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdBackColor( u8 ucR, u8 ucG, u8 ucB )
+ 215:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 535              		.loc 1 215 0
+ 536              		.cfi_startproc
+ 537              		@ args = 0, pretend = 0, frame = 0
+ 538              		@ frame_needed = 0, uses_anonymous_args = 0
+ 539              	.LVL17:
+ 540 0000 10B5     		push	{r4, lr}	@
+ 541              	.LCFI4:
+ 542              		.cfi_def_cfa_offset 8
+ 216:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     /*if( pygmyGlobalColors.BPP == PYGMY_PBM_1BPP ){
+ 217:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         if( ucR || ucG || ucB ){
+ 218:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             ucR = 0x0F;
+ 219:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             ucG = 0x0F;
+ 220:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             ucB = 0x0F;
+ 221:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         } // if
+ 222:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } else */
+ 223:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     if( pygmyGlobalColors.BPP == PYGMY_PBM_8BPP ){
+ 543              		.loc 1 223 0
+ 544 0002 0D4B     		ldr	r3, .L37	@ tmp137,
+ 545 0004 1C7C     		ldrb	r4, [r3, #16]	@ zero_extendqisi2	@ D.3826, pygmyGlobalColors.BPP
+ 546              		.cfi_offset 14, -4
+ 547              		.cfi_offset 4, -8
+ 548 0006 022C     		cmp	r4, #2	@ D.3826,
+ 549 0008 07D1     		bne	.L34	@,
+ 224:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR *= 2;
+ 550              		.loc 1 224 0
+ 551 000a 4000     		lsls	r0, r0, #1	@ tmp139, ucR,
+ 552              	.LVL18:
+ 225:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG *= 3;
+ 553              		.loc 1 225 0
+ 554 000c 01EB4101 		add	r1, r1, r1, lsl #1	@, tmp144, ucG, ucG,
+ 555              	.LVL19:
+ 226:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucB *= 2;
+ 556              		.loc 1 226 0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 15
+
+
+ 557 0010 5200     		lsls	r2, r2, #1	@ tmp146, ucB,
+ 558              	.LVL20:
+ 224:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR *= 2;
+ 559              		.loc 1 224 0
+ 560 0012 C0B2     		uxtb	r0, r0	@ ucR, tmp139
+ 561              	.LVL21:
+ 225:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG *= 3;
+ 562              		.loc 1 225 0
+ 563 0014 C9B2     		uxtb	r1, r1	@ ucG, tmp144
+ 564              	.LVL22:
+ 565              		.loc 1 226 0
+ 566 0016 D2B2     		uxtb	r2, r2	@ ucB, tmp146
+ 567              	.LVL23:
+ 568 0018 0AE0     		b	.L35	@
+ 569              	.L34:
+ 227:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } else if( pygmyGlobalColors.BPP == PYGMY_PBM_16BPP ){
+ 570              		.loc 1 227 0
+ 571 001a 042C     		cmp	r4, #4	@ D.3826,
+ 572 001c 03D1     		bne	.L36	@,
+ 228:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR >>= 1;
+ 573              		.loc 1 228 0
+ 574 001e 4008     		lsrs	r0, r0, #1	@ ucR, ucR,
+ 575              	.LVL24:
+ 229:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG >>= 2;
+ 576              		.loc 1 229 0
+ 577 0020 8908     		lsrs	r1, r1, #2	@ ucG, ucG,
+ 578              	.LVL25:
+ 230:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucB >>= 1;
+ 579              		.loc 1 230 0
+ 580 0022 5208     		lsrs	r2, r2, #1	@ ucB, ucB,
+ 581              	.LVL26:
+ 582 0024 04E0     		b	.L35	@
+ 583              	.L36:
+ 231:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } else if( pygmyGlobalColors.BPP == PYGMY_PBM_24BPP ){
+ 584              		.loc 1 231 0
+ 585 0026 052C     		cmp	r4, #5	@ D.3826,
+ 586 0028 02D1     		bne	.L35	@,
+ 232:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR >>= 4;
+ 587              		.loc 1 232 0
+ 588 002a 0009     		lsrs	r0, r0, #4	@ ucR, ucR,
+ 589              	.LVL27:
+ 233:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG >>= 4;
+ 590              		.loc 1 233 0
+ 591 002c 0909     		lsrs	r1, r1, #4	@ ucG, ucG,
+ 592              	.LVL28:
+ 234:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucB >>= 4;
+ 593              		.loc 1 234 0
+ 594 002e 1209     		lsrs	r2, r2, #4	@ ucB, ucB,
+ 595              	.LVL29:
+ 596              	.L35:
+ 235:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } // if
+ 236:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.BackColor.R = ucR;
+ 597              		.loc 1 236 0
+ 598 0030 1870     		strb	r0, [r3, #0]	@ ucR, pygmyGlobalColors.BackColor.R
+ 237:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.BackColor.G = ucG;
+ 599              		.loc 1 237 0
+ 600 0032 5970     		strb	r1, [r3, #1]	@ ucG, pygmyGlobalColors.BackColor.G
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 16
+
+
+ 238:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.BackColor.B = ucB;
+ 601              		.loc 1 238 0
+ 602 0034 9A70     		strb	r2, [r3, #2]	@ ucB, pygmyGlobalColors.BackColor.B
+ 239:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 603              		.loc 1 239 0
+ 604 0036 10BD     		pop	{r4, pc}	@
+ 605              	.L38:
+ 606              		.align	2
+ 607              	.L37:
+ 608 0038 00000000 		.word	pygmyGlobalColors
+ 609              		.cfi_endproc
+ 610              	.LFE13:
+ 611              		.size	lcdBackColor, .-lcdBackColor
+ 612              		.section	.text.lcdSetColor,"ax",%progbits
+ 613              		.align	1
+ 614              		.global	lcdSetColor
+ 615              		.thumb
+ 616              		.thumb_func
+ 617              		.type	lcdSetColor, %function
+ 618              	lcdSetColor:
+ 619              	.LFB14:
+ 240:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 241:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdSetColor( u8 ucR, u8 ucG, u8 ucB )
+ 242:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 620              		.loc 1 242 0
+ 621              		.cfi_startproc
+ 622              		@ args = 0, pretend = 0, frame = 0
+ 623              		@ frame_needed = 0, uses_anonymous_args = 0
+ 624              	.LVL30:
+ 625 0000 10B5     		push	{r4, lr}	@
+ 626              	.LCFI5:
+ 627              		.cfi_def_cfa_offset 8
+ 243:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****    /* if( pygmyGlobalColors.BPP == PYGMY_PBM_1BPP ){
+ 244:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         if( ucR || ucG || ucB ){
+ 245:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             ucR = 0x0F;
+ 246:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             ucG = 0x0F;
+ 247:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             ucB = 0x0F;
+ 248:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         } // if
+ 249:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } else */
+ 250:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     if( pygmyGlobalColors.BPP == PYGMY_PBM_8BPP ){
+ 628              		.loc 1 250 0
+ 629 0002 0D4B     		ldr	r3, .L43	@ tmp137,
+ 630 0004 1C7C     		ldrb	r4, [r3, #16]	@ zero_extendqisi2	@ D.3817, pygmyGlobalColors.BPP
+ 631              		.cfi_offset 14, -4
+ 632              		.cfi_offset 4, -8
+ 633 0006 022C     		cmp	r4, #2	@ D.3817,
+ 634 0008 07D1     		bne	.L40	@,
+ 251:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR *= 2;
+ 635              		.loc 1 251 0
+ 636 000a 4000     		lsls	r0, r0, #1	@ tmp139, ucR,
+ 637              	.LVL31:
+ 252:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG *= 3;
+ 638              		.loc 1 252 0
+ 639 000c 01EB4101 		add	r1, r1, r1, lsl #1	@, tmp144, ucG, ucG,
+ 640              	.LVL32:
+ 253:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucB *= 2;
+ 641              		.loc 1 253 0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 17
+
+
+ 642 0010 5200     		lsls	r2, r2, #1	@ tmp146, ucB,
+ 643              	.LVL33:
+ 251:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR *= 2;
+ 644              		.loc 1 251 0
+ 645 0012 C0B2     		uxtb	r0, r0	@ ucR, tmp139
+ 646              	.LVL34:
+ 252:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG *= 3;
+ 647              		.loc 1 252 0
+ 648 0014 C9B2     		uxtb	r1, r1	@ ucG, tmp144
+ 649              	.LVL35:
+ 650              		.loc 1 253 0
+ 651 0016 D2B2     		uxtb	r2, r2	@ ucB, tmp146
+ 652              	.LVL36:
+ 653 0018 0AE0     		b	.L41	@
+ 654              	.L40:
+ 254:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } else if( pygmyGlobalColors.BPP == PYGMY_PBM_16BPP ){
+ 655              		.loc 1 254 0
+ 656 001a 042C     		cmp	r4, #4	@ D.3817,
+ 657 001c 03D1     		bne	.L42	@,
+ 255:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR >>= 1;
+ 658              		.loc 1 255 0
+ 659 001e 4008     		lsrs	r0, r0, #1	@ ucR, ucR,
+ 660              	.LVL37:
+ 256:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG >>= 2;
+ 661              		.loc 1 256 0
+ 662 0020 8908     		lsrs	r1, r1, #2	@ ucG, ucG,
+ 663              	.LVL38:
+ 257:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucB >>= 1;
+ 664              		.loc 1 257 0
+ 665 0022 5208     		lsrs	r2, r2, #1	@ ucB, ucB,
+ 666              	.LVL39:
+ 667 0024 04E0     		b	.L41	@
+ 668              	.L42:
+ 258:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } else if( pygmyGlobalColors.BPP == PYGMY_PBM_24BPP ){
+ 669              		.loc 1 258 0
+ 670 0026 052C     		cmp	r4, #5	@ D.3817,
+ 671 0028 02D1     		bne	.L41	@,
+ 259:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucR >>= 4;
+ 672              		.loc 1 259 0
+ 673 002a 0009     		lsrs	r0, r0, #4	@ ucR, ucR,
+ 674              	.LVL40:
+ 260:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucG >>= 4;
+ 675              		.loc 1 260 0
+ 676 002c 0909     		lsrs	r1, r1, #4	@ ucG, ucG,
+ 677              	.LVL41:
+ 261:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         ucB >>= 4;
+ 678              		.loc 1 261 0
+ 679 002e 1209     		lsrs	r2, r2, #4	@ ucB, ucB,
+ 680              	.LVL42:
+ 681              	.L41:
+ 262:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } // if
+ 263:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.Color.R = ucR;
+ 682              		.loc 1 263 0
+ 683 0030 D870     		strb	r0, [r3, #3]	@ ucR, pygmyGlobalColors.Color.R
+ 264:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.Color.G = ucG;
+ 684              		.loc 1 264 0
+ 685 0032 1971     		strb	r1, [r3, #4]	@ ucG, pygmyGlobalColors.Color.G
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 18
+
+
+ 265:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pygmyGlobalColors.Color.B = ucB;
+ 686              		.loc 1 265 0
+ 687 0034 5A71     		strb	r2, [r3, #5]	@ ucB, pygmyGlobalColors.Color.B
+ 266:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 688              		.loc 1 266 0
+ 689 0036 10BD     		pop	{r4, pc}	@
+ 690              	.L44:
+ 691              		.align	2
+ 692              	.L43:
+ 693 0038 00000000 		.word	pygmyGlobalColors
+ 694              		.cfi_endproc
+ 695              	.LFE14:
+ 696              		.size	lcdSetColor, .-lcdSetColor
+ 697              		.section	.text.lcdClearArea,"ax",%progbits
+ 698              		.align	1
+ 699              		.global	lcdClearArea
+ 700              		.thumb
+ 701              		.thumb_func
+ 702              		.type	lcdClearArea, %function
+ 703              	lcdClearArea:
+ 704              	.LFB15:
+ 267:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 268:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdClearArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 )
+ 269:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** { 
+ 705              		.loc 1 269 0
+ 706              		.cfi_startproc
+ 707              		@ args = 0, pretend = 0, frame = 0
+ 708              		@ frame_needed = 0, uses_anonymous_args = 0
+ 709              	.LVL43:
+ 710 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, sl, lr}	@
+ 711              	.LCFI6:
+ 712              		.cfi_def_cfa_offset 32
+ 270:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     u32 i;
+ 271:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     u8 ucColor;
+ 272:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 273:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     
+ 274:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     ucColor = ( pygmyGlobalColors.BackColor.G << 4 ) | pygmyGlobalColors.BackColor.B;
+ 713              		.loc 1 274 0
+ 714 0004 194F     		ldr	r7, .L50	@ tmp154,
+ 715              		.cfi_offset 14, -4
+ 716              		.cfi_offset 10, -8
+ 717              		.cfi_offset 9, -12
+ 718              		.cfi_offset 8, -16
+ 719              		.cfi_offset 7, -20
+ 720              		.cfi_offset 6, -24
+ 721              		.cfi_offset 5, -28
+ 722              		.cfi_offset 4, -32
+ 269:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** { 
+ 723              		.loc 1 269 0
+ 724 0006 9946     		mov	r9, r3	@ uiY2, uiY2
+ 725              		.loc 1 274 0
+ 726 0008 97F801A0 		ldrb	sl, [r7, #1]	@ zero_extendqisi2	@ pygmyGlobalColors.BackColor.G, pygmyGlobalColors.BackColor.
+ 727 000c BB78     		ldrb	r3, [r7, #2]	@ zero_extendqisi2	@ pygmyGlobalColors.BackColor.B, pygmyGlobalColors.BackColor.
+ 728              	.LVL44:
+ 269:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** { 
+ 729              		.loc 1 269 0
+ 730 000e 0D46     		mov	r5, r1	@ uiY1, uiY1
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 19
+
+
+ 731 0010 0446     		mov	r4, r0	@ uiX1, uiX1
+ 275:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_PAGESET );  
+ 732              		.loc 1 275 0
+ 733 0012 7520     		movs	r0, #117	@,
+ 734              	.LVL45:
+ 269:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** { 
+ 735              		.loc 1 269 0
+ 736 0014 1646     		mov	r6, r2	@ uiX2, uiX2
+ 274:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     ucColor = ( pygmyGlobalColors.BackColor.G << 4 ) | pygmyGlobalColors.BackColor.B;
+ 737              		.loc 1 274 0
+ 738 0016 43EA0A1A 		orr	sl, r3, sl, lsl #4	@, tmp161, pygmyGlobalColors.BackColor.B, pygmyGlobalColors.BackColor.G,
+ 739              		.loc 1 275 0
+ 740 001a FFF7FEFF 		bl	lcdWriteCommand	@
+ 741              	.LVL46:
+ 276:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiY1 );
+ 742              		.loc 1 276 0
+ 743 001e 2846     		mov	r0, r5	@, uiY1
+ 744 0020 FFF7FEFF 		bl	lcdWriteData	@
+ 277:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiY2 );
+ 745              		.loc 1 277 0
+ 746 0024 4846     		mov	r0, r9	@, uiY2
+ 747 0026 FFF7FEFF 		bl	lcdWriteData	@
+ 278:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_COLSET );  
+ 748              		.loc 1 278 0
+ 749 002a 1520     		movs	r0, #21	@,
+ 750 002c FFF7FEFF 		bl	lcdWriteCommand	@
+ 279:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiX1 );
+ 751              		.loc 1 279 0
+ 752 0030 2046     		mov	r0, r4	@, uiX1
+ 753 0032 FFF7FEFF 		bl	lcdWriteData	@
+ 280:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( uiX2 );
+ 754              		.loc 1 280 0
+ 755 0036 3046     		mov	r0, r6	@, uiX2
+ 756 0038 FFF7FEFF 		bl	lcdWriteData	@
+ 281:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_RAMWR );    
+ 757              		.loc 1 281 0
+ 758 003c 5C20     		movs	r0, #92	@,
+ 274:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     ucColor = ( pygmyGlobalColors.BackColor.G << 4 ) | pygmyGlobalColors.BackColor.B;
+ 759              		.loc 1 274 0
+ 760 003e 5FFA8AFA 		uxtb	sl, sl	@ ucColor, tmp161
+ 761              	.LVL47:
+ 762              		.loc 1 281 0
+ 763 0042 FFF7FEFF 		bl	lcdWriteCommand	@
+ 282:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     for( ; uiY1 < uiY2; uiY1++ ){
+ 764              		.loc 1 282 0
+ 765 0046 0DE0     		b	.L46	@
+ 766              	.LVL48:
+ 767              	.L49:
+ 283:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         for( i = uiX1; i < uiX2; i++ ){ 
+ 768              		.loc 1 283 0
+ 769 0048 A046     		mov	r8, r4	@ i, uiX1
+ 770              	.LVL49:
+ 771 004a 07E0     		b	.L47	@
+ 772              	.LVL50:
+ 773              	.L48:
+ 284:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             lcdWriteData( pygmyGlobalColors.BackColor.R );   
+ 774              		.loc 1 284 0 discriminator 2
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 20
+
+
+ 775 004c 3878     		ldrb	r0, [r7, #0]	@ zero_extendqisi2	@, pygmyGlobalColors.BackColor.R
+ 776 004e FFF7FEFF 		bl	lcdWriteData	@
+ 285:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             // 0x00B0 | 0x000R = 0x00B
+ 286:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****             lcdWriteData( ucColor );
+ 777              		.loc 1 286 0 discriminator 2
+ 778 0052 5046     		mov	r0, sl	@, ucColor
+ 779 0054 FFF7FEFF 		bl	lcdWriteData	@
+ 283:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         for( i = uiX1; i < uiX2; i++ ){ 
+ 780              		.loc 1 283 0 discriminator 2
+ 781 0058 08F10108 		add	r8, r8, #1	@ i, i,
+ 782              	.LVL51:
+ 783              	.L47:
+ 283:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         for( i = uiX1; i < uiX2; i++ ){ 
+ 784              		.loc 1 283 0 is_stmt 0 discriminator 1
+ 785 005c B045     		cmp	r8, r6	@ i, uiX2
+ 786 005e F5D3     		bcc	.L48	@,
+ 282:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     for( ; uiY1 < uiY2; uiY1++ ){
+ 787              		.loc 1 282 0 is_stmt 1
+ 788 0060 0135     		adds	r5, r5, #1	@ tmp166, uiY1,
+ 789              	.LVL52:
+ 790 0062 ADB2     		uxth	r5, r5	@ uiY1, tmp166
+ 791              	.LVL53:
+ 792              	.L46:
+ 282:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     for( ; uiY1 < uiY2; uiY1++ ){
+ 793              		.loc 1 282 0 is_stmt 0 discriminator 1
+ 794 0064 4D45     		cmp	r5, r9	@ uiY1, uiY2
+ 795 0066 EFD3     		bcc	.L49	@,
+ 287:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****         } // for
+ 288:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     } // for
+ 289:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     
+ 290:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 796              		.loc 1 290 0 is_stmt 1
+ 797 0068 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}	@
+ 798              	.L51:
+ 799              		.align	2
+ 800              	.L50:
+ 801 006c 00000000 		.word	pygmyGlobalColors
+ 802              		.cfi_endproc
+ 803              	.LFE15:
+ 804              		.size	lcdClearArea, .-lcdClearArea
+ 805              		.section	.text.lcdClear,"ax",%progbits
+ 806              		.align	1
+ 807              		.global	lcdClear
+ 808              		.thumb
+ 809              		.thumb_func
+ 810              		.type	lcdClear, %function
+ 811              	lcdClear:
+ 812              	.LFB16:
+ 291:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 292:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** void lcdClear( void )
+ 293:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {
+ 813              		.loc 1 293 0
+ 814              		.cfi_startproc
+ 815              		@ args = 0, pretend = 0, frame = 0
+ 816              		@ frame_needed = 0, uses_anonymous_args = 0
+ 817 0000 38B5     		push	{r3, r4, r5, lr}	@
+ 818              	.LCFI7:
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 21
+
+
+ 819              		.cfi_def_cfa_offset 16
+ 294:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     u32 i, ulLen;
+ 295:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****   
+ 296:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_PAGESET );
+ 820              		.loc 1 296 0
+ 821 0002 7520     		movs	r0, #117	@,
+ 822              		.cfi_offset 14, -4
+ 823              		.cfi_offset 5, -8
+ 824              		.cfi_offset 4, -12
+ 825              		.cfi_offset 3, -16
+ 826 0004 FFF7FEFF 		bl	lcdWriteCommand	@
+ 297:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0 );
+ 827              		.loc 1 297 0
+ 828 0008 0020     		movs	r0, #0	@,
+ 829 000a FFF7FEFF 		bl	lcdWriteData	@
+ 298:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( LCD_ENDROW );
+ 830              		.loc 1 298 0
+ 831 000e 8320     		movs	r0, #131	@,
+ 832 0010 FFF7FEFF 		bl	lcdWriteData	@
+ 299:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	
+ 300:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteCommand( LCD_COLSET );
+ 833              		.loc 1 300 0
+ 834 0014 1520     		movs	r0, #21	@,
+ 835 0016 FFF7FEFF 		bl	lcdWriteCommand	@
+ 301:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0 );
+ 836              		.loc 1 301 0
+ 837 001a 0020     		movs	r0, #0	@,
+ 838 001c FFF7FEFF 		bl	lcdWriteData	@
+ 302:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( LCD_ENDCOL );
+ 839              		.loc 1 302 0
+ 840 0020 8320     		movs	r0, #131	@,
+ 841 0022 FFF7FEFF 		bl	lcdWriteData	@
+ 303:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 
+ 304:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteCommand( LCD_RAMWR );
+ 842              		.loc 1 304 0
+ 843 0026 5C20     		movs	r0, #92	@,
+ 844 0028 FFF7FEFF 		bl	lcdWriteCommand	@
+ 845              	.LVL54:
+ 846 002c 42F20824 		movw	r4, #8712	@ ivtmp.43,
+ 847              	.LVL55:
+ 848              	.L53:
+ 305:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	ulLen = ( LCD_ROWS * LCD_COLS ) / 2;
+ 306:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****    
+ 307:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	for( i = 0; i < ulLen; i++ ) {
+ 308:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 		lcdWriteData( pygmyGlobalColors.BackColor.R );
+ 849              		.loc 1 308 0 discriminator 2
+ 850 0030 064D     		ldr	r5, .L54	@ tmp140,
+ 851 0032 2878     		ldrb	r0, [r5, #0]	@ zero_extendqisi2	@, pygmyGlobalColors.BackColor.R
+ 852 0034 FFF7FEFF 		bl	lcdWriteData	@
+ 309:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 		lcdWriteData( pygmyGlobalColors.BackColor.G );
+ 853              		.loc 1 309 0 discriminator 2
+ 854 0038 6878     		ldrb	r0, [r5, #1]	@ zero_extendqisi2	@, pygmyGlobalColors.BackColor.G
+ 855 003a FFF7FEFF 		bl	lcdWriteData	@
+ 310:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 		lcdWriteData( pygmyGlobalColors.BackColor.B );
+ 856              		.loc 1 310 0 discriminator 2
+ 857 003e A878     		ldrb	r0, [r5, #2]	@ zero_extendqisi2	@, pygmyGlobalColors.BackColor.B
+ 858 0040 FFF7FEFF 		bl	lcdWriteData	@
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 22
+
+
+ 307:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	for( i = 0; i < ulLen; i++ ) {
+ 859              		.loc 1 307 0 discriminator 2
+ 860 0044 013C     		subs	r4, r4, #1	@ ivtmp.43, ivtmp.43,
+ 861 0046 F3D1     		bne	.L53	@,
+ 311:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	} // for
+ 312:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 862              		.loc 1 312 0
+ 863 0048 38BD     		pop	{r3, r4, r5, pc}	@
+ 864              	.L55:
+ 865 004a 00BF     		.align	2
+ 866              	.L54:
+ 867 004c 00000000 		.word	pygmyGlobalColors
+ 868              		.cfi_endproc
+ 869              	.LFE16:
+ 870              		.size	lcdClear, .-lcdClear
+ 871              		.section	.text.lcdInit,"ax",%progbits
+ 872              		.align	1
+ 873              		.global	lcdInit
+ 874              		.thumb
+ 875              		.thumb_func
+ 876              		.type	lcdInit, %function
+ 877              	lcdInit:
+ 878              	.LFB2:
+  91:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** {	
+ 879              		.loc 1 91 0
+ 880              		.cfi_startproc
+ 881              		@ args = 0, pretend = 0, frame = 0
+ 882              		@ frame_needed = 0, uses_anonymous_args = 0
+ 883 0000 07B5     		push	{r0, r1, r2, lr}	@
+ 884              	.LCFI8:
+ 885              		.cfi_def_cfa_offset 16
+  92:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     spiConfig( &pygmyLCD, LCD_CS, LCD_SCK, LCD_MISO, LCD_MOSI );
+ 886              		.loc 1 92 0
+ 887 0002 2923     		movs	r3, #41	@ tmp133,
+ 888 0004 2B22     		movs	r2, #43	@,
+ 889              		.cfi_offset 14, -4
+ 890              		.cfi_offset 2, -8
+ 891              		.cfi_offset 1, -12
+ 892              		.cfi_offset 0, -16
+ 893 0006 0093     		str	r3, [sp, #0]	@ tmp133,
+ 894 0008 0C21     		movs	r1, #12	@,
+ 895 000a 0133     		adds	r3, r3, #1	@,,
+ 896 000c 2D48     		ldr	r0, .L57	@,
+ 897 000e FFF7FEFF 		bl	spiConfig	@
+  93:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     pinConfig( LCD_RESET, OUT ); // We will use USART1_RTS as CS
+ 898              		.loc 1 93 0
+ 899 0012 0820     		movs	r0, #8	@,
+ 900 0014 0321     		movs	r1, #3	@,
+ 901 0016 FFF7FEFF 		bl	pinConfig	@
+  95:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     setPin( LCD_RESET, LOW );
+ 902              		.loc 1 95 0
+ 903 001a 0021     		movs	r1, #0	@,
+ 904 001c 0820     		movs	r0, #8	@,
+ 905 001e FFF7FEFF 		bl	setPin	@
+  96:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     delay( 2000 ); // microseconds
+ 906              		.loc 1 96 0
+ 907 0022 4FF4FA60 		mov	r0, #2000	@,
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 23
+
+
+ 908 0026 FFF7FEFF 		bl	delay	@
+  97:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     setPin( LCD_RESET, HIGH );
+ 909              		.loc 1 97 0
+ 910 002a 0121     		movs	r1, #1	@,
+ 911 002c 0820     		movs	r0, #8	@,
+ 912 002e FFF7FEFF 		bl	setPin	@
+  98:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     delay( 2000 ); // microseconds
+ 913              		.loc 1 98 0
+ 914 0032 4FF4FA60 		mov	r0, #2000	@,
+ 915 0036 FFF7FEFF 		bl	delay	@
+  99:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISCTL );
+ 916              		.loc 1 99 0
+ 917 003a CA20     		movs	r0, #202	@,
+ 918 003c FFF7FEFF 		bl	lcdWriteCommand	@
+ 100:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( 0x0C );   		
+ 919              		.loc 1 100 0
+ 920 0040 0C20     		movs	r0, #12	@,
+ 921 0042 FFF7FEFF 		bl	lcdWriteData	@
+ 101:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x20 );    
+ 922              		.loc 1 101 0
+ 923 0046 2020     		movs	r0, #32	@,
+ 924 0048 FFF7FEFF 		bl	lcdWriteData	@
+ 102:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x00 );
+ 925              		.loc 1 102 0
+ 926 004c 0020     		movs	r0, #0	@,
+ 927 004e FFF7FEFF 		bl	lcdWriteData	@
+ 103:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x01 );
+ 928              		.loc 1 103 0
+ 929 0052 0120     		movs	r0, #1	@,
+ 930 0054 FFF7FEFF 		bl	lcdWriteData	@
+ 105:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_OSCON );  	
+ 931              		.loc 1 105 0
+ 932 0058 D120     		movs	r0, #209	@,
+ 933 005a FFF7FEFF 		bl	lcdWriteCommand	@
+ 106:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_SLPOUT );  
+ 934              		.loc 1 106 0
+ 935 005e 9420     		movs	r0, #148	@,
+ 936 0060 FFF7FEFF 		bl	lcdWriteCommand	@
+ 107:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_PWRCTR );  // all on
+ 937              		.loc 1 107 0
+ 938 0064 2020     		movs	r0, #32	@,
+ 939 0066 FFF7FEFF 		bl	lcdWriteCommand	@
+ 108:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( 0x0F );    		// 
+ 940              		.loc 1 108 0
+ 941 006a 0F20     		movs	r0, #15	@,
+ 942 006c FFF7FEFF 		bl	lcdWriteData	@
+ 110:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DATCTL );
+ 943              		.loc 1 110 0
+ 944 0070 BC20     		movs	r0, #188	@,
+ 945 0072 FFF7FEFF 		bl	lcdWriteCommand	@
+ 111:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData(0x00);			    // P1
+ 946              		.loc 1 111 0
+ 947 0076 0020     		movs	r0, #0	@,
+ 948 0078 FFF7FEFF 		bl	lcdWriteData	@
+ 112:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData(0x01);   		    // P2, Alternate RGB arrangement
+ 949              		.loc 1 112 0
+ 950 007c 0120     		movs	r0, #1	@,
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 24
+
+
+ 951 007e FFF7FEFF 		bl	lcdWriteData	@
+ 113:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData(0x04);			    // P3, 16-bit Grayscale Type B
+ 952              		.loc 1 113 0
+ 953 0082 0420     		movs	r0, #4	@,
+ 954 0084 FFF7FEFF 		bl	lcdWriteData	@
+ 115:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_VOLCTR ); 
+ 955              		.loc 1 115 0
+ 956 0088 8120     		movs	r0, #129	@,
+ 957 008a FFF7FEFF 		bl	lcdWriteCommand	@
+ 116:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** 	lcdWriteData( 0x24 );   		// fine
+ 958              		.loc 1 116 0
+ 959 008e 2420     		movs	r0, #36	@,
+ 960 0090 FFF7FEFF 		bl	lcdWriteData	@
+ 117:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteData( 0x03 );   		// coarse
+ 961              		.loc 1 117 0
+ 962 0094 0320     		movs	r0, #3	@,
+ 963 0096 FFF7FEFF 		bl	lcdWriteData	@
+ 119:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_NOP );  	
+ 964              		.loc 1 119 0
+ 965 009a 2520     		movs	r0, #37	@,
+ 966 009c FFF7FEFF 		bl	lcdWriteCommand	@
+ 120:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdWriteCommand( LCD_DISON ); 
+ 967              		.loc 1 120 0
+ 968 00a0 AF20     		movs	r0, #175	@,
+ 969 00a2 FFF7FEFF 		bl	lcdWriteCommand	@
+ 121:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdSetColor( 0xFF, 0xFF, 0xFF );
+ 970              		.loc 1 121 0
+ 971 00a6 FF20     		movs	r0, #255	@,
+ 972 00a8 0146     		mov	r1, r0	@,
+ 973 00aa 0246     		mov	r2, r0	@,
+ 974 00ac FFF7FEFF 		bl	lcdSetColor	@
+ 122:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdBackColor( 0x00, 0x00, 0x00 );
+ 975              		.loc 1 122 0
+ 976 00b0 0020     		movs	r0, #0	@,
+ 977 00b2 0146     		mov	r1, r0	@,
+ 978 00b4 0246     		mov	r2, r0	@,
+ 979 00b6 FFF7FEFF 		bl	lcdBackColor	@
+ 124:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c **** }
+ 980              		.loc 1 124 0
+ 981 00ba 03B0     		add	sp, sp, #12	@,,
+ 982 00bc 5DF804EB 		pop	{lr}
+ 123:c:/users/mightydubster/ride7/pygmy/profiles/lcd\nokia132x132.c ****     lcdClear();
+ 983              		.loc 1 123 0
+ 984 00c0 FFF7FEBF 		b	lcdClear	@
+ 985              	.L58:
+ 986              		.align	2
+ 987              	.L57:
+ 988 00c4 00000000 		.word	pygmyLCD
+ 989              		.cfi_endproc
+ 990              	.LFE2:
+ 991              		.size	lcdInit, .-lcdInit
+ 992              		.comm	pygmyGlobalColors,20,4
+ 993              		.comm	pygmyLCD,24,4
+ 994              		.text
+ 995              	.Letext0:
+ 996              		.section	.debug_loc,"",%progbits
+ 997              	.Ldebug_loc0:
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 25
+
+
+ 998              	.LLST0:
+ 999 0000 00000000 		.4byte	.LFB0
+ 1000 0004 02000000 		.4byte	.LCFI0
+ 1001 0008 0200     		.2byte	0x2
+ 1002 000a 7D       		.byte	0x7d
+ 1003 000b 00       		.sleb128 0
+ 1004 000c 02000000 		.4byte	.LCFI0
+ 1005 0010 2C000000 		.4byte	.LFE0
+ 1006 0014 0200     		.2byte	0x2
+ 1007 0016 7D       		.byte	0x7d
+ 1008 0017 10       		.sleb128 16
+ 1009 0018 00000000 		.4byte	0x0
+ 1010 001c 00000000 		.4byte	0x0
+ 1011              	.LLST1:
+ 1012 0020 00000000 		.4byte	.LVL0
+ 1013 0024 1C000000 		.4byte	.LVL1
+ 1014 0028 0100     		.2byte	0x1
+ 1015 002a 50       		.byte	0x50
+ 1016 002b 00000000 		.4byte	0x0
+ 1017 002f 00000000 		.4byte	0x0
+ 1018              	.LLST2:
+ 1019 0033 00000000 		.4byte	.LFB1
+ 1020 0037 02000000 		.4byte	.LCFI1
+ 1021 003b 0200     		.2byte	0x2
+ 1022 003d 7D       		.byte	0x7d
+ 1023 003e 00       		.sleb128 0
+ 1024 003f 02000000 		.4byte	.LCFI1
+ 1025 0043 2C000000 		.4byte	.LFE1
+ 1026 0047 0200     		.2byte	0x2
+ 1027 0049 7D       		.byte	0x7d
+ 1028 004a 10       		.sleb128 16
+ 1029 004b 00000000 		.4byte	0x0
+ 1030 004f 00000000 		.4byte	0x0
+ 1031              	.LLST3:
+ 1032 0053 00000000 		.4byte	.LVL2
+ 1033 0057 1C000000 		.4byte	.LVL3
+ 1034 005b 0100     		.2byte	0x1
+ 1035 005d 50       		.byte	0x50
+ 1036 005e 00000000 		.4byte	0x0
+ 1037 0062 00000000 		.4byte	0x0
+ 1038              	.LLST4:
+ 1039 0066 00000000 		.4byte	.LFB3
+ 1040 006a 02000000 		.4byte	.LCFI2
+ 1041 006e 0200     		.2byte	0x2
+ 1042 0070 7D       		.byte	0x7d
+ 1043 0071 00       		.sleb128 0
+ 1044 0072 02000000 		.4byte	.LCFI2
+ 1045 0076 50000000 		.4byte	.LFE3
+ 1046 007a 0200     		.2byte	0x2
+ 1047 007c 7D       		.byte	0x7d
+ 1048 007d 10       		.sleb128 16
+ 1049 007e 00000000 		.4byte	0x0
+ 1050 0082 00000000 		.4byte	0x0
+ 1051              	.LLST5:
+ 1052 0086 00000000 		.4byte	.LVL4
+ 1053 008a 08000000 		.4byte	.LVL5
+ 1054 008e 0100     		.2byte	0x1
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 26
+
+
+ 1055 0090 50       		.byte	0x50
+ 1056 0091 00000000 		.4byte	0x0
+ 1057 0095 00000000 		.4byte	0x0
+ 1058              	.LLST6:
+ 1059 0099 00000000 		.4byte	.LVL4
+ 1060 009d 0B000000 		.4byte	.LVL6-1
+ 1061 00a1 0100     		.2byte	0x1
+ 1062 00a3 51       		.byte	0x51
+ 1063 00a4 00000000 		.4byte	0x0
+ 1064 00a8 00000000 		.4byte	0x0
+ 1065              	.LLST7:
+ 1066 00ac 38000000 		.4byte	.LVL7
+ 1067 00b0 49000000 		.4byte	.LVL8-1
+ 1068 00b4 1200     		.2byte	0x12
+ 1069 00b6 03       		.byte	0x3
+ 1070 00b7 04000000 		.4byte	pygmyGlobalColors+4
+ 1071 00bb 94       		.byte	0x94
+ 1072 00bc 01       		.byte	0x1
+ 1073 00bd 34       		.byte	0x34
+ 1074 00be 24       		.byte	0x24
+ 1075 00bf 03       		.byte	0x3
+ 1076 00c0 05000000 		.4byte	pygmyGlobalColors+5
+ 1077 00c4 94       		.byte	0x94
+ 1078 00c5 01       		.byte	0x1
+ 1079 00c6 21       		.byte	0x21
+ 1080 00c7 9F       		.byte	0x9f
+ 1081 00c8 00000000 		.4byte	0x0
+ 1082 00cc 00000000 		.4byte	0x0
+ 1083              	.LLST8:
+ 1084 00d0 00000000 		.4byte	.LFB4
+ 1085 00d4 02000000 		.4byte	.LCFI3
+ 1086 00d8 0200     		.2byte	0x2
+ 1087 00da 7D       		.byte	0x7d
+ 1088 00db 00       		.sleb128 0
+ 1089 00dc 02000000 		.4byte	.LCFI3
+ 1090 00e0 54000000 		.4byte	.LFE4
+ 1091 00e4 0200     		.2byte	0x2
+ 1092 00e6 7D       		.byte	0x7d
+ 1093 00e7 10       		.sleb128 16
+ 1094 00e8 00000000 		.4byte	0x0
+ 1095 00ec 00000000 		.4byte	0x0
+ 1096              	.LLST9:
+ 1097 00f0 00000000 		.4byte	.LVL9
+ 1098 00f4 08000000 		.4byte	.LVL10
+ 1099 00f8 0100     		.2byte	0x1
+ 1100 00fa 50       		.byte	0x50
+ 1101 00fb 00000000 		.4byte	0x0
+ 1102 00ff 00000000 		.4byte	0x0
+ 1103              	.LLST10:
+ 1104 0103 00000000 		.4byte	.LVL9
+ 1105 0107 0B000000 		.4byte	.LVL11-1
+ 1106 010b 0100     		.2byte	0x1
+ 1107 010d 51       		.byte	0x51
+ 1108 010e 00000000 		.4byte	0x0
+ 1109 0112 00000000 		.4byte	0x0
+ 1110              	.LLST11:
+ 1111 0116 38000000 		.4byte	.LVL12
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 27
+
+
+ 1112 011a 45000000 		.4byte	.LVL13-1
+ 1113 011e 1200     		.2byte	0x12
+ 1114 0120 03       		.byte	0x3
+ 1115 0121 01000000 		.4byte	pygmyGlobalColors+1
+ 1116 0125 94       		.byte	0x94
+ 1117 0126 01       		.byte	0x1
+ 1118 0127 34       		.byte	0x34
+ 1119 0128 24       		.byte	0x24
+ 1120 0129 03       		.byte	0x3
+ 1121 012a 02000000 		.4byte	pygmyGlobalColors+2
+ 1122 012e 94       		.byte	0x94
+ 1123 012f 01       		.byte	0x1
+ 1124 0130 21       		.byte	0x21
+ 1125 0131 9F       		.byte	0x9f
+ 1126 0132 00000000 		.4byte	0x0
+ 1127 0136 00000000 		.4byte	0x0
+ 1128              	.LLST12:
+ 1129 013a 00000000 		.4byte	.LFB13
+ 1130 013e 02000000 		.4byte	.LCFI4
+ 1131 0142 0200     		.2byte	0x2
+ 1132 0144 7D       		.byte	0x7d
+ 1133 0145 00       		.sleb128 0
+ 1134 0146 02000000 		.4byte	.LCFI4
+ 1135 014a 3C000000 		.4byte	.LFE13
+ 1136 014e 0200     		.2byte	0x2
+ 1137 0150 7D       		.byte	0x7d
+ 1138 0151 08       		.sleb128 8
+ 1139 0152 00000000 		.4byte	0x0
+ 1140 0156 00000000 		.4byte	0x0
+ 1141              	.LLST13:
+ 1142 015a 00000000 		.4byte	.LVL17
+ 1143 015e 0C000000 		.4byte	.LVL18
+ 1144 0162 0100     		.2byte	0x1
+ 1145 0164 50       		.byte	0x50
+ 1146 0165 14000000 		.4byte	.LVL21
+ 1147 0169 20000000 		.4byte	.LVL24
+ 1148 016d 0100     		.2byte	0x1
+ 1149 016f 50       		.byte	0x50
+ 1150 0170 20000000 		.4byte	.LVL24
+ 1151 0174 2C000000 		.4byte	.LVL27
+ 1152 0178 0100     		.2byte	0x1
+ 1153 017a 50       		.byte	0x50
+ 1154 017b 2C000000 		.4byte	.LVL27
+ 1155 017f 30000000 		.4byte	.LVL29
+ 1156 0183 0100     		.2byte	0x1
+ 1157 0185 50       		.byte	0x50
+ 1158 0186 30000000 		.4byte	.LVL29
+ 1159 018a 3C000000 		.4byte	.LFE13
+ 1160 018e 0100     		.2byte	0x1
+ 1161 0190 50       		.byte	0x50
+ 1162 0191 00000000 		.4byte	0x0
+ 1163 0195 00000000 		.4byte	0x0
+ 1164              	.LLST14:
+ 1165 0199 00000000 		.4byte	.LVL17
+ 1166 019d 10000000 		.4byte	.LVL19
+ 1167 01a1 0100     		.2byte	0x1
+ 1168 01a3 51       		.byte	0x51
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 28
+
+
+ 1169 01a4 16000000 		.4byte	.LVL22
+ 1170 01a8 22000000 		.4byte	.LVL25
+ 1171 01ac 0100     		.2byte	0x1
+ 1172 01ae 51       		.byte	0x51
+ 1173 01af 22000000 		.4byte	.LVL25
+ 1174 01b3 2E000000 		.4byte	.LVL28
+ 1175 01b7 0100     		.2byte	0x1
+ 1176 01b9 51       		.byte	0x51
+ 1177 01ba 2E000000 		.4byte	.LVL28
+ 1178 01be 30000000 		.4byte	.LVL29
+ 1179 01c2 0100     		.2byte	0x1
+ 1180 01c4 51       		.byte	0x51
+ 1181 01c5 30000000 		.4byte	.LVL29
+ 1182 01c9 3C000000 		.4byte	.LFE13
+ 1183 01cd 0100     		.2byte	0x1
+ 1184 01cf 51       		.byte	0x51
+ 1185 01d0 00000000 		.4byte	0x0
+ 1186 01d4 00000000 		.4byte	0x0
+ 1187              	.LLST15:
+ 1188 01d8 00000000 		.4byte	.LVL17
+ 1189 01dc 12000000 		.4byte	.LVL20
+ 1190 01e0 0100     		.2byte	0x1
+ 1191 01e2 52       		.byte	0x52
+ 1192 01e3 18000000 		.4byte	.LVL23
+ 1193 01e7 24000000 		.4byte	.LVL26
+ 1194 01eb 0100     		.2byte	0x1
+ 1195 01ed 52       		.byte	0x52
+ 1196 01ee 24000000 		.4byte	.LVL26
+ 1197 01f2 30000000 		.4byte	.LVL29
+ 1198 01f6 0100     		.2byte	0x1
+ 1199 01f8 52       		.byte	0x52
+ 1200 01f9 30000000 		.4byte	.LVL29
+ 1201 01fd 3C000000 		.4byte	.LFE13
+ 1202 0201 0100     		.2byte	0x1
+ 1203 0203 52       		.byte	0x52
+ 1204 0204 00000000 		.4byte	0x0
+ 1205 0208 00000000 		.4byte	0x0
+ 1206              	.LLST16:
+ 1207 020c 00000000 		.4byte	.LFB14
+ 1208 0210 02000000 		.4byte	.LCFI5
+ 1209 0214 0200     		.2byte	0x2
+ 1210 0216 7D       		.byte	0x7d
+ 1211 0217 00       		.sleb128 0
+ 1212 0218 02000000 		.4byte	.LCFI5
+ 1213 021c 3C000000 		.4byte	.LFE14
+ 1214 0220 0200     		.2byte	0x2
+ 1215 0222 7D       		.byte	0x7d
+ 1216 0223 08       		.sleb128 8
+ 1217 0224 00000000 		.4byte	0x0
+ 1218 0228 00000000 		.4byte	0x0
+ 1219              	.LLST17:
+ 1220 022c 00000000 		.4byte	.LVL30
+ 1221 0230 0C000000 		.4byte	.LVL31
+ 1222 0234 0100     		.2byte	0x1
+ 1223 0236 50       		.byte	0x50
+ 1224 0237 14000000 		.4byte	.LVL34
+ 1225 023b 20000000 		.4byte	.LVL37
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 29
+
+
+ 1226 023f 0100     		.2byte	0x1
+ 1227 0241 50       		.byte	0x50
+ 1228 0242 20000000 		.4byte	.LVL37
+ 1229 0246 2C000000 		.4byte	.LVL40
+ 1230 024a 0100     		.2byte	0x1
+ 1231 024c 50       		.byte	0x50
+ 1232 024d 2C000000 		.4byte	.LVL40
+ 1233 0251 30000000 		.4byte	.LVL42
+ 1234 0255 0100     		.2byte	0x1
+ 1235 0257 50       		.byte	0x50
+ 1236 0258 30000000 		.4byte	.LVL42
+ 1237 025c 3C000000 		.4byte	.LFE14
+ 1238 0260 0100     		.2byte	0x1
+ 1239 0262 50       		.byte	0x50
+ 1240 0263 00000000 		.4byte	0x0
+ 1241 0267 00000000 		.4byte	0x0
+ 1242              	.LLST18:
+ 1243 026b 00000000 		.4byte	.LVL30
+ 1244 026f 10000000 		.4byte	.LVL32
+ 1245 0273 0100     		.2byte	0x1
+ 1246 0275 51       		.byte	0x51
+ 1247 0276 16000000 		.4byte	.LVL35
+ 1248 027a 22000000 		.4byte	.LVL38
+ 1249 027e 0100     		.2byte	0x1
+ 1250 0280 51       		.byte	0x51
+ 1251 0281 22000000 		.4byte	.LVL38
+ 1252 0285 2E000000 		.4byte	.LVL41
+ 1253 0289 0100     		.2byte	0x1
+ 1254 028b 51       		.byte	0x51
+ 1255 028c 2E000000 		.4byte	.LVL41
+ 1256 0290 30000000 		.4byte	.LVL42
+ 1257 0294 0100     		.2byte	0x1
+ 1258 0296 51       		.byte	0x51
+ 1259 0297 30000000 		.4byte	.LVL42
+ 1260 029b 3C000000 		.4byte	.LFE14
+ 1261 029f 0100     		.2byte	0x1
+ 1262 02a1 51       		.byte	0x51
+ 1263 02a2 00000000 		.4byte	0x0
+ 1264 02a6 00000000 		.4byte	0x0
+ 1265              	.LLST19:
+ 1266 02aa 00000000 		.4byte	.LVL30
+ 1267 02ae 12000000 		.4byte	.LVL33
+ 1268 02b2 0100     		.2byte	0x1
+ 1269 02b4 52       		.byte	0x52
+ 1270 02b5 18000000 		.4byte	.LVL36
+ 1271 02b9 24000000 		.4byte	.LVL39
+ 1272 02bd 0100     		.2byte	0x1
+ 1273 02bf 52       		.byte	0x52
+ 1274 02c0 24000000 		.4byte	.LVL39
+ 1275 02c4 30000000 		.4byte	.LVL42
+ 1276 02c8 0100     		.2byte	0x1
+ 1277 02ca 52       		.byte	0x52
+ 1278 02cb 30000000 		.4byte	.LVL42
+ 1279 02cf 3C000000 		.4byte	.LFE14
+ 1280 02d3 0100     		.2byte	0x1
+ 1281 02d5 52       		.byte	0x52
+ 1282 02d6 00000000 		.4byte	0x0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 30
+
+
+ 1283 02da 00000000 		.4byte	0x0
+ 1284              	.LLST20:
+ 1285 02de 00000000 		.4byte	.LFB15
+ 1286 02e2 04000000 		.4byte	.LCFI6
+ 1287 02e6 0200     		.2byte	0x2
+ 1288 02e8 7D       		.byte	0x7d
+ 1289 02e9 00       		.sleb128 0
+ 1290 02ea 04000000 		.4byte	.LCFI6
+ 1291 02ee 70000000 		.4byte	.LFE15
+ 1292 02f2 0200     		.2byte	0x2
+ 1293 02f4 7D       		.byte	0x7d
+ 1294 02f5 20       		.sleb128 32
+ 1295 02f6 00000000 		.4byte	0x0
+ 1296 02fa 00000000 		.4byte	0x0
+ 1297              	.LLST21:
+ 1298 02fe 00000000 		.4byte	.LVL43
+ 1299 0302 14000000 		.4byte	.LVL45
+ 1300 0306 0100     		.2byte	0x1
+ 1301 0308 50       		.byte	0x50
+ 1302 0309 00000000 		.4byte	0x0
+ 1303 030d 00000000 		.4byte	0x0
+ 1304              	.LLST22:
+ 1305 0311 00000000 		.4byte	.LVL43
+ 1306 0315 1D000000 		.4byte	.LVL46-1
+ 1307 0319 0100     		.2byte	0x1
+ 1308 031b 51       		.byte	0x51
+ 1309 031c 48000000 		.4byte	.LVL48
+ 1310 0320 62000000 		.4byte	.LVL52
+ 1311 0324 0100     		.2byte	0x1
+ 1312 0326 55       		.byte	0x55
+ 1313 0327 64000000 		.4byte	.LVL53
+ 1314 032b 70000000 		.4byte	.LFE15
+ 1315 032f 0100     		.2byte	0x1
+ 1316 0331 55       		.byte	0x55
+ 1317 0332 00000000 		.4byte	0x0
+ 1318 0336 00000000 		.4byte	0x0
+ 1319              	.LLST23:
+ 1320 033a 00000000 		.4byte	.LVL43
+ 1321 033e 1D000000 		.4byte	.LVL46-1
+ 1322 0342 0100     		.2byte	0x1
+ 1323 0344 52       		.byte	0x52
+ 1324 0345 00000000 		.4byte	0x0
+ 1325 0349 00000000 		.4byte	0x0
+ 1326              	.LLST24:
+ 1327 034d 00000000 		.4byte	.LVL43
+ 1328 0351 0E000000 		.4byte	.LVL44
+ 1329 0355 0100     		.2byte	0x1
+ 1330 0357 53       		.byte	0x53
+ 1331 0358 00000000 		.4byte	0x0
+ 1332 035c 00000000 		.4byte	0x0
+ 1333              	.LLST25:
+ 1334 0360 4A000000 		.4byte	.LVL49
+ 1335 0364 4C000000 		.4byte	.LVL50
+ 1336 0368 0100     		.2byte	0x1
+ 1337 036a 54       		.byte	0x54
+ 1338 036b 4C000000 		.4byte	.LVL50
+ 1339 036f 5C000000 		.4byte	.LVL51
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 31
+
+
+ 1340 0373 0100     		.2byte	0x1
+ 1341 0375 58       		.byte	0x58
+ 1342 0376 5C000000 		.4byte	.LVL51
+ 1343 037a 64000000 		.4byte	.LVL53
+ 1344 037e 0100     		.2byte	0x1
+ 1345 0380 58       		.byte	0x58
+ 1346 0381 00000000 		.4byte	0x0
+ 1347 0385 00000000 		.4byte	0x0
+ 1348              	.LLST26:
+ 1349 0389 00000000 		.4byte	.LFB16
+ 1350 038d 02000000 		.4byte	.LCFI7
+ 1351 0391 0200     		.2byte	0x2
+ 1352 0393 7D       		.byte	0x7d
+ 1353 0394 00       		.sleb128 0
+ 1354 0395 02000000 		.4byte	.LCFI7
+ 1355 0399 50000000 		.4byte	.LFE16
+ 1356 039d 0200     		.2byte	0x2
+ 1357 039f 7D       		.byte	0x7d
+ 1358 03a0 10       		.sleb128 16
+ 1359 03a1 00000000 		.4byte	0x0
+ 1360 03a5 00000000 		.4byte	0x0
+ 1361              	.LLST27:
+ 1362 03a9 2C000000 		.4byte	.LVL54
+ 1363 03ad 30000000 		.4byte	.LVL55
+ 1364 03b1 0200     		.2byte	0x2
+ 1365 03b3 30       		.byte	0x30
+ 1366 03b4 9F       		.byte	0x9f
+ 1367 03b5 00000000 		.4byte	0x0
+ 1368 03b9 00000000 		.4byte	0x0
+ 1369              	.LLST28:
+ 1370 03bd 00000000 		.4byte	.LFB2
+ 1371 03c1 02000000 		.4byte	.LCFI8
+ 1372 03c5 0200     		.2byte	0x2
+ 1373 03c7 7D       		.byte	0x7d
+ 1374 03c8 00       		.sleb128 0
+ 1375 03c9 02000000 		.4byte	.LCFI8
+ 1376 03cd C8000000 		.4byte	.LFE2
+ 1377 03d1 0200     		.2byte	0x2
+ 1378 03d3 7D       		.byte	0x7d
+ 1379 03d4 10       		.sleb128 16
+ 1380 03d5 00000000 		.4byte	0x0
+ 1381 03d9 00000000 		.4byte	0x0
+ 1382              		.file 2 "c:/users/mightydubster/ride7/pygmy/pygmy_sys.h"
+ 1383              		.file 3 "c:/users/mightydubster/ride7/pygmy/pygmy_port.h"
+ 1384              		.file 4 "c:/users/mightydubster/ride7/pygmy/pygmy_com.h"
+ 1385              		.file 5 "c:/users/mightydubster/ride7/pygmy/pygmy_file.h"
+ 1386              		.file 6 "c:/users/mightydubster/ride7/pygmy/pygmy_gui.h"
+ 1387              		.section	.debug_info
+ 1388 0000 2D090000 		.4byte	0x92d
+ 1389 0004 0200     		.2byte	0x2
+ 1390 0006 00000000 		.4byte	.Ldebug_abbrev0
+ 1391 000a 04       		.byte	0x4
+ 1392 000b 01       		.uleb128 0x1
+ 1393 000c 5F010000 		.4byte	.LASF107
+ 1394 0010 01       		.byte	0x1
+ 1395 0011 75010000 		.4byte	.LASF108
+ 1396 0015 00000000 		.4byte	0x0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 32
+
+
+ 1397 0019 00000000 		.4byte	0x0
+ 1398 001d 00000000 		.4byte	.Ldebug_ranges0+0x0
+ 1399 0021 00000000 		.4byte	.Ldebug_line0
+ 1400 0025 02       		.uleb128 0x2
+ 1401 0026 08       		.byte	0x8
+ 1402 0027 05       		.byte	0x5
+ 1403 0028 EC010000 		.4byte	.LASF0
+ 1404 002c 02       		.uleb128 0x2
+ 1405 002d 04       		.byte	0x4
+ 1406 002e 05       		.byte	0x5
+ 1407 002f 74020000 		.4byte	.LASF1
+ 1408 0033 02       		.uleb128 0x2
+ 1409 0034 02       		.byte	0x2
+ 1410 0035 05       		.byte	0x5
+ 1411 0036 6A020000 		.4byte	.LASF2
+ 1412 003a 02       		.uleb128 0x2
+ 1413 003b 01       		.byte	0x1
+ 1414 003c 06       		.byte	0x6
+ 1415 003d 65030000 		.4byte	.LASF3
+ 1416 0041 02       		.uleb128 0x2
+ 1417 0042 08       		.byte	0x8
+ 1418 0043 07       		.byte	0x7
+ 1419 0044 A0000000 		.4byte	.LASF4
+ 1420 0048 03       		.uleb128 0x3
+ 1421 0049 75333200 		.ascii	"u32\000"
+ 1422 004d 02       		.byte	0x2
+ 1423 004e 2C       		.byte	0x2c
+ 1424 004f 53000000 		.4byte	0x53
+ 1425 0053 02       		.uleb128 0x2
+ 1426 0054 04       		.byte	0x4
+ 1427 0055 07       		.byte	0x7
+ 1428 0056 F7020000 		.4byte	.LASF5
+ 1429 005a 03       		.uleb128 0x3
+ 1430 005b 75313600 		.ascii	"u16\000"
+ 1431 005f 02       		.byte	0x2
+ 1432 0060 2D       		.byte	0x2d
+ 1433 0061 65000000 		.4byte	0x65
+ 1434 0065 02       		.uleb128 0x2
+ 1435 0066 02       		.byte	0x2
+ 1436 0067 07       		.byte	0x7
+ 1437 0068 71030000 		.4byte	.LASF6
+ 1438 006c 03       		.uleb128 0x3
+ 1439 006d 753800   		.ascii	"u8\000"
+ 1440 0070 02       		.byte	0x2
+ 1441 0071 2E       		.byte	0x2e
+ 1442 0072 76000000 		.4byte	0x76
+ 1443 0076 02       		.uleb128 0x2
+ 1444 0077 01       		.byte	0x1
+ 1445 0078 08       		.byte	0x8
+ 1446 0079 1C030000 		.4byte	.LASF7
+ 1447 007d 04       		.uleb128 0x4
+ 1448 007e 53000000 		.4byte	0x53
+ 1449 0082 05       		.uleb128 0x5
+ 1450 0083 04       		.byte	0x4
+ 1451 0084 6C000000 		.4byte	0x6c
+ 1452 0088 02       		.uleb128 0x2
+ 1453 0089 04       		.byte	0x4
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 33
+
+
+ 1454 008a 07       		.byte	0x7
+ 1455 008b 20000000 		.4byte	.LASF8
+ 1456 008f 06       		.uleb128 0x6
+ 1457 0090 04       		.byte	0x4
+ 1458 0091 07       		.uleb128 0x7
+ 1459 0092 1C       		.byte	0x1c
+ 1460 0093 03       		.byte	0x3
+ 1461 0094 A101     		.2byte	0x1a1
+ 1462 0096 04010000 		.4byte	0x104
+ 1463 009a 08       		.uleb128 0x8
+ 1464 009b 43524C00 		.ascii	"CRL\000"
+ 1465 009f 03       		.byte	0x3
+ 1466 00a0 A201     		.2byte	0x1a2
+ 1467 00a2 7D000000 		.4byte	0x7d
+ 1468 00a6 02       		.byte	0x2
+ 1469 00a7 23       		.byte	0x23
+ 1470 00a8 00       		.uleb128 0x0
+ 1471 00a9 08       		.uleb128 0x8
+ 1472 00aa 43524800 		.ascii	"CRH\000"
+ 1473 00ae 03       		.byte	0x3
+ 1474 00af A301     		.2byte	0x1a3
+ 1475 00b1 7D000000 		.4byte	0x7d
+ 1476 00b5 02       		.byte	0x2
+ 1477 00b6 23       		.byte	0x23
+ 1478 00b7 04       		.uleb128 0x4
+ 1479 00b8 08       		.uleb128 0x8
+ 1480 00b9 49445200 		.ascii	"IDR\000"
+ 1481 00bd 03       		.byte	0x3
+ 1482 00be A401     		.2byte	0x1a4
+ 1483 00c0 7D000000 		.4byte	0x7d
+ 1484 00c4 02       		.byte	0x2
+ 1485 00c5 23       		.byte	0x23
+ 1486 00c6 08       		.uleb128 0x8
+ 1487 00c7 08       		.uleb128 0x8
+ 1488 00c8 4F445200 		.ascii	"ODR\000"
+ 1489 00cc 03       		.byte	0x3
+ 1490 00cd A501     		.2byte	0x1a5
+ 1491 00cf 7D000000 		.4byte	0x7d
+ 1492 00d3 02       		.byte	0x2
+ 1493 00d4 23       		.byte	0x23
+ 1494 00d5 0C       		.uleb128 0xc
+ 1495 00d6 09       		.uleb128 0x9
+ 1496 00d7 00000000 		.4byte	.LASF9
+ 1497 00db 03       		.byte	0x3
+ 1498 00dc A601     		.2byte	0x1a6
+ 1499 00de 7D000000 		.4byte	0x7d
+ 1500 00e2 02       		.byte	0x2
+ 1501 00e3 23       		.byte	0x23
+ 1502 00e4 10       		.uleb128 0x10
+ 1503 00e5 08       		.uleb128 0x8
+ 1504 00e6 42525200 		.ascii	"BRR\000"
+ 1505 00ea 03       		.byte	0x3
+ 1506 00eb A701     		.2byte	0x1a7
+ 1507 00ed 7D000000 		.4byte	0x7d
+ 1508 00f1 02       		.byte	0x2
+ 1509 00f2 23       		.byte	0x23
+ 1510 00f3 14       		.uleb128 0x14
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 34
+
+
+ 1511 00f4 09       		.uleb128 0x9
+ 1512 00f5 B9030000 		.4byte	.LASF10
+ 1513 00f9 03       		.byte	0x3
+ 1514 00fa A801     		.2byte	0x1a8
+ 1515 00fc 7D000000 		.4byte	0x7d
+ 1516 0100 02       		.byte	0x2
+ 1517 0101 23       		.byte	0x23
+ 1518 0102 18       		.uleb128 0x18
+ 1519 0103 00       		.byte	0x0
+ 1520 0104 0A       		.uleb128 0xa
+ 1521 0105 46000000 		.4byte	.LASF11
+ 1522 0109 03       		.byte	0x3
+ 1523 010a A901     		.2byte	0x1a9
+ 1524 010c 91000000 		.4byte	0x91
+ 1525 0110 0B       		.uleb128 0xb
+ 1526 0111 01       		.byte	0x1
+ 1527 0112 03       		.byte	0x3
+ 1528 0113 F602     		.2byte	0x2f6
+ 1529 0115 7A030000 		.4byte	0x37a
+ 1530 0119 0C       		.uleb128 0xc
+ 1531 011a 50413000 		.ascii	"PA0\000"
+ 1532 011e 00       		.sleb128 0
+ 1533 011f 0C       		.uleb128 0xc
+ 1534 0120 50413100 		.ascii	"PA1\000"
+ 1535 0124 01       		.sleb128 1
+ 1536 0125 0C       		.uleb128 0xc
+ 1537 0126 50413200 		.ascii	"PA2\000"
+ 1538 012a 02       		.sleb128 2
+ 1539 012b 0C       		.uleb128 0xc
+ 1540 012c 50413300 		.ascii	"PA3\000"
+ 1541 0130 03       		.sleb128 3
+ 1542 0131 0C       		.uleb128 0xc
+ 1543 0132 50413400 		.ascii	"PA4\000"
+ 1544 0136 04       		.sleb128 4
+ 1545 0137 0C       		.uleb128 0xc
+ 1546 0138 50413500 		.ascii	"PA5\000"
+ 1547 013c 05       		.sleb128 5
+ 1548 013d 0C       		.uleb128 0xc
+ 1549 013e 50413600 		.ascii	"PA6\000"
+ 1550 0142 06       		.sleb128 6
+ 1551 0143 0C       		.uleb128 0xc
+ 1552 0144 50413700 		.ascii	"PA7\000"
+ 1553 0148 07       		.sleb128 7
+ 1554 0149 0C       		.uleb128 0xc
+ 1555 014a 50413800 		.ascii	"PA8\000"
+ 1556 014e 08       		.sleb128 8
+ 1557 014f 0C       		.uleb128 0xc
+ 1558 0150 50413900 		.ascii	"PA9\000"
+ 1559 0154 09       		.sleb128 9
+ 1560 0155 0D       		.uleb128 0xd
+ 1561 0156 BE020000 		.4byte	.LASF12
+ 1562 015a 0A       		.sleb128 10
+ 1563 015b 0D       		.uleb128 0xd
+ 1564 015c C3020000 		.4byte	.LASF13
+ 1565 0160 0B       		.sleb128 11
+ 1566 0161 0D       		.uleb128 0xd
+ 1567 0162 C8020000 		.4byte	.LASF14
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 35
+
+
+ 1568 0166 0C       		.sleb128 12
+ 1569 0167 0D       		.uleb128 0xd
+ 1570 0168 CD020000 		.4byte	.LASF15
+ 1571 016c 0D       		.sleb128 13
+ 1572 016d 0D       		.uleb128 0xd
+ 1573 016e D2020000 		.4byte	.LASF16
+ 1574 0172 0E       		.sleb128 14
+ 1575 0173 0D       		.uleb128 0xd
+ 1576 0174 D7020000 		.4byte	.LASF17
+ 1577 0178 0F       		.sleb128 15
+ 1578 0179 0C       		.uleb128 0xc
+ 1579 017a 50423000 		.ascii	"PB0\000"
+ 1580 017e 10       		.sleb128 16
+ 1581 017f 0C       		.uleb128 0xc
+ 1582 0180 50423100 		.ascii	"PB1\000"
+ 1583 0184 11       		.sleb128 17
+ 1584 0185 0C       		.uleb128 0xc
+ 1585 0186 50423200 		.ascii	"PB2\000"
+ 1586 018a 12       		.sleb128 18
+ 1587 018b 0C       		.uleb128 0xc
+ 1588 018c 50423300 		.ascii	"PB3\000"
+ 1589 0190 13       		.sleb128 19
+ 1590 0191 0C       		.uleb128 0xc
+ 1591 0192 50423400 		.ascii	"PB4\000"
+ 1592 0196 14       		.sleb128 20
+ 1593 0197 0C       		.uleb128 0xc
+ 1594 0198 50423500 		.ascii	"PB5\000"
+ 1595 019c 15       		.sleb128 21
+ 1596 019d 0C       		.uleb128 0xc
+ 1597 019e 50423600 		.ascii	"PB6\000"
+ 1598 01a2 16       		.sleb128 22
+ 1599 01a3 0C       		.uleb128 0xc
+ 1600 01a4 50423700 		.ascii	"PB7\000"
+ 1601 01a8 17       		.sleb128 23
+ 1602 01a9 0C       		.uleb128 0xc
+ 1603 01aa 50423800 		.ascii	"PB8\000"
+ 1604 01ae 18       		.sleb128 24
+ 1605 01af 0C       		.uleb128 0xc
+ 1606 01b0 50423900 		.ascii	"PB9\000"
+ 1607 01b4 19       		.sleb128 25
+ 1608 01b5 0D       		.uleb128 0xd
+ 1609 01b6 5B000000 		.4byte	.LASF18
+ 1610 01ba 1A       		.sleb128 26
+ 1611 01bb 0D       		.uleb128 0xd
+ 1612 01bc 60000000 		.4byte	.LASF19
+ 1613 01c0 1B       		.sleb128 27
+ 1614 01c1 0D       		.uleb128 0xd
+ 1615 01c2 65000000 		.4byte	.LASF20
+ 1616 01c6 1C       		.sleb128 28
+ 1617 01c7 0D       		.uleb128 0xd
+ 1618 01c8 6A000000 		.4byte	.LASF21
+ 1619 01cc 1D       		.sleb128 29
+ 1620 01cd 0D       		.uleb128 0xd
+ 1621 01ce 6F000000 		.4byte	.LASF22
+ 1622 01d2 1E       		.sleb128 30
+ 1623 01d3 0D       		.uleb128 0xd
+ 1624 01d4 74000000 		.4byte	.LASF23
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 36
+
+
+ 1625 01d8 1F       		.sleb128 31
+ 1626 01d9 0C       		.uleb128 0xc
+ 1627 01da 50433000 		.ascii	"PC0\000"
+ 1628 01de 20       		.sleb128 32
+ 1629 01df 0C       		.uleb128 0xc
+ 1630 01e0 50433100 		.ascii	"PC1\000"
+ 1631 01e4 21       		.sleb128 33
+ 1632 01e5 0C       		.uleb128 0xc
+ 1633 01e6 50433200 		.ascii	"PC2\000"
+ 1634 01ea 22       		.sleb128 34
+ 1635 01eb 0C       		.uleb128 0xc
+ 1636 01ec 50433300 		.ascii	"PC3\000"
+ 1637 01f0 23       		.sleb128 35
+ 1638 01f1 0C       		.uleb128 0xc
+ 1639 01f2 50433400 		.ascii	"PC4\000"
+ 1640 01f6 24       		.sleb128 36
+ 1641 01f7 0C       		.uleb128 0xc
+ 1642 01f8 50433500 		.ascii	"PC5\000"
+ 1643 01fc 25       		.sleb128 37
+ 1644 01fd 0C       		.uleb128 0xc
+ 1645 01fe 50433600 		.ascii	"PC6\000"
+ 1646 0202 26       		.sleb128 38
+ 1647 0203 0C       		.uleb128 0xc
+ 1648 0204 50433700 		.ascii	"PC7\000"
+ 1649 0208 27       		.sleb128 39
+ 1650 0209 0C       		.uleb128 0xc
+ 1651 020a 50433800 		.ascii	"PC8\000"
+ 1652 020e 28       		.sleb128 40
+ 1653 020f 0C       		.uleb128 0xc
+ 1654 0210 50433900 		.ascii	"PC9\000"
+ 1655 0214 29       		.sleb128 41
+ 1656 0215 0D       		.uleb128 0xd
+ 1657 0216 1F020000 		.4byte	.LASF24
+ 1658 021a 2A       		.sleb128 42
+ 1659 021b 0D       		.uleb128 0xd
+ 1660 021c 24020000 		.4byte	.LASF25
+ 1661 0220 2B       		.sleb128 43
+ 1662 0221 0D       		.uleb128 0xd
+ 1663 0222 29020000 		.4byte	.LASF26
+ 1664 0226 2C       		.sleb128 44
+ 1665 0227 0D       		.uleb128 0xd
+ 1666 0228 2E020000 		.4byte	.LASF27
+ 1667 022c 2D       		.sleb128 45
+ 1668 022d 0D       		.uleb128 0xd
+ 1669 022e 33020000 		.4byte	.LASF28
+ 1670 0232 2E       		.sleb128 46
+ 1671 0233 0D       		.uleb128 0xd
+ 1672 0234 38020000 		.4byte	.LASF29
+ 1673 0238 2F       		.sleb128 47
+ 1674 0239 0C       		.uleb128 0xc
+ 1675 023a 50443000 		.ascii	"PD0\000"
+ 1676 023e 30       		.sleb128 48
+ 1677 023f 0C       		.uleb128 0xc
+ 1678 0240 50443100 		.ascii	"PD1\000"
+ 1679 0244 31       		.sleb128 49
+ 1680 0245 0C       		.uleb128 0xc
+ 1681 0246 50443200 		.ascii	"PD2\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 37
+
+
+ 1682 024a 32       		.sleb128 50
+ 1683 024b 0C       		.uleb128 0xc
+ 1684 024c 50443300 		.ascii	"PD3\000"
+ 1685 0250 33       		.sleb128 51
+ 1686 0251 0C       		.uleb128 0xc
+ 1687 0252 50443400 		.ascii	"PD4\000"
+ 1688 0256 34       		.sleb128 52
+ 1689 0257 0C       		.uleb128 0xc
+ 1690 0258 50443500 		.ascii	"PD5\000"
+ 1691 025c 35       		.sleb128 53
+ 1692 025d 0C       		.uleb128 0xc
+ 1693 025e 50443600 		.ascii	"PD6\000"
+ 1694 0262 36       		.sleb128 54
+ 1695 0263 0C       		.uleb128 0xc
+ 1696 0264 50443700 		.ascii	"PD7\000"
+ 1697 0268 37       		.sleb128 55
+ 1698 0269 0C       		.uleb128 0xc
+ 1699 026a 50443800 		.ascii	"PD8\000"
+ 1700 026e 38       		.sleb128 56
+ 1701 026f 0C       		.uleb128 0xc
+ 1702 0270 50443900 		.ascii	"PD9\000"
+ 1703 0274 39       		.sleb128 57
+ 1704 0275 0D       		.uleb128 0xd
+ 1705 0276 84030000 		.4byte	.LASF30
+ 1706 027a 3A       		.sleb128 58
+ 1707 027b 0D       		.uleb128 0xd
+ 1708 027c 89030000 		.4byte	.LASF31
+ 1709 0280 3B       		.sleb128 59
+ 1710 0281 0D       		.uleb128 0xd
+ 1711 0282 8E030000 		.4byte	.LASF32
+ 1712 0286 3C       		.sleb128 60
+ 1713 0287 0D       		.uleb128 0xd
+ 1714 0288 93030000 		.4byte	.LASF33
+ 1715 028c 3D       		.sleb128 61
+ 1716 028d 0D       		.uleb128 0xd
+ 1717 028e 98030000 		.4byte	.LASF34
+ 1718 0292 3E       		.sleb128 62
+ 1719 0293 0D       		.uleb128 0xd
+ 1720 0294 9D030000 		.4byte	.LASF35
+ 1721 0298 3F       		.sleb128 63
+ 1722 0299 0C       		.uleb128 0xc
+ 1723 029a 50453000 		.ascii	"PE0\000"
+ 1724 029e C000     		.sleb128 64
+ 1725 02a0 0C       		.uleb128 0xc
+ 1726 02a1 50453100 		.ascii	"PE1\000"
+ 1727 02a5 C100     		.sleb128 65
+ 1728 02a7 0C       		.uleb128 0xc
+ 1729 02a8 50453200 		.ascii	"PE2\000"
+ 1730 02ac C200     		.sleb128 66
+ 1731 02ae 0C       		.uleb128 0xc
+ 1732 02af 50453300 		.ascii	"PE3\000"
+ 1733 02b3 C300     		.sleb128 67
+ 1734 02b5 0C       		.uleb128 0xc
+ 1735 02b6 50453400 		.ascii	"PE4\000"
+ 1736 02ba C400     		.sleb128 68
+ 1737 02bc 0C       		.uleb128 0xc
+ 1738 02bd 50453500 		.ascii	"PE5\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 38
+
+
+ 1739 02c1 C500     		.sleb128 69
+ 1740 02c3 0C       		.uleb128 0xc
+ 1741 02c4 50453600 		.ascii	"PE6\000"
+ 1742 02c8 C600     		.sleb128 70
+ 1743 02ca 0C       		.uleb128 0xc
+ 1744 02cb 50453700 		.ascii	"PE7\000"
+ 1745 02cf C700     		.sleb128 71
+ 1746 02d1 0C       		.uleb128 0xc
+ 1747 02d2 50453800 		.ascii	"PE8\000"
+ 1748 02d6 C800     		.sleb128 72
+ 1749 02d8 0C       		.uleb128 0xc
+ 1750 02d9 50453900 		.ascii	"PE9\000"
+ 1751 02dd C900     		.sleb128 73
+ 1752 02df 0D       		.uleb128 0xd
+ 1753 02e0 19010000 		.4byte	.LASF36
+ 1754 02e4 CA00     		.sleb128 74
+ 1755 02e6 0D       		.uleb128 0xd
+ 1756 02e7 1E010000 		.4byte	.LASF37
+ 1757 02eb CB00     		.sleb128 75
+ 1758 02ed 0D       		.uleb128 0xd
+ 1759 02ee 23010000 		.4byte	.LASF38
+ 1760 02f2 CC00     		.sleb128 76
+ 1761 02f4 0D       		.uleb128 0xd
+ 1762 02f5 28010000 		.4byte	.LASF39
+ 1763 02f9 CD00     		.sleb128 77
+ 1764 02fb 0D       		.uleb128 0xd
+ 1765 02fc 2D010000 		.4byte	.LASF40
+ 1766 0300 CE00     		.sleb128 78
+ 1767 0302 0D       		.uleb128 0xd
+ 1768 0303 32010000 		.4byte	.LASF41
+ 1769 0307 CF00     		.sleb128 79
+ 1770 0309 0C       		.uleb128 0xc
+ 1771 030a 50463000 		.ascii	"PF0\000"
+ 1772 030e D000     		.sleb128 80
+ 1773 0310 0C       		.uleb128 0xc
+ 1774 0311 50463100 		.ascii	"PF1\000"
+ 1775 0315 D100     		.sleb128 81
+ 1776 0317 0C       		.uleb128 0xc
+ 1777 0318 50463200 		.ascii	"PF2\000"
+ 1778 031c D200     		.sleb128 82
+ 1779 031e 0C       		.uleb128 0xc
+ 1780 031f 50463300 		.ascii	"PF3\000"
+ 1781 0323 D300     		.sleb128 83
+ 1782 0325 0C       		.uleb128 0xc
+ 1783 0326 50463400 		.ascii	"PF4\000"
+ 1784 032a D400     		.sleb128 84
+ 1785 032c 0C       		.uleb128 0xc
+ 1786 032d 50463500 		.ascii	"PF5\000"
+ 1787 0331 D500     		.sleb128 85
+ 1788 0333 0C       		.uleb128 0xc
+ 1789 0334 50463600 		.ascii	"PF6\000"
+ 1790 0338 D600     		.sleb128 86
+ 1791 033a 0C       		.uleb128 0xc
+ 1792 033b 50463700 		.ascii	"PF7\000"
+ 1793 033f D700     		.sleb128 87
+ 1794 0341 0C       		.uleb128 0xc
+ 1795 0342 50463800 		.ascii	"PF8\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 39
+
+
+ 1796 0346 D800     		.sleb128 88
+ 1797 0348 0C       		.uleb128 0xc
+ 1798 0349 50463900 		.ascii	"PF9\000"
+ 1799 034d D900     		.sleb128 89
+ 1800 034f 0D       		.uleb128 0xd
+ 1801 0350 9A020000 		.4byte	.LASF42
+ 1802 0354 DA00     		.sleb128 90
+ 1803 0356 0D       		.uleb128 0xd
+ 1804 0357 9F020000 		.4byte	.LASF43
+ 1805 035b DB00     		.sleb128 91
+ 1806 035d 0D       		.uleb128 0xd
+ 1807 035e A4020000 		.4byte	.LASF44
+ 1808 0362 DC00     		.sleb128 92
+ 1809 0364 0D       		.uleb128 0xd
+ 1810 0365 A9020000 		.4byte	.LASF45
+ 1811 0369 DD00     		.sleb128 93
+ 1812 036b 0D       		.uleb128 0xd
+ 1813 036c AE020000 		.4byte	.LASF46
+ 1814 0370 DE00     		.sleb128 94
+ 1815 0372 0D       		.uleb128 0xd
+ 1816 0373 B3020000 		.4byte	.LASF47
+ 1817 0377 DF00     		.sleb128 95
+ 1818 0379 00       		.byte	0x0
+ 1819 037a 05       		.uleb128 0x5
+ 1820 037b 04       		.byte	0x4
+ 1821 037c 04010000 		.4byte	0x104
+ 1822 0380 07       		.uleb128 0x7
+ 1823 0381 18       		.byte	0x18
+ 1824 0382 04       		.byte	0x4
+ 1825 0383 4401     		.2byte	0x144
+ 1826 0385 02040000 		.4byte	0x402
+ 1827 0389 09       		.uleb128 0x9
+ 1828 038a 04020000 		.4byte	.LASF48
+ 1829 038e 04       		.byte	0x4
+ 1830 038f 4501     		.2byte	0x145
+ 1831 0391 7A030000 		.4byte	0x37a
+ 1832 0395 02       		.byte	0x2
+ 1833 0396 23       		.byte	0x23
+ 1834 0397 00       		.uleb128 0x0
+ 1835 0398 09       		.uleb128 0x9
+ 1836 0399 2A030000 		.4byte	.LASF49
+ 1837 039d 04       		.byte	0x4
+ 1838 039e 4601     		.2byte	0x146
+ 1839 03a0 7A030000 		.4byte	0x37a
+ 1840 03a4 02       		.byte	0x2
+ 1841 03a5 23       		.byte	0x23
+ 1842 03a6 04       		.uleb128 0x4
+ 1843 03a7 09       		.uleb128 0x9
+ 1844 03a8 B7000000 		.4byte	.LASF50
+ 1845 03ac 04       		.byte	0x4
+ 1846 03ad 4701     		.2byte	0x147
+ 1847 03af 7A030000 		.4byte	0x37a
+ 1848 03b3 02       		.byte	0x2
+ 1849 03b4 23       		.byte	0x23
+ 1850 03b5 08       		.uleb128 0x8
+ 1851 03b6 09       		.uleb128 0x9
+ 1852 03b7 C6000000 		.4byte	.LASF51
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 40
+
+
+ 1853 03bb 04       		.byte	0x4
+ 1854 03bc 4801     		.2byte	0x148
+ 1855 03be 7A030000 		.4byte	0x37a
+ 1856 03c2 02       		.byte	0x2
+ 1857 03c3 23       		.byte	0x23
+ 1858 03c4 0C       		.uleb128 0xc
+ 1859 03c5 09       		.uleb128 0x9
+ 1860 03c6 B8020000 		.4byte	.LASF52
+ 1861 03ca 04       		.byte	0x4
+ 1862 03cb 4901     		.2byte	0x149
+ 1863 03cd 5A000000 		.4byte	0x5a
+ 1864 03d1 02       		.byte	0x2
+ 1865 03d2 23       		.byte	0x23
+ 1866 03d3 10       		.uleb128 0x10
+ 1867 03d4 09       		.uleb128 0x9
+ 1868 03d5 8A000000 		.4byte	.LASF53
+ 1869 03d9 04       		.byte	0x4
+ 1870 03da 4A01     		.2byte	0x14a
+ 1871 03dc 5A000000 		.4byte	0x5a
+ 1872 03e0 02       		.byte	0x2
+ 1873 03e1 23       		.byte	0x23
+ 1874 03e2 12       		.uleb128 0x12
+ 1875 03e3 09       		.uleb128 0x9
+ 1876 03e4 3D020000 		.4byte	.LASF54
+ 1877 03e8 04       		.byte	0x4
+ 1878 03e9 4B01     		.2byte	0x14b
+ 1879 03eb 5A000000 		.4byte	0x5a
+ 1880 03ef 02       		.byte	0x2
+ 1881 03f0 23       		.byte	0x23
+ 1882 03f1 14       		.uleb128 0x14
+ 1883 03f2 09       		.uleb128 0x9
+ 1884 03f3 98000000 		.4byte	.LASF55
+ 1885 03f7 04       		.byte	0x4
+ 1886 03f8 4C01     		.2byte	0x14c
+ 1887 03fa 5A000000 		.4byte	0x5a
+ 1888 03fe 02       		.byte	0x2
+ 1889 03ff 23       		.byte	0x23
+ 1890 0400 16       		.uleb128 0x16
+ 1891 0401 00       		.byte	0x0
+ 1892 0402 0A       		.uleb128 0xa
+ 1893 0403 48010000 		.4byte	.LASF56
+ 1894 0407 04       		.byte	0x4
+ 1895 0408 4D01     		.2byte	0x14d
+ 1896 040a 80030000 		.4byte	0x380
+ 1897 040e 0E       		.uleb128 0xe
+ 1898 040f 6C000000 		.4byte	0x6c
+ 1899 0413 1E040000 		.4byte	0x41e
+ 1900 0417 0F       		.uleb128 0xf
+ 1901 0418 88000000 		.4byte	0x88
+ 1902 041c 0C       		.byte	0xc
+ 1903 041d 00       		.byte	0x0
+ 1904 041e 10       		.uleb128 0x10
+ 1905 041f 58020000 		.4byte	.LASF109
+ 1906 0423 28       		.byte	0x28
+ 1907 0424 05       		.byte	0x5
+ 1908 0425 7A       		.byte	0x7a
+ 1909 0426 9B040000 		.4byte	0x49b
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 41
+
+
+ 1910 042a 11       		.uleb128 0x11
+ 1911 042b 38000000 		.4byte	.LASF57
+ 1912 042f 05       		.byte	0x5
+ 1913 0430 7B       		.byte	0x7b
+ 1914 0431 48000000 		.4byte	0x48
+ 1915 0435 02       		.byte	0x2
+ 1916 0436 23       		.byte	0x23
+ 1917 0437 00       		.uleb128 0x0
+ 1918 0438 11       		.uleb128 0x11
+ 1919 0439 F6000000 		.4byte	.LASF58
+ 1920 043d 05       		.byte	0x5
+ 1921 043e 7C       		.byte	0x7c
+ 1922 043f 48000000 		.4byte	0x48
+ 1923 0443 02       		.byte	0x2
+ 1924 0444 23       		.byte	0x23
+ 1925 0445 04       		.uleb128 0x4
+ 1926 0446 11       		.uleb128 0x11
+ 1927 0447 09030000 		.4byte	.LASF59
+ 1928 044b 05       		.byte	0x5
+ 1929 044c 7D       		.byte	0x7d
+ 1930 044d 48000000 		.4byte	0x48
+ 1931 0451 02       		.byte	0x2
+ 1932 0452 23       		.byte	0x23
+ 1933 0453 08       		.uleb128 0x8
+ 1934 0454 11       		.uleb128 0x11
+ 1935 0455 80000000 		.4byte	.LASF60
+ 1936 0459 05       		.byte	0x5
+ 1937 045a 7E       		.byte	0x7e
+ 1938 045b 5A000000 		.4byte	0x5a
+ 1939 045f 02       		.byte	0x2
+ 1940 0460 23       		.byte	0x23
+ 1941 0461 0C       		.uleb128 0xc
+ 1942 0462 11       		.uleb128 0x11
+ 1943 0463 C8010000 		.4byte	.LASF61
+ 1944 0467 05       		.byte	0x5
+ 1945 0468 7F       		.byte	0x7f
+ 1946 0469 5A000000 		.4byte	0x5a
+ 1947 046d 02       		.byte	0x2
+ 1948 046e 23       		.byte	0x23
+ 1949 046f 0E       		.uleb128 0xe
+ 1950 0470 11       		.uleb128 0x11
+ 1951 0471 37010000 		.4byte	.LASF62
+ 1952 0475 05       		.byte	0x5
+ 1953 0476 80       		.byte	0x80
+ 1954 0477 6C000000 		.4byte	0x6c
+ 1955 047b 02       		.byte	0x2
+ 1956 047c 23       		.byte	0x23
+ 1957 047d 10       		.uleb128 0x10
+ 1958 047e 11       		.uleb128 0x11
+ 1959 047f DC020000 		.4byte	.LASF63
+ 1960 0483 05       		.byte	0x5
+ 1961 0484 81       		.byte	0x81
+ 1962 0485 82000000 		.4byte	0x82
+ 1963 0489 02       		.byte	0x2
+ 1964 048a 23       		.byte	0x23
+ 1965 048b 14       		.uleb128 0x14
+ 1966 048c 11       		.uleb128 0x11
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 42
+
+
+ 1967 048d EC000000 		.4byte	.LASF64
+ 1968 0491 05       		.byte	0x5
+ 1969 0492 82       		.byte	0x82
+ 1970 0493 0E040000 		.4byte	0x40e
+ 1971 0497 02       		.byte	0x2
+ 1972 0498 23       		.byte	0x23
+ 1973 0499 18       		.uleb128 0x18
+ 1974 049a 00       		.byte	0x0
+ 1975 049b 12       		.uleb128 0x12
+ 1976 049c 32030000 		.4byte	.LASF65
+ 1977 04a0 05       		.byte	0x5
+ 1978 04a1 83       		.byte	0x83
+ 1979 04a2 1E040000 		.4byte	0x41e
+ 1980 04a6 13       		.uleb128 0x13
+ 1981 04a7 06       		.byte	0x6
+ 1982 04a8 06       		.byte	0x6
+ 1983 04a9 6B       		.byte	0x6b
+ 1984 04aa D5040000 		.4byte	0x4d5
+ 1985 04ae 14       		.uleb128 0x14
+ 1986 04af 5800     		.ascii	"X\000"
+ 1987 04b1 06       		.byte	0x6
+ 1988 04b2 6C       		.byte	0x6c
+ 1989 04b3 5A000000 		.4byte	0x5a
+ 1990 04b7 02       		.byte	0x2
+ 1991 04b8 23       		.byte	0x23
+ 1992 04b9 00       		.uleb128 0x0
+ 1993 04ba 14       		.uleb128 0x14
+ 1994 04bb 5900     		.ascii	"Y\000"
+ 1995 04bd 06       		.byte	0x6
+ 1996 04be 6D       		.byte	0x6d
+ 1997 04bf 5A000000 		.4byte	0x5a
+ 1998 04c3 02       		.byte	0x2
+ 1999 04c4 23       		.byte	0x23
+ 2000 04c5 02       		.uleb128 0x2
+ 2001 04c6 11       		.uleb128 0x11
+ 2002 04c7 BD010000 		.4byte	.LASF66
+ 2003 04cb 06       		.byte	0x6
+ 2004 04cc 6E       		.byte	0x6e
+ 2005 04cd 5A000000 		.4byte	0x5a
+ 2006 04d1 02       		.byte	0x2
+ 2007 04d2 23       		.byte	0x23
+ 2008 04d3 04       		.uleb128 0x4
+ 2009 04d4 00       		.byte	0x0
+ 2010 04d5 12       		.uleb128 0x12
+ 2011 04d6 13020000 		.4byte	.LASF67
+ 2012 04da 06       		.byte	0x6
+ 2013 04db 6F       		.byte	0x6f
+ 2014 04dc A6040000 		.4byte	0x4a6
+ 2015 04e0 13       		.uleb128 0x13
+ 2016 04e1 03       		.byte	0x3
+ 2017 04e2 06       		.byte	0x6
+ 2018 04e3 71       		.byte	0x71
+ 2019 04e4 0D050000 		.4byte	0x50d
+ 2020 04e8 14       		.uleb128 0x14
+ 2021 04e9 5200     		.ascii	"R\000"
+ 2022 04eb 06       		.byte	0x6
+ 2023 04ec 72       		.byte	0x72
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 43
+
+
+ 2024 04ed 6C000000 		.4byte	0x6c
+ 2025 04f1 02       		.byte	0x2
+ 2026 04f2 23       		.byte	0x23
+ 2027 04f3 00       		.uleb128 0x0
+ 2028 04f4 14       		.uleb128 0x14
+ 2029 04f5 4700     		.ascii	"G\000"
+ 2030 04f7 06       		.byte	0x6
+ 2031 04f8 73       		.byte	0x73
+ 2032 04f9 6C000000 		.4byte	0x6c
+ 2033 04fd 02       		.byte	0x2
+ 2034 04fe 23       		.byte	0x23
+ 2035 04ff 01       		.uleb128 0x1
+ 2036 0500 14       		.uleb128 0x14
+ 2037 0501 4200     		.ascii	"B\000"
+ 2038 0503 06       		.byte	0x6
+ 2039 0504 74       		.byte	0x74
+ 2040 0505 6C000000 		.4byte	0x6c
+ 2041 0509 02       		.byte	0x2
+ 2042 050a 23       		.byte	0x23
+ 2043 050b 02       		.uleb128 0x2
+ 2044 050c 00       		.byte	0x0
+ 2045 050d 12       		.uleb128 0x12
+ 2046 050e 2D000000 		.4byte	.LASF68
+ 2047 0512 06       		.byte	0x6
+ 2048 0513 75       		.byte	0x75
+ 2049 0514 E0040000 		.4byte	0x4e0
+ 2050 0518 13       		.uleb128 0x13
+ 2051 0519 34       		.byte	0x34
+ 2052 051a 06       		.byte	0x6
+ 2053 051b 77       		.byte	0x77
+ 2054 051c 67050000 		.4byte	0x567
+ 2055 0520 11       		.uleb128 0x11
+ 2056 0521 3C030000 		.4byte	.LASF69
+ 2057 0525 06       		.byte	0x6
+ 2058 0526 7A       		.byte	0x7a
+ 2059 0527 0D050000 		.4byte	0x50d
+ 2060 052b 02       		.byte	0x2
+ 2061 052c 23       		.byte	0x23
+ 2062 052d 00       		.uleb128 0x0
+ 2063 052e 11       		.uleb128 0x11
+ 2064 052f 83020000 		.4byte	.LASF70
+ 2065 0533 06       		.byte	0x6
+ 2066 0534 7B       		.byte	0x7b
+ 2067 0535 0D050000 		.4byte	0x50d
+ 2068 0539 02       		.byte	0x2
+ 2069 053a 23       		.byte	0x23
+ 2070 053b 03       		.uleb128 0x3
+ 2071 053c 11       		.uleb128 0x11
+ 2072 053d F2020000 		.4byte	.LASF71
+ 2073 0541 06       		.byte	0x6
+ 2074 0542 7C       		.byte	0x7c
+ 2075 0543 9B040000 		.4byte	0x49b
+ 2076 0547 02       		.byte	0x2
+ 2077 0548 23       		.byte	0x23
+ 2078 0549 08       		.uleb128 0x8
+ 2079 054a 11       		.uleb128 0x11
+ 2080 054b FD000000 		.4byte	.LASF72
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 44
+
+
+ 2081 054f 06       		.byte	0x6
+ 2082 0550 7D       		.byte	0x7d
+ 2083 0551 5A000000 		.4byte	0x5a
+ 2084 0555 02       		.byte	0x2
+ 2085 0556 23       		.byte	0x23
+ 2086 0557 30       		.uleb128 0x30
+ 2087 0558 11       		.uleb128 0x11
+ 2088 0559 91000000 		.4byte	.LASF73
+ 2089 055d 06       		.byte	0x6
+ 2090 055e 7E       		.byte	0x7e
+ 2091 055f 5A000000 		.4byte	0x5a
+ 2092 0563 02       		.byte	0x2
+ 2093 0564 23       		.byte	0x23
+ 2094 0565 32       		.uleb128 0x32
+ 2095 0566 00       		.byte	0x0
+ 2096 0567 12       		.uleb128 0x12
+ 2097 0568 55010000 		.4byte	.LASF74
+ 2098 056c 06       		.byte	0x6
+ 2099 056d 82       		.byte	0x82
+ 2100 056e 18050000 		.4byte	0x518
+ 2101 0572 05       		.uleb128 0x5
+ 2102 0573 04       		.byte	0x4
+ 2103 0574 67050000 		.4byte	0x567
+ 2104 0578 13       		.uleb128 0x13
+ 2105 0579 14       		.byte	0x14
+ 2106 057a 06       		.byte	0x6
+ 2107 057b 9B       		.byte	0x9b
+ 2108 057c C7050000 		.4byte	0x5c7
+ 2109 0580 11       		.uleb128 0x11
+ 2110 0581 83020000 		.4byte	.LASF70
+ 2111 0585 06       		.byte	0x6
+ 2112 0586 9C       		.byte	0x9c
+ 2113 0587 0D050000 		.4byte	0x50d
+ 2114 058b 02       		.byte	0x2
+ 2115 058c 23       		.byte	0x23
+ 2116 058d 00       		.uleb128 0x0
+ 2117 058e 11       		.uleb128 0x11
+ 2118 058f 3C030000 		.4byte	.LASF69
+ 2119 0593 06       		.byte	0x6
+ 2120 0594 9D       		.byte	0x9d
+ 2121 0595 0D050000 		.4byte	0x50d
+ 2122 0599 02       		.byte	0x2
+ 2123 059a 23       		.byte	0x23
+ 2124 059b 03       		.uleb128 0x3
+ 2125 059c 11       		.uleb128 0x11
+ 2126 059d 0F000000 		.4byte	.LASF75
+ 2127 05a1 06       		.byte	0x6
+ 2128 05a2 9E       		.byte	0x9e
+ 2129 05a3 D5040000 		.4byte	0x4d5
+ 2130 05a7 02       		.byte	0x2
+ 2131 05a8 23       		.byte	0x23
+ 2132 05a9 06       		.uleb128 0x6
+ 2133 05aa 11       		.uleb128 0x11
+ 2134 05ab F1000000 		.4byte	.LASF76
+ 2135 05af 06       		.byte	0x6
+ 2136 05b0 9F       		.byte	0x9f
+ 2137 05b1 72050000 		.4byte	0x572
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 45
+
+
+ 2138 05b5 02       		.byte	0x2
+ 2139 05b6 23       		.byte	0x23
+ 2140 05b7 0C       		.uleb128 0xc
+ 2141 05b8 14       		.uleb128 0x14
+ 2142 05b9 42505000 		.ascii	"BPP\000"
+ 2143 05bd 06       		.byte	0x6
+ 2144 05be A0       		.byte	0xa0
+ 2145 05bf 6C000000 		.4byte	0x6c
+ 2146 05c3 02       		.byte	0x2
+ 2147 05c4 23       		.byte	0x23
+ 2148 05c5 10       		.uleb128 0x10
+ 2149 05c6 00       		.byte	0x0
+ 2150 05c7 12       		.uleb128 0x12
+ 2151 05c8 B4010000 		.4byte	.LASF77
+ 2152 05cc 06       		.byte	0x6
+ 2153 05cd A1       		.byte	0xa1
+ 2154 05ce 78050000 		.4byte	0x578
+ 2155 05d2 15       		.uleb128 0x15
+ 2156 05d3 01       		.byte	0x1
+ 2157 05d4 4B000000 		.4byte	.LASF78
+ 2158 05d8 01       		.byte	0x1
+ 2159 05d9 46       		.byte	0x46
+ 2160 05da 01       		.byte	0x1
+ 2161 05db 00000000 		.4byte	.LFB0
+ 2162 05df 2C000000 		.4byte	.LFE0
+ 2163 05e3 00000000 		.4byte	.LLST0
+ 2164 05e7 FB050000 		.4byte	0x5fb
+ 2165 05eb 16       		.uleb128 0x16
+ 2166 05ec AF030000 		.4byte	.LASF80
+ 2167 05f0 01       		.byte	0x1
+ 2168 05f1 46       		.byte	0x46
+ 2169 05f2 5A000000 		.4byte	0x5a
+ 2170 05f6 20000000 		.4byte	.LLST1
+ 2171 05fa 00       		.byte	0x0
+ 2172 05fb 15       		.uleb128 0x15
+ 2173 05fc 01       		.byte	0x1
+ 2174 05fd A2030000 		.4byte	.LASF79
+ 2175 0601 01       		.byte	0x1
+ 2176 0602 50       		.byte	0x50
+ 2177 0603 01       		.byte	0x1
+ 2178 0604 00000000 		.4byte	.LFB1
+ 2179 0608 2C000000 		.4byte	.LFE1
+ 2180 060c 33000000 		.4byte	.LLST2
+ 2181 0610 24060000 		.4byte	0x624
+ 2182 0614 16       		.uleb128 0x16
+ 2183 0615 3F000000 		.4byte	.LASF81
+ 2184 0619 01       		.byte	0x1
+ 2185 061a 50       		.byte	0x50
+ 2186 061b 5A000000 		.4byte	0x5a
+ 2187 061f 53000000 		.4byte	.LLST3
+ 2188 0623 00       		.byte	0x0
+ 2189 0624 15       		.uleb128 0x15
+ 2190 0625 01       		.byte	0x1
+ 2191 0626 8D020000 		.4byte	.LASF82
+ 2192 062a 01       		.byte	0x1
+ 2193 062b 7E       		.byte	0x7e
+ 2194 062c 01       		.byte	0x1
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 46
+
+
+ 2195 062d 00000000 		.4byte	.LFB3
+ 2196 0631 50000000 		.4byte	.LFE3
+ 2197 0635 66000000 		.4byte	.LLST4
+ 2198 0639 6B060000 		.4byte	0x66b
+ 2199 063d 17       		.uleb128 0x17
+ 2200 063e 75695800 		.ascii	"uiX\000"
+ 2201 0642 01       		.byte	0x1
+ 2202 0643 7E       		.byte	0x7e
+ 2203 0644 5A000000 		.4byte	0x5a
+ 2204 0648 86000000 		.4byte	.LLST5
+ 2205 064c 17       		.uleb128 0x17
+ 2206 064d 75695900 		.ascii	"uiY\000"
+ 2207 0651 01       		.byte	0x1
+ 2208 0652 7E       		.byte	0x7e
+ 2209 0653 5A000000 		.4byte	0x5a
+ 2210 0657 99000000 		.4byte	.LLST6
+ 2211 065b 18       		.uleb128 0x18
+ 2212 065c 45020000 		.4byte	.LASF84
+ 2213 0660 01       		.byte	0x1
+ 2214 0661 80       		.byte	0x80
+ 2215 0662 6C000000 		.4byte	0x6c
+ 2216 0666 AC000000 		.4byte	.LLST7
+ 2217 066a 00       		.byte	0x0
+ 2218 066b 15       		.uleb128 0x15
+ 2219 066c 01       		.byte	0x1
+ 2220 066d 4E030000 		.4byte	.LASF83
+ 2221 0671 01       		.byte	0x1
+ 2222 0672 95       		.byte	0x95
+ 2223 0673 01       		.byte	0x1
+ 2224 0674 00000000 		.4byte	.LFB4
+ 2225 0678 54000000 		.4byte	.LFE4
+ 2226 067c D0000000 		.4byte	.LLST8
+ 2227 0680 B2060000 		.4byte	0x6b2
+ 2228 0684 17       		.uleb128 0x17
+ 2229 0685 75695800 		.ascii	"uiX\000"
+ 2230 0689 01       		.byte	0x1
+ 2231 068a 95       		.byte	0x95
+ 2232 068b 5A000000 		.4byte	0x5a
+ 2233 068f F0000000 		.4byte	.LLST9
+ 2234 0693 17       		.uleb128 0x17
+ 2235 0694 75695900 		.ascii	"uiY\000"
+ 2236 0698 01       		.byte	0x1
+ 2237 0699 95       		.byte	0x95
+ 2238 069a 5A000000 		.4byte	0x5a
+ 2239 069e 03010000 		.4byte	.LLST10
+ 2240 06a2 18       		.uleb128 0x18
+ 2241 06a3 45020000 		.4byte	.LASF84
+ 2242 06a7 01       		.byte	0x1
+ 2243 06a8 97       		.byte	0x97
+ 2244 06a9 6C000000 		.4byte	0x6c
+ 2245 06ad 16010000 		.4byte	.LLST11
+ 2246 06b1 00       		.byte	0x0
+ 2247 06b2 19       		.uleb128 0x19
+ 2248 06b3 01       		.byte	0x1
+ 2249 06b4 4D020000 		.4byte	.LASF88
+ 2250 06b8 01       		.byte	0x1
+ 2251 06b9 AD       		.byte	0xad
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 47
+
+
+ 2252 06ba 01       		.byte	0x1
+ 2253 06bb 8F000000 		.4byte	0x8f
+ 2254 06bf 00000000 		.4byte	.LFB5
+ 2255 06c3 0C000000 		.4byte	.LFE5
+ 2256 06c7 02       		.byte	0x2
+ 2257 06c8 7D       		.byte	0x7d
+ 2258 06c9 00       		.sleb128 0
+ 2259 06ca 1A       		.uleb128 0x1a
+ 2260 06cb 01       		.byte	0x1
+ 2261 06cc E1000000 		.4byte	.LASF85
+ 2262 06d0 01       		.byte	0x1
+ 2263 06d1 B2       		.byte	0xb2
+ 2264 06d2 01       		.byte	0x1
+ 2265 06d3 00000000 		.4byte	.LFB6
+ 2266 06d7 0C000000 		.4byte	.LFE6
+ 2267 06db 02       		.byte	0x2
+ 2268 06dc 7D       		.byte	0x7d
+ 2269 06dd 00       		.sleb128 0
+ 2270 06de F0060000 		.4byte	0x6f0
+ 2271 06e2 1B       		.uleb128 0x1b
+ 2272 06e3 05000000 		.4byte	.LASF86
+ 2273 06e7 01       		.byte	0x1
+ 2274 06e8 B2       		.byte	0xb2
+ 2275 06e9 8F000000 		.4byte	0x8f
+ 2276 06ed 01       		.byte	0x1
+ 2277 06ee 50       		.byte	0x50
+ 2278 06ef 00       		.byte	0x0
+ 2279 06f0 1A       		.uleb128 0x1a
+ 2280 06f1 01       		.byte	0x1
+ 2281 06f2 03010000 		.4byte	.LASF87
+ 2282 06f6 01       		.byte	0x1
+ 2283 06f7 B7       		.byte	0xb7
+ 2284 06f8 01       		.byte	0x1
+ 2285 06f9 00000000 		.4byte	.LFB7
+ 2286 06fd 0C000000 		.4byte	.LFE7
+ 2287 0701 02       		.byte	0x2
+ 2288 0702 7D       		.byte	0x7d
+ 2289 0703 00       		.sleb128 0
+ 2290 0704 23070000 		.4byte	0x723
+ 2291 0708 1C       		.uleb128 0x1c
+ 2292 0709 75695800 		.ascii	"uiX\000"
+ 2293 070d 01       		.byte	0x1
+ 2294 070e B7       		.byte	0xb7
+ 2295 070f 5A000000 		.4byte	0x5a
+ 2296 0713 01       		.byte	0x1
+ 2297 0714 50       		.byte	0x50
+ 2298 0715 1C       		.uleb128 0x1c
+ 2299 0716 75695900 		.ascii	"uiY\000"
+ 2300 071a 01       		.byte	0x1
+ 2301 071b B7       		.byte	0xb7
+ 2302 071c 5A000000 		.4byte	0x5a
+ 2303 0720 01       		.byte	0x1
+ 2304 0721 51       		.byte	0x51
+ 2305 0722 00       		.byte	0x0
+ 2306 0723 19       		.uleb128 0x19
+ 2307 0724 01       		.byte	0x1
+ 2308 0725 D0010000 		.4byte	.LASF89
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 48
+
+
+ 2309 0729 01       		.byte	0x1
+ 2310 072a BD       		.byte	0xbd
+ 2311 072b 01       		.byte	0x1
+ 2312 072c 5A000000 		.4byte	0x5a
+ 2313 0730 00000000 		.4byte	.LFB8
+ 2314 0734 0C000000 		.4byte	.LFE8
+ 2315 0738 02       		.byte	0x2
+ 2316 0739 7D       		.byte	0x7d
+ 2317 073a 00       		.sleb128 0
+ 2318 073b 19       		.uleb128 0x19
+ 2319 073c 01       		.byte	0x1
+ 2320 073d DE010000 		.4byte	.LASF90
+ 2321 0741 01       		.byte	0x1
+ 2322 0742 C2       		.byte	0xc2
+ 2323 0743 01       		.byte	0x1
+ 2324 0744 5A000000 		.4byte	0x5a
+ 2325 0748 00000000 		.4byte	.LFB9
+ 2326 074c 0C000000 		.4byte	.LFE9
+ 2327 0750 02       		.byte	0x2
+ 2328 0751 7D       		.byte	0x7d
+ 2329 0752 00       		.sleb128 0
+ 2330 0753 1D       		.uleb128 0x1d
+ 2331 0754 01       		.byte	0x1
+ 2332 0755 42010000 		.4byte	.LASF91
+ 2333 0759 01       		.byte	0x1
+ 2334 075a C7       		.byte	0xc7
+ 2335 075b 01       		.byte	0x1
+ 2336 075c 00000000 		.4byte	.LFB10
+ 2337 0760 06000000 		.4byte	.LFE10
+ 2338 0764 02       		.byte	0x2
+ 2339 0765 7D       		.byte	0x7d
+ 2340 0766 00       		.sleb128 0
+ 2341 0767 1D       		.uleb128 0x1d
+ 2342 0768 01       		.byte	0x1
+ 2343 0769 79000000 		.4byte	.LASF92
+ 2344 076d 01       		.byte	0x1
+ 2345 076e CC       		.byte	0xcc
+ 2346 076f 01       		.byte	0x1
+ 2347 0770 00000000 		.4byte	.LFB11
+ 2348 0774 06000000 		.4byte	.LFE11
+ 2349 0778 02       		.byte	0x2
+ 2350 0779 7D       		.byte	0x7d
+ 2351 077a 00       		.sleb128 0
+ 2352 077b 1A       		.uleb128 0x1a
+ 2353 077c 01       		.byte	0x1
+ 2354 077d 16000000 		.4byte	.LASF93
+ 2355 0781 01       		.byte	0x1
+ 2356 0782 D1       		.byte	0xd1
+ 2357 0783 01       		.byte	0x1
+ 2358 0784 00000000 		.4byte	.LFB12
+ 2359 0788 0C000000 		.4byte	.LFE12
+ 2360 078c 02       		.byte	0x2
+ 2361 078d 7D       		.byte	0x7d
+ 2362 078e 00       		.sleb128 0
+ 2363 078f A1070000 		.4byte	0x7a1
+ 2364 0793 1B       		.uleb128 0x1b
+ 2365 0794 7D020000 		.4byte	.LASF94
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 49
+
+
+ 2366 0798 01       		.byte	0x1
+ 2367 0799 D1       		.byte	0xd1
+ 2368 079a 6C000000 		.4byte	0x6c
+ 2369 079e 01       		.byte	0x1
+ 2370 079f 50       		.byte	0x50
+ 2371 07a0 00       		.byte	0x0
+ 2372 07a1 15       		.uleb128 0x15
+ 2373 07a2 01       		.byte	0x1
+ 2374 07a3 E5020000 		.4byte	.LASF95
+ 2375 07a7 01       		.byte	0x1
+ 2376 07a8 D6       		.byte	0xd6
+ 2377 07a9 01       		.byte	0x1
+ 2378 07aa 00000000 		.4byte	.LFB13
+ 2379 07ae 3C000000 		.4byte	.LFE13
+ 2380 07b2 3A010000 		.4byte	.LLST12
+ 2381 07b6 E8070000 		.4byte	0x7e8
+ 2382 07ba 17       		.uleb128 0x17
+ 2383 07bb 75635200 		.ascii	"ucR\000"
+ 2384 07bf 01       		.byte	0x1
+ 2385 07c0 D6       		.byte	0xd6
+ 2386 07c1 6C000000 		.4byte	0x6c
+ 2387 07c5 5A010000 		.4byte	.LLST13
+ 2388 07c9 17       		.uleb128 0x17
+ 2389 07ca 75634700 		.ascii	"ucG\000"
+ 2390 07ce 01       		.byte	0x1
+ 2391 07cf D6       		.byte	0xd6
+ 2392 07d0 6C000000 		.4byte	0x6c
+ 2393 07d4 99010000 		.4byte	.LLST14
+ 2394 07d8 17       		.uleb128 0x17
+ 2395 07d9 75634200 		.ascii	"ucB\000"
+ 2396 07dd 01       		.byte	0x1
+ 2397 07de D6       		.byte	0xd6
+ 2398 07df 6C000000 		.4byte	0x6c
+ 2399 07e3 D8010000 		.4byte	.LLST15
+ 2400 07e7 00       		.byte	0x0
+ 2401 07e8 15       		.uleb128 0x15
+ 2402 07e9 01       		.byte	0x1
+ 2403 07ea 42030000 		.4byte	.LASF96
+ 2404 07ee 01       		.byte	0x1
+ 2405 07ef F1       		.byte	0xf1
+ 2406 07f0 01       		.byte	0x1
+ 2407 07f1 00000000 		.4byte	.LFB14
+ 2408 07f5 3C000000 		.4byte	.LFE14
+ 2409 07f9 0C020000 		.4byte	.LLST16
+ 2410 07fd 2F080000 		.4byte	0x82f
+ 2411 0801 17       		.uleb128 0x17
+ 2412 0802 75635200 		.ascii	"ucR\000"
+ 2413 0806 01       		.byte	0x1
+ 2414 0807 F1       		.byte	0xf1
+ 2415 0808 6C000000 		.4byte	0x6c
+ 2416 080c 2C020000 		.4byte	.LLST17
+ 2417 0810 17       		.uleb128 0x17
+ 2418 0811 75634700 		.ascii	"ucG\000"
+ 2419 0815 01       		.byte	0x1
+ 2420 0816 F1       		.byte	0xf1
+ 2421 0817 6C000000 		.4byte	0x6c
+ 2422 081b 6B020000 		.4byte	.LLST18
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 50
+
+
+ 2423 081f 17       		.uleb128 0x17
+ 2424 0820 75634200 		.ascii	"ucB\000"
+ 2425 0824 01       		.byte	0x1
+ 2426 0825 F1       		.byte	0xf1
+ 2427 0826 6C000000 		.4byte	0x6c
+ 2428 082a AA020000 		.4byte	.LLST19
+ 2429 082e 00       		.byte	0x0
+ 2430 082f 1E       		.uleb128 0x1e
+ 2431 0830 01       		.byte	0x1
+ 2432 0831 0F030000 		.4byte	.LASF97
+ 2433 0835 01       		.byte	0x1
+ 2434 0836 0C01     		.2byte	0x10c
+ 2435 0838 01       		.byte	0x1
+ 2436 0839 00000000 		.4byte	.LFB15
+ 2437 083d 70000000 		.4byte	.LFE15
+ 2438 0841 DE020000 		.4byte	.LLST20
+ 2439 0845 A6080000 		.4byte	0x8a6
+ 2440 0849 1F       		.uleb128 0x1f
+ 2441 084a 6B010000 		.4byte	.LASF98
+ 2442 084e 01       		.byte	0x1
+ 2443 084f 0C01     		.2byte	0x10c
+ 2444 0851 5A000000 		.4byte	0x5a
+ 2445 0855 FE020000 		.4byte	.LLST21
+ 2446 0859 1F       		.uleb128 0x1f
+ 2447 085a FA010000 		.4byte	.LASF99
+ 2448 085e 01       		.byte	0x1
+ 2449 085f 0C01     		.2byte	0x10c
+ 2450 0861 5A000000 		.4byte	0x5a
+ 2451 0865 11030000 		.4byte	.LLST22
+ 2452 0869 1F       		.uleb128 0x1f
+ 2453 086a 70010000 		.4byte	.LASF100
+ 2454 086e 01       		.byte	0x1
+ 2455 086f 0C01     		.2byte	0x10c
+ 2456 0871 5A000000 		.4byte	0x5a
+ 2457 0875 3A030000 		.4byte	.LLST23
+ 2458 0879 1F       		.uleb128 0x1f
+ 2459 087a FF010000 		.4byte	.LASF101
+ 2460 087e 01       		.byte	0x1
+ 2461 087f 0C01     		.2byte	0x10c
+ 2462 0881 5A000000 		.4byte	0x5a
+ 2463 0885 4D030000 		.4byte	.LLST24
+ 2464 0889 20       		.uleb128 0x20
+ 2465 088a 6900     		.ascii	"i\000"
+ 2466 088c 01       		.byte	0x1
+ 2467 088d 0E01     		.2byte	0x10e
+ 2468 088f 48000000 		.4byte	0x48
+ 2469 0893 60030000 		.4byte	.LLST25
+ 2470 0897 21       		.uleb128 0x21
+ 2471 0898 45020000 		.4byte	.LASF84
+ 2472 089c 01       		.byte	0x1
+ 2473 089d 0F01     		.2byte	0x10f
+ 2474 089f 6C000000 		.4byte	0x6c
+ 2475 08a3 01       		.byte	0x1
+ 2476 08a4 5A       		.byte	0x5a
+ 2477 08a5 00       		.byte	0x0
+ 2478 08a6 1E       		.uleb128 0x1e
+ 2479 08a7 01       		.byte	0x1
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 51
+
+
+ 2480 08a8 5C030000 		.4byte	.LASF102
+ 2481 08ac 01       		.byte	0x1
+ 2482 08ad 2401     		.2byte	0x124
+ 2483 08af 01       		.byte	0x1
+ 2484 08b0 00000000 		.4byte	.LFB16
+ 2485 08b4 50000000 		.4byte	.LFE16
+ 2486 08b8 89030000 		.4byte	.LLST26
+ 2487 08bc DD080000 		.4byte	0x8dd
+ 2488 08c0 20       		.uleb128 0x20
+ 2489 08c1 6900     		.ascii	"i\000"
+ 2490 08c3 01       		.byte	0x1
+ 2491 08c4 2601     		.2byte	0x126
+ 2492 08c6 48000000 		.4byte	0x48
+ 2493 08ca A9030000 		.4byte	.LLST27
+ 2494 08ce 22       		.uleb128 0x22
+ 2495 08cf C0000000 		.4byte	.LASF103
+ 2496 08d3 01       		.byte	0x1
+ 2497 08d4 2601     		.2byte	0x126
+ 2498 08d6 48000000 		.4byte	0x48
+ 2499 08da 0822     		.2byte	0x2208
+ 2500 08dc 00       		.byte	0x0
+ 2501 08dd 23       		.uleb128 0x23
+ 2502 08de 01       		.byte	0x1
+ 2503 08df 0B020000 		.4byte	.LASF104
+ 2504 08e3 01       		.byte	0x1
+ 2505 08e4 5A       		.byte	0x5a
+ 2506 08e5 01       		.byte	0x1
+ 2507 08e6 00000000 		.4byte	.LFB2
+ 2508 08ea C8000000 		.4byte	.LFE2
+ 2509 08ee BD030000 		.4byte	.LLST28
+ 2510 08f2 24       		.uleb128 0x24
+ 2511 08f3 CF000000 		.4byte	.LASF105
+ 2512 08f7 01       		.byte	0x1
+ 2513 08f8 43       		.byte	0x43
+ 2514 08f9 C7050000 		.4byte	0x5c7
+ 2515 08fd 01       		.byte	0x1
+ 2516 08fe 01       		.byte	0x1
+ 2517 08ff 24       		.uleb128 0x24
+ 2518 0900 10010000 		.4byte	.LASF106
+ 2519 0904 01       		.byte	0x1
+ 2520 0905 44       		.byte	0x44
+ 2521 0906 02040000 		.4byte	0x402
+ 2522 090a 01       		.byte	0x1
+ 2523 090b 01       		.byte	0x1
+ 2524 090c 25       		.uleb128 0x25
+ 2525 090d CF000000 		.4byte	.LASF105
+ 2526 0911 01       		.byte	0x1
+ 2527 0912 43       		.byte	0x43
+ 2528 0913 C7050000 		.4byte	0x5c7
+ 2529 0917 01       		.byte	0x1
+ 2530 0918 05       		.byte	0x5
+ 2531 0919 03       		.byte	0x3
+ 2532 091a 00000000 		.4byte	pygmyGlobalColors
+ 2533 091e 25       		.uleb128 0x25
+ 2534 091f 10010000 		.4byte	.LASF106
+ 2535 0923 01       		.byte	0x1
+ 2536 0924 44       		.byte	0x44
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 52
+
+
+ 2537 0925 02040000 		.4byte	0x402
+ 2538 0929 01       		.byte	0x1
+ 2539 092a 05       		.byte	0x5
+ 2540 092b 03       		.byte	0x3
+ 2541 092c 00000000 		.4byte	pygmyLCD
+ 2542 0930 00       		.byte	0x0
+ 2543              		.section	.debug_abbrev
+ 2544 0000 01       		.uleb128 0x1
+ 2545 0001 11       		.uleb128 0x11
+ 2546 0002 01       		.byte	0x1
+ 2547 0003 25       		.uleb128 0x25
+ 2548 0004 0E       		.uleb128 0xe
+ 2549 0005 13       		.uleb128 0x13
+ 2550 0006 0B       		.uleb128 0xb
+ 2551 0007 03       		.uleb128 0x3
+ 2552 0008 0E       		.uleb128 0xe
+ 2553 0009 11       		.uleb128 0x11
+ 2554 000a 01       		.uleb128 0x1
+ 2555 000b 52       		.uleb128 0x52
+ 2556 000c 01       		.uleb128 0x1
+ 2557 000d 55       		.uleb128 0x55
+ 2558 000e 06       		.uleb128 0x6
+ 2559 000f 10       		.uleb128 0x10
+ 2560 0010 06       		.uleb128 0x6
+ 2561 0011 00       		.byte	0x0
+ 2562 0012 00       		.byte	0x0
+ 2563 0013 02       		.uleb128 0x2
+ 2564 0014 24       		.uleb128 0x24
+ 2565 0015 00       		.byte	0x0
+ 2566 0016 0B       		.uleb128 0xb
+ 2567 0017 0B       		.uleb128 0xb
+ 2568 0018 3E       		.uleb128 0x3e
+ 2569 0019 0B       		.uleb128 0xb
+ 2570 001a 03       		.uleb128 0x3
+ 2571 001b 0E       		.uleb128 0xe
+ 2572 001c 00       		.byte	0x0
+ 2573 001d 00       		.byte	0x0
+ 2574 001e 03       		.uleb128 0x3
+ 2575 001f 16       		.uleb128 0x16
+ 2576 0020 00       		.byte	0x0
+ 2577 0021 03       		.uleb128 0x3
+ 2578 0022 08       		.uleb128 0x8
+ 2579 0023 3A       		.uleb128 0x3a
+ 2580 0024 0B       		.uleb128 0xb
+ 2581 0025 3B       		.uleb128 0x3b
+ 2582 0026 0B       		.uleb128 0xb
+ 2583 0027 49       		.uleb128 0x49
+ 2584 0028 13       		.uleb128 0x13
+ 2585 0029 00       		.byte	0x0
+ 2586 002a 00       		.byte	0x0
+ 2587 002b 04       		.uleb128 0x4
+ 2588 002c 35       		.uleb128 0x35
+ 2589 002d 00       		.byte	0x0
+ 2590 002e 49       		.uleb128 0x49
+ 2591 002f 13       		.uleb128 0x13
+ 2592 0030 00       		.byte	0x0
+ 2593 0031 00       		.byte	0x0
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 53
+
+
+ 2594 0032 05       		.uleb128 0x5
+ 2595 0033 0F       		.uleb128 0xf
+ 2596 0034 00       		.byte	0x0
+ 2597 0035 0B       		.uleb128 0xb
+ 2598 0036 0B       		.uleb128 0xb
+ 2599 0037 49       		.uleb128 0x49
+ 2600 0038 13       		.uleb128 0x13
+ 2601 0039 00       		.byte	0x0
+ 2602 003a 00       		.byte	0x0
+ 2603 003b 06       		.uleb128 0x6
+ 2604 003c 0F       		.uleb128 0xf
+ 2605 003d 00       		.byte	0x0
+ 2606 003e 0B       		.uleb128 0xb
+ 2607 003f 0B       		.uleb128 0xb
+ 2608 0040 00       		.byte	0x0
+ 2609 0041 00       		.byte	0x0
+ 2610 0042 07       		.uleb128 0x7
+ 2611 0043 13       		.uleb128 0x13
+ 2612 0044 01       		.byte	0x1
+ 2613 0045 0B       		.uleb128 0xb
+ 2614 0046 0B       		.uleb128 0xb
+ 2615 0047 3A       		.uleb128 0x3a
+ 2616 0048 0B       		.uleb128 0xb
+ 2617 0049 3B       		.uleb128 0x3b
+ 2618 004a 05       		.uleb128 0x5
+ 2619 004b 01       		.uleb128 0x1
+ 2620 004c 13       		.uleb128 0x13
+ 2621 004d 00       		.byte	0x0
+ 2622 004e 00       		.byte	0x0
+ 2623 004f 08       		.uleb128 0x8
+ 2624 0050 0D       		.uleb128 0xd
+ 2625 0051 00       		.byte	0x0
+ 2626 0052 03       		.uleb128 0x3
+ 2627 0053 08       		.uleb128 0x8
+ 2628 0054 3A       		.uleb128 0x3a
+ 2629 0055 0B       		.uleb128 0xb
+ 2630 0056 3B       		.uleb128 0x3b
+ 2631 0057 05       		.uleb128 0x5
+ 2632 0058 49       		.uleb128 0x49
+ 2633 0059 13       		.uleb128 0x13
+ 2634 005a 38       		.uleb128 0x38
+ 2635 005b 0A       		.uleb128 0xa
+ 2636 005c 00       		.byte	0x0
+ 2637 005d 00       		.byte	0x0
+ 2638 005e 09       		.uleb128 0x9
+ 2639 005f 0D       		.uleb128 0xd
+ 2640 0060 00       		.byte	0x0
+ 2641 0061 03       		.uleb128 0x3
+ 2642 0062 0E       		.uleb128 0xe
+ 2643 0063 3A       		.uleb128 0x3a
+ 2644 0064 0B       		.uleb128 0xb
+ 2645 0065 3B       		.uleb128 0x3b
+ 2646 0066 05       		.uleb128 0x5
+ 2647 0067 49       		.uleb128 0x49
+ 2648 0068 13       		.uleb128 0x13
+ 2649 0069 38       		.uleb128 0x38
+ 2650 006a 0A       		.uleb128 0xa
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 54
+
+
+ 2651 006b 00       		.byte	0x0
+ 2652 006c 00       		.byte	0x0
+ 2653 006d 0A       		.uleb128 0xa
+ 2654 006e 16       		.uleb128 0x16
+ 2655 006f 00       		.byte	0x0
+ 2656 0070 03       		.uleb128 0x3
+ 2657 0071 0E       		.uleb128 0xe
+ 2658 0072 3A       		.uleb128 0x3a
+ 2659 0073 0B       		.uleb128 0xb
+ 2660 0074 3B       		.uleb128 0x3b
+ 2661 0075 05       		.uleb128 0x5
+ 2662 0076 49       		.uleb128 0x49
+ 2663 0077 13       		.uleb128 0x13
+ 2664 0078 00       		.byte	0x0
+ 2665 0079 00       		.byte	0x0
+ 2666 007a 0B       		.uleb128 0xb
+ 2667 007b 04       		.uleb128 0x4
+ 2668 007c 01       		.byte	0x1
+ 2669 007d 0B       		.uleb128 0xb
+ 2670 007e 0B       		.uleb128 0xb
+ 2671 007f 3A       		.uleb128 0x3a
+ 2672 0080 0B       		.uleb128 0xb
+ 2673 0081 3B       		.uleb128 0x3b
+ 2674 0082 05       		.uleb128 0x5
+ 2675 0083 01       		.uleb128 0x1
+ 2676 0084 13       		.uleb128 0x13
+ 2677 0085 00       		.byte	0x0
+ 2678 0086 00       		.byte	0x0
+ 2679 0087 0C       		.uleb128 0xc
+ 2680 0088 28       		.uleb128 0x28
+ 2681 0089 00       		.byte	0x0
+ 2682 008a 03       		.uleb128 0x3
+ 2683 008b 08       		.uleb128 0x8
+ 2684 008c 1C       		.uleb128 0x1c
+ 2685 008d 0D       		.uleb128 0xd
+ 2686 008e 00       		.byte	0x0
+ 2687 008f 00       		.byte	0x0
+ 2688 0090 0D       		.uleb128 0xd
+ 2689 0091 28       		.uleb128 0x28
+ 2690 0092 00       		.byte	0x0
+ 2691 0093 03       		.uleb128 0x3
+ 2692 0094 0E       		.uleb128 0xe
+ 2693 0095 1C       		.uleb128 0x1c
+ 2694 0096 0D       		.uleb128 0xd
+ 2695 0097 00       		.byte	0x0
+ 2696 0098 00       		.byte	0x0
+ 2697 0099 0E       		.uleb128 0xe
+ 2698 009a 01       		.uleb128 0x1
+ 2699 009b 01       		.byte	0x1
+ 2700 009c 49       		.uleb128 0x49
+ 2701 009d 13       		.uleb128 0x13
+ 2702 009e 01       		.uleb128 0x1
+ 2703 009f 13       		.uleb128 0x13
+ 2704 00a0 00       		.byte	0x0
+ 2705 00a1 00       		.byte	0x0
+ 2706 00a2 0F       		.uleb128 0xf
+ 2707 00a3 21       		.uleb128 0x21
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 55
+
+
+ 2708 00a4 00       		.byte	0x0
+ 2709 00a5 49       		.uleb128 0x49
+ 2710 00a6 13       		.uleb128 0x13
+ 2711 00a7 2F       		.uleb128 0x2f
+ 2712 00a8 0B       		.uleb128 0xb
+ 2713 00a9 00       		.byte	0x0
+ 2714 00aa 00       		.byte	0x0
+ 2715 00ab 10       		.uleb128 0x10
+ 2716 00ac 13       		.uleb128 0x13
+ 2717 00ad 01       		.byte	0x1
+ 2718 00ae 03       		.uleb128 0x3
+ 2719 00af 0E       		.uleb128 0xe
+ 2720 00b0 0B       		.uleb128 0xb
+ 2721 00b1 0B       		.uleb128 0xb
+ 2722 00b2 3A       		.uleb128 0x3a
+ 2723 00b3 0B       		.uleb128 0xb
+ 2724 00b4 3B       		.uleb128 0x3b
+ 2725 00b5 0B       		.uleb128 0xb
+ 2726 00b6 01       		.uleb128 0x1
+ 2727 00b7 13       		.uleb128 0x13
+ 2728 00b8 00       		.byte	0x0
+ 2729 00b9 00       		.byte	0x0
+ 2730 00ba 11       		.uleb128 0x11
+ 2731 00bb 0D       		.uleb128 0xd
+ 2732 00bc 00       		.byte	0x0
+ 2733 00bd 03       		.uleb128 0x3
+ 2734 00be 0E       		.uleb128 0xe
+ 2735 00bf 3A       		.uleb128 0x3a
+ 2736 00c0 0B       		.uleb128 0xb
+ 2737 00c1 3B       		.uleb128 0x3b
+ 2738 00c2 0B       		.uleb128 0xb
+ 2739 00c3 49       		.uleb128 0x49
+ 2740 00c4 13       		.uleb128 0x13
+ 2741 00c5 38       		.uleb128 0x38
+ 2742 00c6 0A       		.uleb128 0xa
+ 2743 00c7 00       		.byte	0x0
+ 2744 00c8 00       		.byte	0x0
+ 2745 00c9 12       		.uleb128 0x12
+ 2746 00ca 16       		.uleb128 0x16
+ 2747 00cb 00       		.byte	0x0
+ 2748 00cc 03       		.uleb128 0x3
+ 2749 00cd 0E       		.uleb128 0xe
+ 2750 00ce 3A       		.uleb128 0x3a
+ 2751 00cf 0B       		.uleb128 0xb
+ 2752 00d0 3B       		.uleb128 0x3b
+ 2753 00d1 0B       		.uleb128 0xb
+ 2754 00d2 49       		.uleb128 0x49
+ 2755 00d3 13       		.uleb128 0x13
+ 2756 00d4 00       		.byte	0x0
+ 2757 00d5 00       		.byte	0x0
+ 2758 00d6 13       		.uleb128 0x13
+ 2759 00d7 13       		.uleb128 0x13
+ 2760 00d8 01       		.byte	0x1
+ 2761 00d9 0B       		.uleb128 0xb
+ 2762 00da 0B       		.uleb128 0xb
+ 2763 00db 3A       		.uleb128 0x3a
+ 2764 00dc 0B       		.uleb128 0xb
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 56
+
+
+ 2765 00dd 3B       		.uleb128 0x3b
+ 2766 00de 0B       		.uleb128 0xb
+ 2767 00df 01       		.uleb128 0x1
+ 2768 00e0 13       		.uleb128 0x13
+ 2769 00e1 00       		.byte	0x0
+ 2770 00e2 00       		.byte	0x0
+ 2771 00e3 14       		.uleb128 0x14
+ 2772 00e4 0D       		.uleb128 0xd
+ 2773 00e5 00       		.byte	0x0
+ 2774 00e6 03       		.uleb128 0x3
+ 2775 00e7 08       		.uleb128 0x8
+ 2776 00e8 3A       		.uleb128 0x3a
+ 2777 00e9 0B       		.uleb128 0xb
+ 2778 00ea 3B       		.uleb128 0x3b
+ 2779 00eb 0B       		.uleb128 0xb
+ 2780 00ec 49       		.uleb128 0x49
+ 2781 00ed 13       		.uleb128 0x13
+ 2782 00ee 38       		.uleb128 0x38
+ 2783 00ef 0A       		.uleb128 0xa
+ 2784 00f0 00       		.byte	0x0
+ 2785 00f1 00       		.byte	0x0
+ 2786 00f2 15       		.uleb128 0x15
+ 2787 00f3 2E       		.uleb128 0x2e
+ 2788 00f4 01       		.byte	0x1
+ 2789 00f5 3F       		.uleb128 0x3f
+ 2790 00f6 0C       		.uleb128 0xc
+ 2791 00f7 03       		.uleb128 0x3
+ 2792 00f8 0E       		.uleb128 0xe
+ 2793 00f9 3A       		.uleb128 0x3a
+ 2794 00fa 0B       		.uleb128 0xb
+ 2795 00fb 3B       		.uleb128 0x3b
+ 2796 00fc 0B       		.uleb128 0xb
+ 2797 00fd 27       		.uleb128 0x27
+ 2798 00fe 0C       		.uleb128 0xc
+ 2799 00ff 11       		.uleb128 0x11
+ 2800 0100 01       		.uleb128 0x1
+ 2801 0101 12       		.uleb128 0x12
+ 2802 0102 01       		.uleb128 0x1
+ 2803 0103 40       		.uleb128 0x40
+ 2804 0104 06       		.uleb128 0x6
+ 2805 0105 01       		.uleb128 0x1
+ 2806 0106 13       		.uleb128 0x13
+ 2807 0107 00       		.byte	0x0
+ 2808 0108 00       		.byte	0x0
+ 2809 0109 16       		.uleb128 0x16
+ 2810 010a 05       		.uleb128 0x5
+ 2811 010b 00       		.byte	0x0
+ 2812 010c 03       		.uleb128 0x3
+ 2813 010d 0E       		.uleb128 0xe
+ 2814 010e 3A       		.uleb128 0x3a
+ 2815 010f 0B       		.uleb128 0xb
+ 2816 0110 3B       		.uleb128 0x3b
+ 2817 0111 0B       		.uleb128 0xb
+ 2818 0112 49       		.uleb128 0x49
+ 2819 0113 13       		.uleb128 0x13
+ 2820 0114 02       		.uleb128 0x2
+ 2821 0115 06       		.uleb128 0x6
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 57
+
+
+ 2822 0116 00       		.byte	0x0
+ 2823 0117 00       		.byte	0x0
+ 2824 0118 17       		.uleb128 0x17
+ 2825 0119 05       		.uleb128 0x5
+ 2826 011a 00       		.byte	0x0
+ 2827 011b 03       		.uleb128 0x3
+ 2828 011c 08       		.uleb128 0x8
+ 2829 011d 3A       		.uleb128 0x3a
+ 2830 011e 0B       		.uleb128 0xb
+ 2831 011f 3B       		.uleb128 0x3b
+ 2832 0120 0B       		.uleb128 0xb
+ 2833 0121 49       		.uleb128 0x49
+ 2834 0122 13       		.uleb128 0x13
+ 2835 0123 02       		.uleb128 0x2
+ 2836 0124 06       		.uleb128 0x6
+ 2837 0125 00       		.byte	0x0
+ 2838 0126 00       		.byte	0x0
+ 2839 0127 18       		.uleb128 0x18
+ 2840 0128 34       		.uleb128 0x34
+ 2841 0129 00       		.byte	0x0
+ 2842 012a 03       		.uleb128 0x3
+ 2843 012b 0E       		.uleb128 0xe
+ 2844 012c 3A       		.uleb128 0x3a
+ 2845 012d 0B       		.uleb128 0xb
+ 2846 012e 3B       		.uleb128 0x3b
+ 2847 012f 0B       		.uleb128 0xb
+ 2848 0130 49       		.uleb128 0x49
+ 2849 0131 13       		.uleb128 0x13
+ 2850 0132 02       		.uleb128 0x2
+ 2851 0133 06       		.uleb128 0x6
+ 2852 0134 00       		.byte	0x0
+ 2853 0135 00       		.byte	0x0
+ 2854 0136 19       		.uleb128 0x19
+ 2855 0137 2E       		.uleb128 0x2e
+ 2856 0138 00       		.byte	0x0
+ 2857 0139 3F       		.uleb128 0x3f
+ 2858 013a 0C       		.uleb128 0xc
+ 2859 013b 03       		.uleb128 0x3
+ 2860 013c 0E       		.uleb128 0xe
+ 2861 013d 3A       		.uleb128 0x3a
+ 2862 013e 0B       		.uleb128 0xb
+ 2863 013f 3B       		.uleb128 0x3b
+ 2864 0140 0B       		.uleb128 0xb
+ 2865 0141 27       		.uleb128 0x27
+ 2866 0142 0C       		.uleb128 0xc
+ 2867 0143 49       		.uleb128 0x49
+ 2868 0144 13       		.uleb128 0x13
+ 2869 0145 11       		.uleb128 0x11
+ 2870 0146 01       		.uleb128 0x1
+ 2871 0147 12       		.uleb128 0x12
+ 2872 0148 01       		.uleb128 0x1
+ 2873 0149 40       		.uleb128 0x40
+ 2874 014a 0A       		.uleb128 0xa
+ 2875 014b 00       		.byte	0x0
+ 2876 014c 00       		.byte	0x0
+ 2877 014d 1A       		.uleb128 0x1a
+ 2878 014e 2E       		.uleb128 0x2e
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 58
+
+
+ 2879 014f 01       		.byte	0x1
+ 2880 0150 3F       		.uleb128 0x3f
+ 2881 0151 0C       		.uleb128 0xc
+ 2882 0152 03       		.uleb128 0x3
+ 2883 0153 0E       		.uleb128 0xe
+ 2884 0154 3A       		.uleb128 0x3a
+ 2885 0155 0B       		.uleb128 0xb
+ 2886 0156 3B       		.uleb128 0x3b
+ 2887 0157 0B       		.uleb128 0xb
+ 2888 0158 27       		.uleb128 0x27
+ 2889 0159 0C       		.uleb128 0xc
+ 2890 015a 11       		.uleb128 0x11
+ 2891 015b 01       		.uleb128 0x1
+ 2892 015c 12       		.uleb128 0x12
+ 2893 015d 01       		.uleb128 0x1
+ 2894 015e 40       		.uleb128 0x40
+ 2895 015f 0A       		.uleb128 0xa
+ 2896 0160 01       		.uleb128 0x1
+ 2897 0161 13       		.uleb128 0x13
+ 2898 0162 00       		.byte	0x0
+ 2899 0163 00       		.byte	0x0
+ 2900 0164 1B       		.uleb128 0x1b
+ 2901 0165 05       		.uleb128 0x5
+ 2902 0166 00       		.byte	0x0
+ 2903 0167 03       		.uleb128 0x3
+ 2904 0168 0E       		.uleb128 0xe
+ 2905 0169 3A       		.uleb128 0x3a
+ 2906 016a 0B       		.uleb128 0xb
+ 2907 016b 3B       		.uleb128 0x3b
+ 2908 016c 0B       		.uleb128 0xb
+ 2909 016d 49       		.uleb128 0x49
+ 2910 016e 13       		.uleb128 0x13
+ 2911 016f 02       		.uleb128 0x2
+ 2912 0170 0A       		.uleb128 0xa
+ 2913 0171 00       		.byte	0x0
+ 2914 0172 00       		.byte	0x0
+ 2915 0173 1C       		.uleb128 0x1c
+ 2916 0174 05       		.uleb128 0x5
+ 2917 0175 00       		.byte	0x0
+ 2918 0176 03       		.uleb128 0x3
+ 2919 0177 08       		.uleb128 0x8
+ 2920 0178 3A       		.uleb128 0x3a
+ 2921 0179 0B       		.uleb128 0xb
+ 2922 017a 3B       		.uleb128 0x3b
+ 2923 017b 0B       		.uleb128 0xb
+ 2924 017c 49       		.uleb128 0x49
+ 2925 017d 13       		.uleb128 0x13
+ 2926 017e 02       		.uleb128 0x2
+ 2927 017f 0A       		.uleb128 0xa
+ 2928 0180 00       		.byte	0x0
+ 2929 0181 00       		.byte	0x0
+ 2930 0182 1D       		.uleb128 0x1d
+ 2931 0183 2E       		.uleb128 0x2e
+ 2932 0184 00       		.byte	0x0
+ 2933 0185 3F       		.uleb128 0x3f
+ 2934 0186 0C       		.uleb128 0xc
+ 2935 0187 03       		.uleb128 0x3
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 59
+
+
+ 2936 0188 0E       		.uleb128 0xe
+ 2937 0189 3A       		.uleb128 0x3a
+ 2938 018a 0B       		.uleb128 0xb
+ 2939 018b 3B       		.uleb128 0x3b
+ 2940 018c 0B       		.uleb128 0xb
+ 2941 018d 27       		.uleb128 0x27
+ 2942 018e 0C       		.uleb128 0xc
+ 2943 018f 11       		.uleb128 0x11
+ 2944 0190 01       		.uleb128 0x1
+ 2945 0191 12       		.uleb128 0x12
+ 2946 0192 01       		.uleb128 0x1
+ 2947 0193 40       		.uleb128 0x40
+ 2948 0194 0A       		.uleb128 0xa
+ 2949 0195 00       		.byte	0x0
+ 2950 0196 00       		.byte	0x0
+ 2951 0197 1E       		.uleb128 0x1e
+ 2952 0198 2E       		.uleb128 0x2e
+ 2953 0199 01       		.byte	0x1
+ 2954 019a 3F       		.uleb128 0x3f
+ 2955 019b 0C       		.uleb128 0xc
+ 2956 019c 03       		.uleb128 0x3
+ 2957 019d 0E       		.uleb128 0xe
+ 2958 019e 3A       		.uleb128 0x3a
+ 2959 019f 0B       		.uleb128 0xb
+ 2960 01a0 3B       		.uleb128 0x3b
+ 2961 01a1 05       		.uleb128 0x5
+ 2962 01a2 27       		.uleb128 0x27
+ 2963 01a3 0C       		.uleb128 0xc
+ 2964 01a4 11       		.uleb128 0x11
+ 2965 01a5 01       		.uleb128 0x1
+ 2966 01a6 12       		.uleb128 0x12
+ 2967 01a7 01       		.uleb128 0x1
+ 2968 01a8 40       		.uleb128 0x40
+ 2969 01a9 06       		.uleb128 0x6
+ 2970 01aa 01       		.uleb128 0x1
+ 2971 01ab 13       		.uleb128 0x13
+ 2972 01ac 00       		.byte	0x0
+ 2973 01ad 00       		.byte	0x0
+ 2974 01ae 1F       		.uleb128 0x1f
+ 2975 01af 05       		.uleb128 0x5
+ 2976 01b0 00       		.byte	0x0
+ 2977 01b1 03       		.uleb128 0x3
+ 2978 01b2 0E       		.uleb128 0xe
+ 2979 01b3 3A       		.uleb128 0x3a
+ 2980 01b4 0B       		.uleb128 0xb
+ 2981 01b5 3B       		.uleb128 0x3b
+ 2982 01b6 05       		.uleb128 0x5
+ 2983 01b7 49       		.uleb128 0x49
+ 2984 01b8 13       		.uleb128 0x13
+ 2985 01b9 02       		.uleb128 0x2
+ 2986 01ba 06       		.uleb128 0x6
+ 2987 01bb 00       		.byte	0x0
+ 2988 01bc 00       		.byte	0x0
+ 2989 01bd 20       		.uleb128 0x20
+ 2990 01be 34       		.uleb128 0x34
+ 2991 01bf 00       		.byte	0x0
+ 2992 01c0 03       		.uleb128 0x3
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 60
+
+
+ 2993 01c1 08       		.uleb128 0x8
+ 2994 01c2 3A       		.uleb128 0x3a
+ 2995 01c3 0B       		.uleb128 0xb
+ 2996 01c4 3B       		.uleb128 0x3b
+ 2997 01c5 05       		.uleb128 0x5
+ 2998 01c6 49       		.uleb128 0x49
+ 2999 01c7 13       		.uleb128 0x13
+ 3000 01c8 02       		.uleb128 0x2
+ 3001 01c9 06       		.uleb128 0x6
+ 3002 01ca 00       		.byte	0x0
+ 3003 01cb 00       		.byte	0x0
+ 3004 01cc 21       		.uleb128 0x21
+ 3005 01cd 34       		.uleb128 0x34
+ 3006 01ce 00       		.byte	0x0
+ 3007 01cf 03       		.uleb128 0x3
+ 3008 01d0 0E       		.uleb128 0xe
+ 3009 01d1 3A       		.uleb128 0x3a
+ 3010 01d2 0B       		.uleb128 0xb
+ 3011 01d3 3B       		.uleb128 0x3b
+ 3012 01d4 05       		.uleb128 0x5
+ 3013 01d5 49       		.uleb128 0x49
+ 3014 01d6 13       		.uleb128 0x13
+ 3015 01d7 02       		.uleb128 0x2
+ 3016 01d8 0A       		.uleb128 0xa
+ 3017 01d9 00       		.byte	0x0
+ 3018 01da 00       		.byte	0x0
+ 3019 01db 22       		.uleb128 0x22
+ 3020 01dc 34       		.uleb128 0x34
+ 3021 01dd 00       		.byte	0x0
+ 3022 01de 03       		.uleb128 0x3
+ 3023 01df 0E       		.uleb128 0xe
+ 3024 01e0 3A       		.uleb128 0x3a
+ 3025 01e1 0B       		.uleb128 0xb
+ 3026 01e2 3B       		.uleb128 0x3b
+ 3027 01e3 05       		.uleb128 0x5
+ 3028 01e4 49       		.uleb128 0x49
+ 3029 01e5 13       		.uleb128 0x13
+ 3030 01e6 1C       		.uleb128 0x1c
+ 3031 01e7 05       		.uleb128 0x5
+ 3032 01e8 00       		.byte	0x0
+ 3033 01e9 00       		.byte	0x0
+ 3034 01ea 23       		.uleb128 0x23
+ 3035 01eb 2E       		.uleb128 0x2e
+ 3036 01ec 00       		.byte	0x0
+ 3037 01ed 3F       		.uleb128 0x3f
+ 3038 01ee 0C       		.uleb128 0xc
+ 3039 01ef 03       		.uleb128 0x3
+ 3040 01f0 0E       		.uleb128 0xe
+ 3041 01f1 3A       		.uleb128 0x3a
+ 3042 01f2 0B       		.uleb128 0xb
+ 3043 01f3 3B       		.uleb128 0x3b
+ 3044 01f4 0B       		.uleb128 0xb
+ 3045 01f5 27       		.uleb128 0x27
+ 3046 01f6 0C       		.uleb128 0xc
+ 3047 01f7 11       		.uleb128 0x11
+ 3048 01f8 01       		.uleb128 0x1
+ 3049 01f9 12       		.uleb128 0x12
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 61
+
+
+ 3050 01fa 01       		.uleb128 0x1
+ 3051 01fb 40       		.uleb128 0x40
+ 3052 01fc 06       		.uleb128 0x6
+ 3053 01fd 00       		.byte	0x0
+ 3054 01fe 00       		.byte	0x0
+ 3055 01ff 24       		.uleb128 0x24
+ 3056 0200 34       		.uleb128 0x34
+ 3057 0201 00       		.byte	0x0
+ 3058 0202 03       		.uleb128 0x3
+ 3059 0203 0E       		.uleb128 0xe
+ 3060 0204 3A       		.uleb128 0x3a
+ 3061 0205 0B       		.uleb128 0xb
+ 3062 0206 3B       		.uleb128 0x3b
+ 3063 0207 0B       		.uleb128 0xb
+ 3064 0208 49       		.uleb128 0x49
+ 3065 0209 13       		.uleb128 0x13
+ 3066 020a 3F       		.uleb128 0x3f
+ 3067 020b 0C       		.uleb128 0xc
+ 3068 020c 3C       		.uleb128 0x3c
+ 3069 020d 0C       		.uleb128 0xc
+ 3070 020e 00       		.byte	0x0
+ 3071 020f 00       		.byte	0x0
+ 3072 0210 25       		.uleb128 0x25
+ 3073 0211 34       		.uleb128 0x34
+ 3074 0212 00       		.byte	0x0
+ 3075 0213 03       		.uleb128 0x3
+ 3076 0214 0E       		.uleb128 0xe
+ 3077 0215 3A       		.uleb128 0x3a
+ 3078 0216 0B       		.uleb128 0xb
+ 3079 0217 3B       		.uleb128 0x3b
+ 3080 0218 0B       		.uleb128 0xb
+ 3081 0219 49       		.uleb128 0x49
+ 3082 021a 13       		.uleb128 0x13
+ 3083 021b 3F       		.uleb128 0x3f
+ 3084 021c 0C       		.uleb128 0xc
+ 3085 021d 02       		.uleb128 0x2
+ 3086 021e 0A       		.uleb128 0xa
+ 3087 021f 00       		.byte	0x0
+ 3088 0220 00       		.byte	0x0
+ 3089 0221 00       		.byte	0x0
+ 3090              		.section	.debug_pubnames,"",%progbits
+ 3091 0000 3A010000 		.4byte	0x13a
+ 3092 0004 0200     		.2byte	0x2
+ 3093 0006 00000000 		.4byte	.Ldebug_info0
+ 3094 000a 31090000 		.4byte	0x931
+ 3095 000e D2050000 		.4byte	0x5d2
+ 3096 0012 6C636457 		.ascii	"lcdWriteCommand\000"
+ 3096      72697465 
+ 3096      436F6D6D 
+ 3096      616E6400 
+ 3097 0022 FB050000 		.4byte	0x5fb
+ 3098 0026 6C636457 		.ascii	"lcdWriteData\000"
+ 3098      72697465 
+ 3098      44617461 
+ 3098      00
+ 3099 0033 24060000 		.4byte	0x624
+ 3100 0037 6C636444 		.ascii	"lcdDrawPixel\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 62
+
+
+ 3100      72617750 
+ 3100      6978656C 
+ 3100      00
+ 3101 0044 6B060000 		.4byte	0x66b
+ 3102 0048 6C636443 		.ascii	"lcdClearPixel\000"
+ 3102      6C656172 
+ 3102      50697865 
+ 3102      6C00
+ 3103 0056 B2060000 		.4byte	0x6b2
+ 3104 005a 6C636447 		.ascii	"lcdGetFont\000"
+ 3104      6574466F 
+ 3104      6E7400
+ 3105 0065 CA060000 		.4byte	0x6ca
+ 3106 0069 6C636453 		.ascii	"lcdSetFont\000"
+ 3106      6574466F 
+ 3106      6E7400
+ 3107 0074 F0060000 		.4byte	0x6f0
+ 3108 0078 6C636453 		.ascii	"lcdSetCursor\000"
+ 3108      65744375 
+ 3108      72736F72 
+ 3108      00
+ 3109 0085 23070000 		.4byte	0x723
+ 3110 0089 6C636447 		.ascii	"lcdGetCursorX\000"
+ 3110      65744375 
+ 3110      72736F72 
+ 3110      5800
+ 3111 0097 3B070000 		.4byte	0x73b
+ 3112 009b 6C636447 		.ascii	"lcdGetCursorY\000"
+ 3112      65744375 
+ 3112      72736F72 
+ 3112      5900
+ 3113 00a9 53070000 		.4byte	0x753
+ 3114 00ad 6C63644F 		.ascii	"lcdOn\000"
+ 3114      6E00
+ 3115 00b3 67070000 		.4byte	0x767
+ 3116 00b7 6C63644F 		.ascii	"lcdOff\000"
+ 3116      666600
+ 3117 00be 7B070000 		.4byte	0x77b
+ 3118 00c2 6C636453 		.ascii	"lcdSetBPP\000"
+ 3118      65744250 
+ 3118      5000
+ 3119 00cc A1070000 		.4byte	0x7a1
+ 3120 00d0 6C636442 		.ascii	"lcdBackColor\000"
+ 3120      61636B43 
+ 3120      6F6C6F72 
+ 3120      00
+ 3121 00dd E8070000 		.4byte	0x7e8
+ 3122 00e1 6C636453 		.ascii	"lcdSetColor\000"
+ 3122      6574436F 
+ 3122      6C6F7200 
+ 3123 00ed 2F080000 		.4byte	0x82f
+ 3124 00f1 6C636443 		.ascii	"lcdClearArea\000"
+ 3124      6C656172 
+ 3124      41726561 
+ 3124      00
+ 3125 00fe A6080000 		.4byte	0x8a6
+ 3126 0102 6C636443 		.ascii	"lcdClear\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 63
+
+
+ 3126      6C656172 
+ 3126      00
+ 3127 010b DD080000 		.4byte	0x8dd
+ 3128 010f 6C636449 		.ascii	"lcdInit\000"
+ 3128      6E697400 
+ 3129 0117 0C090000 		.4byte	0x90c
+ 3130 011b 7079676D 		.ascii	"pygmyGlobalColors\000"
+ 3130      79476C6F 
+ 3130      62616C43 
+ 3130      6F6C6F72 
+ 3130      7300
+ 3131 012d 1E090000 		.4byte	0x91e
+ 3132 0131 7079676D 		.ascii	"pygmyLCD\000"
+ 3132      794C4344 
+ 3132      00
+ 3133 013a 00000000 		.4byte	0x0
+ 3134              		.section	.debug_pubtypes,"",%progbits
+ 3135 0000 9D000000 		.4byte	0x9d
+ 3136 0004 0200     		.2byte	0x2
+ 3137 0006 00000000 		.4byte	.Ldebug_info0
+ 3138 000a 31090000 		.4byte	0x931
+ 3139 000e 48000000 		.4byte	0x48
+ 3140 0012 75333200 		.ascii	"u32\000"
+ 3141 0016 5A000000 		.4byte	0x5a
+ 3142 001a 75313600 		.ascii	"u16\000"
+ 3143 001e 6C000000 		.4byte	0x6c
+ 3144 0022 753800   		.ascii	"u8\000"
+ 3145 0025 04010000 		.4byte	0x104
+ 3146 0029 4750494F 		.ascii	"GPIO\000"
+ 3146      00
+ 3147 002e 02040000 		.4byte	0x402
+ 3148 0032 5059474D 		.ascii	"PYGMYSPIPORT\000"
+ 3148      59535049 
+ 3148      504F5254 
+ 3148      00
+ 3149 003f 1E040000 		.4byte	0x41e
+ 3150 0043 5059474D 		.ascii	"PYGMYFILE_TYPEDEF\000"
+ 3150      5946494C 
+ 3150      455F5459 
+ 3150      50454445 
+ 3150      4600
+ 3151 0055 9B040000 		.4byte	0x49b
+ 3152 0059 5059474D 		.ascii	"PYGMYFILE\000"
+ 3152      5946494C 
+ 3152      4500
+ 3153 0063 D5040000 		.4byte	0x4d5
+ 3154 0067 5059474D 		.ascii	"PYGMYCURSOR\000"
+ 3154      59435552 
+ 3154      534F5200 
+ 3155 0073 0D050000 		.4byte	0x50d
+ 3156 0077 5059474D 		.ascii	"PYGMYCOLOR\000"
+ 3156      59434F4C 
+ 3156      4F5200
+ 3157 0082 67050000 		.4byte	0x567
+ 3158 0086 5059474D 		.ascii	"PYGMYFONT\000"
+ 3158      59464F4E 
+ 3158      5400
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 64
+
+
+ 3159 0090 C7050000 		.4byte	0x5c7
+ 3160 0094 5059474D 		.ascii	"PYGMYGUI\000"
+ 3160      59475549 
+ 3160      00
+ 3161 009d 00000000 		.4byte	0x0
+ 3162              		.section	.debug_aranges,"",%progbits
+ 3163 0000 9C000000 		.4byte	0x9c
+ 3164 0004 0200     		.2byte	0x2
+ 3165 0006 00000000 		.4byte	.Ldebug_info0
+ 3166 000a 04       		.byte	0x4
+ 3167 000b 00       		.byte	0x0
+ 3168 000c 0000     		.2byte	0x0
+ 3169 000e 0000     		.2byte	0x0
+ 3170 0010 00000000 		.4byte	.LFB0
+ 3171 0014 2C000000 		.4byte	.LFE0-.LFB0
+ 3172 0018 00000000 		.4byte	.LFB1
+ 3173 001c 2C000000 		.4byte	.LFE1-.LFB1
+ 3174 0020 00000000 		.4byte	.LFB3
+ 3175 0024 50000000 		.4byte	.LFE3-.LFB3
+ 3176 0028 00000000 		.4byte	.LFB4
+ 3177 002c 54000000 		.4byte	.LFE4-.LFB4
+ 3178 0030 00000000 		.4byte	.LFB5
+ 3179 0034 0C000000 		.4byte	.LFE5-.LFB5
+ 3180 0038 00000000 		.4byte	.LFB6
+ 3181 003c 0C000000 		.4byte	.LFE6-.LFB6
+ 3182 0040 00000000 		.4byte	.LFB7
+ 3183 0044 0C000000 		.4byte	.LFE7-.LFB7
+ 3184 0048 00000000 		.4byte	.LFB8
+ 3185 004c 0C000000 		.4byte	.LFE8-.LFB8
+ 3186 0050 00000000 		.4byte	.LFB9
+ 3187 0054 0C000000 		.4byte	.LFE9-.LFB9
+ 3188 0058 00000000 		.4byte	.LFB10
+ 3189 005c 06000000 		.4byte	.LFE10-.LFB10
+ 3190 0060 00000000 		.4byte	.LFB11
+ 3191 0064 06000000 		.4byte	.LFE11-.LFB11
+ 3192 0068 00000000 		.4byte	.LFB12
+ 3193 006c 0C000000 		.4byte	.LFE12-.LFB12
+ 3194 0070 00000000 		.4byte	.LFB13
+ 3195 0074 3C000000 		.4byte	.LFE13-.LFB13
+ 3196 0078 00000000 		.4byte	.LFB14
+ 3197 007c 3C000000 		.4byte	.LFE14-.LFB14
+ 3198 0080 00000000 		.4byte	.LFB15
+ 3199 0084 70000000 		.4byte	.LFE15-.LFB15
+ 3200 0088 00000000 		.4byte	.LFB16
+ 3201 008c 50000000 		.4byte	.LFE16-.LFB16
+ 3202 0090 00000000 		.4byte	.LFB2
+ 3203 0094 C8000000 		.4byte	.LFE2-.LFB2
+ 3204 0098 00000000 		.4byte	0x0
+ 3205 009c 00000000 		.4byte	0x0
+ 3206              		.section	.debug_ranges,"",%progbits
+ 3207              	.Ldebug_ranges0:
+ 3208 0000 00000000 		.4byte	.LFB0
+ 3209 0004 2C000000 		.4byte	.LFE0
+ 3210 0008 00000000 		.4byte	.LFB1
+ 3211 000c 2C000000 		.4byte	.LFE1
+ 3212 0010 00000000 		.4byte	.LFB3
+ 3213 0014 50000000 		.4byte	.LFE3
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 65
+
+
+ 3214 0018 00000000 		.4byte	.LFB4
+ 3215 001c 54000000 		.4byte	.LFE4
+ 3216 0020 00000000 		.4byte	.LFB5
+ 3217 0024 0C000000 		.4byte	.LFE5
+ 3218 0028 00000000 		.4byte	.LFB6
+ 3219 002c 0C000000 		.4byte	.LFE6
+ 3220 0030 00000000 		.4byte	.LFB7
+ 3221 0034 0C000000 		.4byte	.LFE7
+ 3222 0038 00000000 		.4byte	.LFB8
+ 3223 003c 0C000000 		.4byte	.LFE8
+ 3224 0040 00000000 		.4byte	.LFB9
+ 3225 0044 0C000000 		.4byte	.LFE9
+ 3226 0048 00000000 		.4byte	.LFB10
+ 3227 004c 06000000 		.4byte	.LFE10
+ 3228 0050 00000000 		.4byte	.LFB11
+ 3229 0054 06000000 		.4byte	.LFE11
+ 3230 0058 00000000 		.4byte	.LFB12
+ 3231 005c 0C000000 		.4byte	.LFE12
+ 3232 0060 00000000 		.4byte	.LFB13
+ 3233 0064 3C000000 		.4byte	.LFE13
+ 3234 0068 00000000 		.4byte	.LFB14
+ 3235 006c 3C000000 		.4byte	.LFE14
+ 3236 0070 00000000 		.4byte	.LFB15
+ 3237 0074 70000000 		.4byte	.LFE15
+ 3238 0078 00000000 		.4byte	.LFB16
+ 3239 007c 50000000 		.4byte	.LFE16
+ 3240 0080 00000000 		.4byte	.LFB2
+ 3241 0084 C8000000 		.4byte	.LFE2
+ 3242 0088 00000000 		.4byte	0x0
+ 3243 008c 00000000 		.4byte	0x0
+ 3244              		.section	.debug_str,"MS",%progbits,1
+ 3245              	.LASF9:
+ 3246 0000 42535252 		.ascii	"BSRR\000"
+ 3246      00
+ 3247              	.LASF86:
+ 3248 0005 7079676D 		.ascii	"pygmyFont\000"
+ 3248      79466F6E 
+ 3248      7400
+ 3249              	.LASF75:
+ 3250 000f 43757273 		.ascii	"Cursor\000"
+ 3250      6F7200
+ 3251              	.LASF93:
+ 3252 0016 6C636453 		.ascii	"lcdSetBPP\000"
+ 3252      65744250 
+ 3252      5000
+ 3253              	.LASF8:
+ 3254 0020 756E7369 		.ascii	"unsigned int\000"
+ 3254      676E6564 
+ 3254      20696E74 
+ 3254      00
+ 3255              	.LASF68:
+ 3256 002d 5059474D 		.ascii	"PYGMYCOLOR\000"
+ 3256      59434F4C 
+ 3256      4F5200
+ 3257              	.LASF57:
+ 3258 0038 53656374 		.ascii	"Sector\000"
+ 3258      6F7200
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 66
+
+
+ 3259              	.LASF81:
+ 3260 003f 75694461 		.ascii	"uiData\000"
+ 3260      746100
+ 3261              	.LASF11:
+ 3262 0046 4750494F 		.ascii	"GPIO\000"
+ 3262      00
+ 3263              	.LASF78:
+ 3264 004b 6C636457 		.ascii	"lcdWriteCommand\000"
+ 3264      72697465 
+ 3264      436F6D6D 
+ 3264      616E6400 
+ 3265              	.LASF18:
+ 3266 005b 50423130 		.ascii	"PB10\000"
+ 3266      00
+ 3267              	.LASF19:
+ 3268 0060 50423131 		.ascii	"PB11\000"
+ 3268      00
+ 3269              	.LASF20:
+ 3270 0065 50423132 		.ascii	"PB12\000"
+ 3270      00
+ 3271              	.LASF21:
+ 3272 006a 50423133 		.ascii	"PB13\000"
+ 3272      00
+ 3273              	.LASF22:
+ 3274 006f 50423134 		.ascii	"PB14\000"
+ 3274      00
+ 3275              	.LASF23:
+ 3276 0074 50423135 		.ascii	"PB15\000"
+ 3276      00
+ 3277              	.LASF92:
+ 3278 0079 6C63644F 		.ascii	"lcdOff\000"
+ 3278      666600
+ 3279              	.LASF60:
+ 3280 0080 49445F53 		.ascii	"ID_Sector\000"
+ 3280      6563746F 
+ 3280      7200
+ 3281              	.LASF53:
+ 3282 008a 50696E53 		.ascii	"PinSCK\000"
+ 3282      434B00
+ 3283              	.LASF73:
+ 3284 0091 48656967 		.ascii	"Height\000"
+ 3284      687400
+ 3285              	.LASF55:
+ 3286 0098 50696E4D 		.ascii	"PinMISO\000"
+ 3286      49534F00 
+ 3287              	.LASF4:
+ 3288 00a0 6C6F6E67 		.ascii	"long long unsigned int\000"
+ 3288      206C6F6E 
+ 3288      6720756E 
+ 3288      7369676E 
+ 3288      65642069 
+ 3289              	.LASF50:
+ 3290 00b7 506F7274 		.ascii	"PortMOSI\000"
+ 3290      4D4F5349 
+ 3290      00
+ 3291              	.LASF103:
+ 3292 00c0 756C4C65 		.ascii	"ulLen\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 67
+
+
+ 3292      6E00
+ 3293              	.LASF51:
+ 3294 00c6 506F7274 		.ascii	"PortMISO\000"
+ 3294      4D49534F 
+ 3294      00
+ 3295              	.LASF105:
+ 3296 00cf 7079676D 		.ascii	"pygmyGlobalColors\000"
+ 3296      79476C6F 
+ 3296      62616C43 
+ 3296      6F6C6F72 
+ 3296      7300
+ 3297              	.LASF85:
+ 3298 00e1 6C636453 		.ascii	"lcdSetFont\000"
+ 3298      6574466F 
+ 3298      6E7400
+ 3299              	.LASF64:
+ 3300 00ec 4E616D65 		.ascii	"Name\000"
+ 3300      00
+ 3301              	.LASF76:
+ 3302 00f1 466F6E74 		.ascii	"Font\000"
+ 3302      00
+ 3303              	.LASF58:
+ 3304 00f6 4C656E67 		.ascii	"Length\000"
+ 3304      746800
+ 3305              	.LASF72:
+ 3306 00fd 5374796C 		.ascii	"Style\000"
+ 3306      6500
+ 3307              	.LASF87:
+ 3308 0103 6C636453 		.ascii	"lcdSetCursor\000"
+ 3308      65744375 
+ 3308      72736F72 
+ 3308      00
+ 3309              	.LASF106:
+ 3310 0110 7079676D 		.ascii	"pygmyLCD\000"
+ 3310      794C4344 
+ 3310      00
+ 3311              	.LASF36:
+ 3312 0119 50453130 		.ascii	"PE10\000"
+ 3312      00
+ 3313              	.LASF37:
+ 3314 011e 50453131 		.ascii	"PE11\000"
+ 3314      00
+ 3315              	.LASF38:
+ 3316 0123 50453132 		.ascii	"PE12\000"
+ 3316      00
+ 3317              	.LASF39:
+ 3318 0128 50453133 		.ascii	"PE13\000"
+ 3318      00
+ 3319              	.LASF40:
+ 3320 012d 50453134 		.ascii	"PE14\000"
+ 3320      00
+ 3321              	.LASF41:
+ 3322 0132 50453135 		.ascii	"PE15\000"
+ 3322      00
+ 3323              	.LASF62:
+ 3324 0137 41747472 		.ascii	"Attributes\000"
+ 3324      69627574 
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 68
+
+
+ 3324      657300
+ 3325              	.LASF91:
+ 3326 0142 6C63644F 		.ascii	"lcdOn\000"
+ 3326      6E00
+ 3327              	.LASF56:
+ 3328 0148 5059474D 		.ascii	"PYGMYSPIPORT\000"
+ 3328      59535049 
+ 3328      504F5254 
+ 3328      00
+ 3329              	.LASF74:
+ 3330 0155 5059474D 		.ascii	"PYGMYFONT\000"
+ 3330      59464F4E 
+ 3330      5400
+ 3331              	.LASF107:
+ 3332 015f 474E5520 		.ascii	"GNU C 4.5.1\000"
+ 3332      4320342E 
+ 3332      352E3100 
+ 3333              	.LASF98:
+ 3334 016b 75695831 		.ascii	"uiX1\000"
+ 3334      00
+ 3335              	.LASF100:
+ 3336 0170 75695832 		.ascii	"uiX2\000"
+ 3336      00
+ 3337              	.LASF108:
+ 3338 0175 633A2F75 		.ascii	"c:/users/mightydubster/ride7/pygmy/profiles/lcd/nok"
+ 3338      73657273 
+ 3338      2F6D6967 
+ 3338      68747964 
+ 3338      75627374 
+ 3339 01a8 69613133 		.ascii	"ia132x132.c\000"
+ 3339      32783133 
+ 3339      322E6300 
+ 3340              	.LASF77:
+ 3341 01b4 5059474D 		.ascii	"PYGMYGUI\000"
+ 3341      59475549 
+ 3341      00
+ 3342              	.LASF66:
+ 3343 01bd 50726F70 		.ascii	"Properties\000"
+ 3343      65727469 
+ 3343      657300
+ 3344              	.LASF61:
+ 3345 01c8 49445F46 		.ascii	"ID_File\000"
+ 3345      696C6500 
+ 3346              	.LASF89:
+ 3347 01d0 6C636447 		.ascii	"lcdGetCursorX\000"
+ 3347      65744375 
+ 3347      72736F72 
+ 3347      5800
+ 3348              	.LASF90:
+ 3349 01de 6C636447 		.ascii	"lcdGetCursorY\000"
+ 3349      65744375 
+ 3349      72736F72 
+ 3349      5900
+ 3350              	.LASF0:
+ 3351 01ec 6C6F6E67 		.ascii	"long long int\000"
+ 3351      206C6F6E 
+ 3351      6720696E 
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 69
+
+
+ 3351      7400
+ 3352              	.LASF99:
+ 3353 01fa 75695931 		.ascii	"uiY1\000"
+ 3353      00
+ 3354              	.LASF101:
+ 3355 01ff 75695932 		.ascii	"uiY2\000"
+ 3355      00
+ 3356              	.LASF48:
+ 3357 0204 506F7274 		.ascii	"PortCS\000"
+ 3357      435300
+ 3358              	.LASF104:
+ 3359 020b 6C636449 		.ascii	"lcdInit\000"
+ 3359      6E697400 
+ 3360              	.LASF67:
+ 3361 0213 5059474D 		.ascii	"PYGMYCURSOR\000"
+ 3361      59435552 
+ 3361      534F5200 
+ 3362              	.LASF24:
+ 3363 021f 50433130 		.ascii	"PC10\000"
+ 3363      00
+ 3364              	.LASF25:
+ 3365 0224 50433131 		.ascii	"PC11\000"
+ 3365      00
+ 3366              	.LASF26:
+ 3367 0229 50433132 		.ascii	"PC12\000"
+ 3367      00
+ 3368              	.LASF27:
+ 3369 022e 50433133 		.ascii	"PC13\000"
+ 3369      00
+ 3370              	.LASF28:
+ 3371 0233 50433134 		.ascii	"PC14\000"
+ 3371      00
+ 3372              	.LASF29:
+ 3373 0238 50433135 		.ascii	"PC15\000"
+ 3373      00
+ 3374              	.LASF54:
+ 3375 023d 50696E4D 		.ascii	"PinMOSI\000"
+ 3375      4F534900 
+ 3376              	.LASF84:
+ 3377 0245 7563436F 		.ascii	"ucColor\000"
+ 3377      6C6F7200 
+ 3378              	.LASF88:
+ 3379 024d 6C636447 		.ascii	"lcdGetFont\000"
+ 3379      6574466F 
+ 3379      6E7400
+ 3380              	.LASF109:
+ 3381 0258 5059474D 		.ascii	"PYGMYFILE_TYPEDEF\000"
+ 3381      5946494C 
+ 3381      455F5459 
+ 3381      50454445 
+ 3381      4600
+ 3382              	.LASF2:
+ 3383 026a 73686F72 		.ascii	"short int\000"
+ 3383      7420696E 
+ 3383      7400
+ 3384              	.LASF1:
+ 3385 0274 6C6F6E67 		.ascii	"long int\000"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 70
+
+
+ 3385      20696E74 
+ 3385      00
+ 3386              	.LASF94:
+ 3387 027d 75634250 		.ascii	"ucBPP\000"
+ 3387      5000
+ 3388              	.LASF70:
+ 3389 0283 4261636B 		.ascii	"BackColor\000"
+ 3389      436F6C6F 
+ 3389      7200
+ 3390              	.LASF82:
+ 3391 028d 6C636444 		.ascii	"lcdDrawPixel\000"
+ 3391      72617750 
+ 3391      6978656C 
+ 3391      00
+ 3392              	.LASF42:
+ 3393 029a 50463130 		.ascii	"PF10\000"
+ 3393      00
+ 3394              	.LASF43:
+ 3395 029f 50463131 		.ascii	"PF11\000"
+ 3395      00
+ 3396              	.LASF44:
+ 3397 02a4 50463132 		.ascii	"PF12\000"
+ 3397      00
+ 3398              	.LASF45:
+ 3399 02a9 50463133 		.ascii	"PF13\000"
+ 3399      00
+ 3400              	.LASF46:
+ 3401 02ae 50463134 		.ascii	"PF14\000"
+ 3401      00
+ 3402              	.LASF47:
+ 3403 02b3 50463135 		.ascii	"PF15\000"
+ 3403      00
+ 3404              	.LASF52:
+ 3405 02b8 50696E43 		.ascii	"PinCS\000"
+ 3405      5300
+ 3406              	.LASF12:
+ 3407 02be 50413130 		.ascii	"PA10\000"
+ 3407      00
+ 3408              	.LASF13:
+ 3409 02c3 50413131 		.ascii	"PA11\000"
+ 3409      00
+ 3410              	.LASF14:
+ 3411 02c8 50413132 		.ascii	"PA12\000"
+ 3411      00
+ 3412              	.LASF15:
+ 3413 02cd 50413133 		.ascii	"PA13\000"
+ 3413      00
+ 3414              	.LASF16:
+ 3415 02d2 50413134 		.ascii	"PA14\000"
+ 3415      00
+ 3416              	.LASF17:
+ 3417 02d7 50413135 		.ascii	"PA15\000"
+ 3417      00
+ 3418              	.LASF63:
+ 3419 02dc 5265736F 		.ascii	"Resource\000"
+ 3419      75726365 
+ 3419      00
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 71
+
+
+ 3420              	.LASF95:
+ 3421 02e5 6C636442 		.ascii	"lcdBackColor\000"
+ 3421      61636B43 
+ 3421      6F6C6F72 
+ 3421      00
+ 3422              	.LASF71:
+ 3423 02f2 46696C65 		.ascii	"File\000"
+ 3423      00
+ 3424              	.LASF5:
+ 3425 02f7 6C6F6E67 		.ascii	"long unsigned int\000"
+ 3425      20756E73 
+ 3425      69676E65 
+ 3425      6420696E 
+ 3425      7400
+ 3426              	.LASF59:
+ 3427 0309 496E6465 		.ascii	"Index\000"
+ 3427      7800
+ 3428              	.LASF97:
+ 3429 030f 6C636443 		.ascii	"lcdClearArea\000"
+ 3429      6C656172 
+ 3429      41726561 
+ 3429      00
+ 3430              	.LASF7:
+ 3431 031c 756E7369 		.ascii	"unsigned char\000"
+ 3431      676E6564 
+ 3431      20636861 
+ 3431      7200
+ 3432              	.LASF49:
+ 3433 032a 506F7274 		.ascii	"PortSCK\000"
+ 3433      53434B00 
+ 3434              	.LASF65:
+ 3435 0332 5059474D 		.ascii	"PYGMYFILE\000"
+ 3435      5946494C 
+ 3435      4500
+ 3436              	.LASF69:
+ 3437 033c 436F6C6F 		.ascii	"Color\000"
+ 3437      7200
+ 3438              	.LASF96:
+ 3439 0342 6C636453 		.ascii	"lcdSetColor\000"
+ 3439      6574436F 
+ 3439      6C6F7200 
+ 3440              	.LASF83:
+ 3441 034e 6C636443 		.ascii	"lcdClearPixel\000"
+ 3441      6C656172 
+ 3441      50697865 
+ 3441      6C00
+ 3442              	.LASF102:
+ 3443 035c 6C636443 		.ascii	"lcdClear\000"
+ 3443      6C656172 
+ 3443      00
+ 3444              	.LASF3:
+ 3445 0365 7369676E 		.ascii	"signed char\000"
+ 3445      65642063 
+ 3445      68617200 
+ 3446              	.LASF6:
+ 3447 0371 73686F72 		.ascii	"short unsigned int\000"
+ 3447      7420756E 
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 72
+
+
+ 3447      7369676E 
+ 3447      65642069 
+ 3447      6E7400
+ 3448              	.LASF30:
+ 3449 0384 50443130 		.ascii	"PD10\000"
+ 3449      00
+ 3450              	.LASF31:
+ 3451 0389 50443131 		.ascii	"PD11\000"
+ 3451      00
+ 3452              	.LASF32:
+ 3453 038e 50443132 		.ascii	"PD12\000"
+ 3453      00
+ 3454              	.LASF33:
+ 3455 0393 50443133 		.ascii	"PD13\000"
+ 3455      00
+ 3456              	.LASF34:
+ 3457 0398 50443134 		.ascii	"PD14\000"
+ 3457      00
+ 3458              	.LASF35:
+ 3459 039d 50443135 		.ascii	"PD15\000"
+ 3459      00
+ 3460              	.LASF79:
+ 3461 03a2 6C636457 		.ascii	"lcdWriteData\000"
+ 3461      72697465 
+ 3461      44617461 
+ 3461      00
+ 3462              	.LASF80:
+ 3463 03af 7569436F 		.ascii	"uiCommand\000"
+ 3463      6D6D616E 
+ 3463      6400
+ 3464              	.LASF10:
+ 3465 03b9 4C434B52 		.ascii	"LCKR\000"
+ 3465      00
+ 3466              		.ident	"GCC: (Sourcery G++ Lite 2010.09-51) 4.5.1"
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 73
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 nokia132x132.c
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:76     .text.lcdWriteCommand:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:81     .text.lcdWriteCommand:00000000 lcdWriteCommand
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:128    .text.lcdWriteCommand:00000028 $d
+                            *COM*:00000018 pygmyLCD
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:133    .text.lcdWriteData:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:138    .text.lcdWriteData:00000000 lcdWriteData
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:184    .text.lcdWriteData:00000028 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:189    .text.lcdDrawPixel:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:194    .text.lcdDrawPixel:00000000 lcdDrawPixel
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:255    .text.lcdDrawPixel:0000004c $d
+                            *COM*:00000014 pygmyGlobalColors
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:260    .text.lcdClearPixel:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:265    .text.lcdClearPixel:00000000 lcdClearPixel
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:329    .text.lcdClearPixel:00000050 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:334    .text.lcdGetFont:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:339    .text.lcdGetFont:00000000 lcdGetFont
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:353    .text.lcdGetFont:00000008 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:358    .text.lcdSetFont:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:363    .text.lcdSetFont:00000000 lcdSetFont
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:379    .text.lcdSetFont:00000008 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:384    .text.lcdSetCursor:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:389    .text.lcdSetCursor:00000000 lcdSetCursor
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:407    .text.lcdSetCursor:00000008 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:412    .text.lcdGetCursorX:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:417    .text.lcdGetCursorX:00000000 lcdGetCursorX
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:431    .text.lcdGetCursorX:00000008 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:436    .text.lcdGetCursorY:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:441    .text.lcdGetCursorY:00000000 lcdGetCursorY
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:455    .text.lcdGetCursorY:00000008 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:460    .text.lcdOn:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:465    .text.lcdOn:00000000 lcdOn
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:481    .text.lcdOff:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:486    .text.lcdOff:00000000 lcdOff
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:502    .text.lcdSetBPP:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:507    .text.lcdSetBPP:00000000 lcdSetBPP
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:523    .text.lcdSetBPP:00000008 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:528    .text.lcdBackColor:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:533    .text.lcdBackColor:00000000 lcdBackColor
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:608    .text.lcdBackColor:00000038 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:613    .text.lcdSetColor:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:618    .text.lcdSetColor:00000000 lcdSetColor
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:693    .text.lcdSetColor:00000038 $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:698    .text.lcdClearArea:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:703    .text.lcdClearArea:00000000 lcdClearArea
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:801    .text.lcdClearArea:0000006c $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:806    .text.lcdClear:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:811    .text.lcdClear:00000000 lcdClear
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:867    .text.lcdClear:0000004c $d
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:872    .text.lcdInit:00000000 $t
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:877    .text.lcdInit:00000000 lcdInit
+C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s:988    .text.lcdInit:000000c4 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+spiWriteByte
+ARM GAS  C:\Users\MIGHTY~1\AppData\Local\Temp\ccjdSXZd.s 			page 74
+
+
+spiConfig
+pinConfig
+setPin
+delay

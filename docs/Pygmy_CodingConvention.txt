@@ -1,0 +1,50 @@
+Pygmy Coding Convention
+
+    This document defines a simple set of guidlines, collectively known as a coding convention.
+Conforming to these guildines allows the Pygmy community to maintain a consistent and predictable
+code style, organization and interface. All Pygmy base code is written as C source.  
+
+Section 1:
+    Basic naming structure:
+        All source files comprising the Pygmy base code source will be named as pairs of source and
+    header. All source will be named as "pygmy_*.c" and corresponding headers as "pygmy_*.h". These
+    names chall be all lowercase.
+        Functions within these source files will be named as Pygmy_*_Function()., where "*" is 
+    replaced with the library name or group name in all caps. An example is Pygmy_SYS_AnyFunction().
+    Three letter names are used on many base code source files for brevity, but are not actually 
+    limited to three letters. In general, SYS files may be found in "pygmy_sys.c" and "pygmy_sys.h".
+        The first letter of each letter in a function name shall be capitalized, as in AnyFunction().
+    In the case where numerous functions need to be broken into groups, the group name should follow
+    the library name and immediately precede the function name. Groups named with more than one word
+    should have the first letter of each word capitalized. Two examples: Pygmy_SYS_Group_AnyFunc(),
+    Pygmy_SYS_GroupTwo_AnyFunc(). Groups tend to clutter code and should only be used where functions
+    are too numerous or similar to be named otherwise.
+        
+    Variable Naming:
+        Variables should be named with an appropriate type identifier in lowercase followed by the name
+    with the first letter of each word capitalized. Variable defined by Pygmy typedefs should have the
+    function name preceded with "pygmy" and any appropriate type identifier. An example would be:
+    pygmyMessage or pygmyMessageBuffer. If the name becomes excessively verbose, it is acceptable to 
+    abbreviate and use a simple one line comment to describe the abreviation.
+        As would be expected, i, ii, and even iii are expressely exempted from the naming convention
+    and reserved for index variables. 
+        Some basic type identifiers are:
+        i       Int
+        ui      Unsigned Int
+        c       Char
+        uc      Unsigned Char
+        s       String or Char Buffer
+        l       Long Int
+        ul      Unsigned Long Int
+        
+        You may also prepend the types used by the Pygmy base code source files ( defined in pygmy_sys.h):
+        s8      Signed 8 Bit Int
+        u8      Unsigned 8 Bit Int
+        s16     Signed 16 Bit Int
+        u16     Unsigned 16 Bit Int
+        s32     Signed 32 Bit Int
+        u32     Unsigned 32 Bit Int
+        s64     Signed 64 Bit Int
+        u64     Unsigned 64 Bit Int
+        
+        
