@@ -18,8 +18,8 @@
 
 #pragma once
 
-#include "pygmy_profile.h"
-#include "pygmy_file.h"
+#include "profile.h"
+//#include "pygmy_file.h"
 
 #define PYGMY_PBM_TYPEMASK				0xF000
 #define PYGMY_PBM_IMAGE				    0x0000

@@ -16,8 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#include "pygmy_fpec.h"
-#include "pygmy_string.h"
+#include "pygmy_profile.h"
 
 u8 fpecProcessIHEX( u8 *ucBuffer )
 {

@@ -16,9 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#include "pygmy_lcd.h"
+#include "pygmy_profile.h"
 
-// ToDo: Macros must be named following convention and moved to pygmy_lcd.h and pygmy_profile.h as appropriate
+// ToDo: Macros must be named following convention and moved to pygmy_lcd.h and profile.h as appropriate
 
 const unsigned char LCD_BITMASKS[] = { BIT0, BIT1, BIT2, BIT3, BIT4, BIT5, BIT6, BIT7};
 

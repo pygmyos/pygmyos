@@ -18,8 +18,7 @@
 
 
 #include <stdarg.h>
-#include "pygmy_profile.h"
-#include "pygmy_debug.h"
+#include "pygmy_sys.h"
 
 //#ifdef __PYGMY_BOOT
 const u8 PYGSYS_INVBITS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
@@ -61,30 +60,6 @@ u8 sysInit( void )
     } // else
     pygmyGlobalData.MainClock = ulFreq;
 
-    /*RCC->APB2ENR |= (RCC_IOPBEN|RCC_IOPCEN|RCC_IOPAEN);
-    PYGMY_RCC_HSE_ENABLE;
-    while( !PYGMY_RCC_HSE_READY ){;}
-        
-    RCC->CFGR = ulPLL;
-    PYGMY_RCC_PLL_ENABLE;
-    while( !PYGMY_RCC_PLL_READY ){;}
-    
-    #ifdef __PYGMY_HSI
-        // HSI Must be ON for Flash Program/Erase Operations
-        PYGMY_RCC_HSI_ENABLE;
-    #endif
-
-    PYGMY_WATCHDOG_UNLOCK;
-    PYGMY_WATCHDOG_PRESCALER( IWDT_PREDIV128 );
-    PYGMY_WATCHDOG_TIMER( 0x0FFF );
-    PYGMY_WATCHDOG_START;
-    PYGMY_WATCHDOG_REFRESH;
-  
-    NVIC->ISER[ 1 ] = 0x00000001 <<  7 ;
-    SYSTICK->LOAD = ( ulFreq * 2 ) / 1000; // Based on  ( 2X the System Clock ) / 1000
-    SYSTICK->VAL = SYSTICK->LOAD;
-    SYSTICK->CTRL = 0x07;   // Enable system timer
-    */
     
     //initTasks();
     //initMessages();
@@ -1131,6 +1106,72 @@ void delay( u32 ulDelay )
 {
     // This function uses Timer1 to provide an accurate microsecond delay
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
+    if( ){ // TIM10 // F103XL
+        TIM10->CR1 = 0;                          // Disable before configuring timer
+        if( ulDelay > 0x0000FFFF ){
+            TIM10->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
+            ulDelay &= 0x0000FFFF;
+        } // 
+        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
+        if( ulDelay < 60 ){ 
+            // Minimum number of cycles supported
+            ulDelay = 60;
+        } // 
+        TIM10->CR2 = 0;                          //
+        TIM10->SMCR = 0;                         //
+        TIM10->DIER = 0;                         // DMA and interrupt enable register
+        TIM10->CNT = 0;                          // Count Register
+        TIM10->ARR =  ulDelay - 60; // Auto Reload Register
+        TIM10->SR = 0;
+        TIM10->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
+        while( (TIM10->CR1 & TIM_CEN) );         // Wait for count to complete 
+    } else if( ){ // TIM15 // F100
+        TIM15->CR1 = 0;                          // Disable before configuring timer
+        if( ulDelay > 0x0000FFFF ){
+            TIM15->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
+            ulDelay &= 0x0000FFFF;
+        } // 
+        ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
+        if( ulDelay < 60 ){
+            ulDelay = 60;
+        } // 
+        TIM15->CR2 = 0;                          //
+        TIM15->SMCR = 0;                         //
+        TIM15->DIER = 0;                         // DMA and interrupt enable register
+        TIM15->CNT = 0;                          // Count Register
+        TIM15->ARR =  ulDelay - 60; // Auto Reload Register
+        TIM15->SR = 0;
+        TIM15->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
+        while( (TIM15->CR1 & TIM_CEN) );         // Wait for count to complete 
+    } else{ // TIM1 // F103
+        // Warning! F103 devies with less than 768KB Flash do not have extra
+        // multipurpose timers and must share Timer1. In this case, Timer1
+        // should not be used for PWM output.
+        //PYGMY_RCC_TIMER1_ENABLE;
+        TIM1->CR1 = 0;                          // Disable before configuring timer
+        if( ulDelay > 0x0000FFFF ){
+            TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
+            ulDelay &= 0x0000FFFF;
+        } // 
+        ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
+        if( ulDelay < 60 ){
+            ulDelay = 60;
+        } // 
+        TIM1->CR2 = 0;                          //
+        TIM1->SMCR = 0;                         //
+        TIM1->DIER = 0;                         // DMA and interrupt enable register
+        TIM1->CNT = 0;                          // Count Register
+        TIM1->ARR =  ulDelay - 60; // Auto Reload Register
+        TIM1->SR = 0;
+        TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
+        while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
+    } // else
+}
+
+/*void delay( u32 ulDelay )
+{
+    // This function uses Timer1 to provide an accurate microsecond delay
+    // MainClock must be set to 1MHz min, 8MHz or higher recommended
     TIM1->CR1 = 0;                          // Disable before configuring timer
     if( ulDelay > 0x0000FFFF ){
         TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
@@ -1148,7 +1189,7 @@ void delay( u32 ulDelay )
     TIM1->SR = 0;
     TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
     while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete
-}
+}*/
 
 void setStopWatch( void )
 {

@@ -963,6 +963,12 @@ typedef struct
 #define RCC_DMA2EN              BIT1                    
 #define RCC_DMA1EN              BIT0                   
 //RCC_APB2ENR Peripheral Clock Enable
+#define RCC_TIM11EN             BIT21
+#define RCC_TIM10EN             BIT20
+#define RCC_TIM9EN              BIT19
+#define RCC_TIM17EN             BIT18
+#define RCC_TIM16EN             BIT17
+#define RCC_TIM15EN             BIT16
 #define RCC_ADC3EN              BIT15                 
 #define RCC_USART1EN            BIT14                  
 #define RCC_TIM8EN              BIT13                 
@@ -992,7 +998,10 @@ typedef struct
 #define RCC_USART2EN            BIT17                  
 #define RCC_SPI3EN              BIT15                  
 #define RCC_SPI2EN              BIT14                  
-#define RCC_WWDGEN              BIT11                 
+#define RCC_WWDGEN              BIT11  
+#define RCC_TIM14EN             BIT8
+#define RCC_TIM13EN             BIT7
+#define RCC_TIM12EN             BIT6
 #define RCC_TIM7EN              BIT5                  
 #define RCC_TIM6EN              BIT4                  
 #define RCC_TIM5EN              BIT3                 
@@ -1080,88 +1089,105 @@ typedef struct
 
 #define PYGMY_RCC_HSE_READY                ( RCC->CR & RCC_HSERDY )
 #define PYGMY_RCC_PLL_READY                ( RCC->CR & RCC_PLLRDY )
-
-#define PYGMY_RCC_PLL_ENABLE               RCC->CR |= RCC_PLLON
-#define PYGMY_RCC_PLL_DISABLE              RCC->CR &= ~RCC_PLLON
-#define PYGMY_RCC_LSE_ENABLE               RCC->CR |= RCC_LSEON
-#define PYGMY_RCC_LSE_DISABLE              RCC->CR &= ~RCC_LSEON
-#define PYGMY_RCC_HSE_ENABLE               RCC->CR |= RCC_HSEON
-#define PYGMY_RCC_HSE_DISABLE              RCC->CR &= ~( RCC_HSEON | RCC_HSEBYP )
-#define PYGMY_RCC_HSE_BYPASS               RCC->CR &= ~RCC_HSEON; RCC->CR |= ( RCC_HSEBYP|RCC_HSEON )
-#define PYGMY_RCC_HSI_ENABLE               RCC->CFGR |= RCC_HSION
-#define PYGMY_RCC_HSI_DISABLE              RCC->CFGR &= ~RCC_HSION
-#define PYGMY_RCC_PWR_ENABLE               RCC->APB1ENR |= BIT28;
-#define PYGMY_RCC_PWR_DISABLE              RCC->APB1ENR &= ~BIT28;
-#define PYGMY_RCC_BKP_ENABLE               RCC->APB1ENR |= BIT27;
-#define PYGMY_RCC_BKP_DISABLE              RCC->APB1ENR &= ~BIT27;
-#define PYGMY_RCC_DMA1_ENABLE              RCC->AHBENR |= RCC_DMA1EN
-#define PYGMY_RCC_DMA1_DISABLE             RCC->AHBENR &= ~RCC_DMA1EN
-#define PYGMY_RCC_DMA2_ENABLE              RCC->AHBENR |= RCC_DMA2EN
-#define PYGMY_RCC_DMA2_DISABLE             RCC->AHBENR &= ~RCC_DMA2EN
-#define PYGMY_RCC_ADC1_ENABLE              RCC->APB2ENR |= RCC_ADC1EN
-#define PYGMY_RCC_ADC1_DISABLE             RCC->APB2ENR &= ~RCC_ADC1EN
-#define PYGMY_RCC_ADC2_ENABLE              RCC->APB2ENR |= RCC_ADC2EN
-#define PYGMY_RCC_ADC2_DISABLE             RCC->APB2ENR &= ~RCC_ADC2EN
-#define PYGMY_RCC_ADC3_ENABLE              RCC->APB2ENR |= RCC_ADC3EN
-#define PYGMY_RCC_ADC3_DISABLE             RCC->APB2ENR &= ~RCC_ADC3EN
-#define PYGMY_RCC_AFIO_ENABLE              RCC->APB2ENR |= RCC_AFIOEN
-#define PYGMY_RCC_AFIO_DISABLE             RCC->APB2ENR &= ~RCC_AFIOEN
-#define PYGMY_RCC_GPIOA_ENABLE             RCC->APB2ENR |= RCC_IOPAEN
-#define PYGMY_RCC_GPIOB_ENABLE             RCC->APB2ENR |= RCC_IOPBEN
-#define PYGMY_RCC_GPIOC_ENABLE             RCC->APB2ENR |= RCC_IOPCEN
-#define PYGMY_RCC_GPIOD_ENABLE             RCC->APB2ENR |= RCC_IOPDEN
-#define PYGMY_RCC_GPIOE_ENABLE             RCC->APB2ENR |= RCC_IOPEEN
-#define PYGMY_RCC_GPIOF_ENABLE             RCC->APB2ENR |= RCC_IOPFEN
-#define PYGMY_RCC_GPIOG_ENABLE             RCC->APB2ENR |= RCC_IOPGEN
-#define PYGMY_RCC_GPIOA_DISABLE            RCC->APB2ENR &= ~RCC_IOPAEN
-#define PYGMY_RCC_GPIOB_DISABLE            RCC->APB2ENR &= ~RCC_IOPBEN
-#define PYGMY_RCC_GPIOC_DISABLE            RCC->APB2ENR &= ~RCC_IOPCEN
-#define PYGMY_RCC_GPIOD_DISABLE            RCC->APB2ENR &= ~RCC_IOPDEN
-#define PYGMY_RCC_GPIOE_DISABLE            RCC->APB2ENR &= ~RCC_IOPEEN
-#define PYGMY_RCC_GPIOF_DISABLE            RCC->APB2ENR &= ~RCC_IOPFEN
-#define PYGMY_RCC_GPIOG_DISABLE            RCC->APB2ENR &= ~RCC_IOPGEN
-#define PYGMY_RCC_TIMER8_ENABLE            RCC->APB2ENR |= RCC_TIM8EN
-#define PYGMY_RCC_TIMER8_DISABLE           RCC->APB2ENR &= ~RCC_TIM8EN
-#define PYGMY_RCC_TIMER1_ENABLE            RCC->APB2ENR |= RCC_TIM1EN
-#define PYGMY_RCC_TIMER1_DISABLE           RCC->APB2ENR &= ~RCC_TIM1EN
-#define PYGMY_RCC_SPI1_ENABLE              RCC->APB2ENR |= RCC_SPI1EN
-#define PYGMY_RCC_SPI1_DISABLE             RCC->APB2ENR &= ~RCC_SPI1EN
-#define PYGMY_RCC_TIMER2_ENABLE            RCC->APB1ENR |= RCC_TIM2EN
-#define PYGMY_RCC_TIMER2_DISABLE           RCC->APB1ENR &= ~RCC_TIM2EN
-#define PYGMY_RCC_TIMER3_ENABLE            RCC->APB1ENR |= RCC_TIM3EN
-#define PYGMY_RCC_TIMER3_DISABLE           RCC->APB1ENR &= ~RCC_TIM3EN
-#define PYGMY_RCC_TIMER4_ENABLE            RCC->APB1ENR |= RCC_TIM4EN
-#define PYGMY_RCC_TIMER4_DISABLE           RCC->APB1ENR &= ~RCC_TIM4EN
-#define PYGMY_RCC_TIMER5_ENABLE            RCC->APB1ENR |= RCC_TIM5EN
-#define PYGMY_RCC_TIMER5_DISABLE           RCC->APB1ENR &= ~RCC_TIM5EN
-#define PYGMY_RCC_TIMER6_ENABLE            RCC->APB1ENR |= RCC_TIM6EN
-#define PYGMY_RCC_TIMER6_DISABLE           RCC->APB1ENR &= ~RCC_TIM6EN
-#define PYGMY_RCC_TIMER7_ENABLE            RCC->APB1ENR |= RCC_TIM7EN
-#define PYGMY_RCC_TIMER7_DISABLE           RCC->APB1ENR &= ~RCC_TIM7EN
-#define PYGMY_RCC_DAC_ENABLE               RCC->APB1ENR |= RCC_DACEN
-#define PYGMY_RCC_DAC_DISABLE              RCC->APB1ENR &= ~RCC_DACEN
-#define PYGMY_RCC_USB_ENABLE               RCC->APB1ENR |= RCC_USBEN
-#define PYGMY_RCC_USB_DISABLE              RCC->APB1ENR &= ~RCC_USBEN
-#define PYGMY_RCC_USART5_ENABLE            RCC->APB1ENR |= RCC_USART5EN
-#define PYGMY_RCC_USART5_DISABLE           RCC->APB1ENR &= ~RCC_USART5EN
-#define PYGMY_RCC_USART4_ENABLE            RCC->APB1ENR |= RCC_USART4EN
-#define PYGMY_RCC_USART4_DISABLE           RCC->APB1ENR &= ~RCC_USART4EN
-#define PYGMY_RCC_USART3_ENABLE            RCC->APB1ENR |= RCC_USART3EN
-#define PYGMY_RCC_USART3_DISABLE           RCC->APB1ENR &= ~RCC_USART3EN
-#define PYGMY_RCC_USART2_ENABLE            RCC->APB1ENR |= RCC_USART2EN
-#define PYGMY_RCC_USART2_DISABLE           RCC->APB1ENR &= ~RCC_USART2EN
-#define PYGMY_RCC_USART1_ENABLE            RCC->APB2ENR |= RCC_USART1EN
-#define PYGMY_RCC_USART1_DISABLE           RCC->APB2ENR &= ~RCC_USART1EN
-#define PYGMY_RCC_I2C2_ENABLE              RCC->APB1ENR |= RCC_I2C2EN
-#define PYGMY_RCC_I2C2_DISABLE             RCC->APB1ENR &= ~RCC_I2C2EN
-#define PYGMY_RCC_I2C1_ENABLE              RCC->APB1ENR |= RCC_I2C1EN
-#define PYGMY_RCC_I2C1_DISABLE             RCC->APB1ENR &= ~RCC_I2C1EN
-#define PYGMY_RCC_SPI3_ENABLE              RCC->APB1ENR |= RCC_SPI3EN
-#define PYGMY_RCC_SPI3_DISABLE             RCC->APB1ENR &= ~RCC_SPI3EN
-#define PYGMY_RCC_SPI2_ENABLE              RCC->APB1ENR |= RCC_SPI2EN
-#define PYGMY_RCC_SPI2_DISABLE             RCC->APB1ENR &= ~RCC_SPI2EN
-#define PYGMY_RCC_WWDGEN_ENABLE            RCC->APB1ENR |= RCC_WWDGEN
-#define PYGMY_RCC_WWDGEN_DISABLE           RCC->APB1ENR &= ~RCC_WWDGEN
+#define PYGMY_RCC_PLL_ENABLE                RCC->CR |= RCC_PLLON;
+#define PYGMY_RCC_PLL_DISABLE               RCC->CR &= ~RCC_PLLON;
+#define PYGMY_RCC_LSE_ENABLE                RCC->CR |= RCC_LSEON;
+#define PYGMY_RCC_LSE_DISABLE               RCC->CR &= ~RCC_LSEON;
+#define PYGMY_RCC_HSE_ENABLE                RCC->CR |= RCC_HSEON;
+#define PYGMY_RCC_HSE_DISABLE               RCC->CR &= ~( RCC_HSEON | RCC_HSEBYP );
+#define PYGMY_RCC_HSE_BYPASS                RCC->CR &= ~RCC_HSEON; RCC->CR |= ( RCC_HSEBYP|RCC_HSEON );
+#define PYGMY_RCC_HSI_ENABLE                RCC->CFGR |= RCC_HSION;
+#define PYGMY_RCC_HSI_DISABLE               RCC->CFGR &= ~RCC_HSION;
+#define PYGMY_RCC_PWR_ENABLE                RCC->APB1ENR |= RCC_PWREN;
+#define PYGMY_RCC_PWR_DISABLE               RCC->APB1ENR &= ~RCC_PWREN;
+#define PYGMY_RCC_BKP_ENABLE                RCC->APB1ENR |= RCC_BKEN;
+#define PYGMY_RCC_BKP_DISABLE               RCC->APB1ENR &= ~RCC_BKEN;
+#define PYGMY_RCC_DMA1_ENABLE               RCC->AHBENR |= RCC_DMA1EN;
+#define PYGMY_RCC_DMA1_DISABLE              RCC->AHBENR &= ~RCC_DMA1EN;
+#define PYGMY_RCC_DMA2_ENABLE               RCC->AHBENR |= RCC_DMA2EN;
+#define PYGMY_RCC_DMA2_DISABLE              RCC->AHBENR &= ~RCC_DMA2EN;
+#define PYGMY_RCC_ADC1_ENABLE               RCC->APB2ENR |= RCC_ADC1EN;
+#define PYGMY_RCC_ADC1_DISABLE              RCC->APB2ENR &= ~RCC_ADC1EN;
+#define PYGMY_RCC_ADC2_ENABLE               RCC->APB2ENR |= RCC_ADC2EN;
+#define PYGMY_RCC_ADC2_DISABLE              RCC->APB2ENR &= ~RCC_ADC2EN;
+#define PYGMY_RCC_ADC3_ENABLE               RCC->APB2ENR |= RCC_ADC3EN;
+#define PYGMY_RCC_ADC3_DISABLE              RCC->APB2ENR &= ~RCC_ADC3EN;
+#define PYGMY_RCC_AFIO_ENABLE               RCC->APB2ENR |= RCC_AFIOEN;
+#define PYGMY_RCC_AFIO_DISABLE              RCC->APB2ENR &= ~RCC_AFIOEN;
+#define PYGMY_RCC_GPIOA_ENABLE              RCC->APB2ENR |= RCC_IOPAEN;
+#define PYGMY_RCC_GPIOB_ENABLE              RCC->APB2ENR |= RCC_IOPBEN;
+#define PYGMY_RCC_GPIOC_ENABLE              RCC->APB2ENR |= RCC_IOPCEN;
+#define PYGMY_RCC_GPIOD_ENABLE              RCC->APB2ENR |= RCC_IOPDEN;
+#define PYGMY_RCC_GPIOE_ENABLE              RCC->APB2ENR |= RCC_IOPEEN;
+#define PYGMY_RCC_GPIOF_ENABLE              RCC->APB2ENR |= RCC_IOPFEN;
+#define PYGMY_RCC_GPIOG_ENABLE              RCC->APB2ENR |= RCC_IOPGEN;
+#define PYGMY_RCC_GPIOA_DISABLE             RCC->APB2ENR &= ~RCC_IOPAEN;
+#define PYGMY_RCC_GPIOB_DISABLE             RCC->APB2ENR &= ~RCC_IOPBEN;
+#define PYGMY_RCC_GPIOC_DISABLE             RCC->APB2ENR &= ~RCC_IOPCEN;
+#define PYGMY_RCC_GPIOD_DISABLE             RCC->APB2ENR &= ~RCC_IOPDEN;
+#define PYGMY_RCC_GPIOE_DISABLE             RCC->APB2ENR &= ~RCC_IOPEEN;
+#define PYGMY_RCC_GPIOF_DISABLE             RCC->APB2ENR &= ~RCC_IOPFEN;
+#define PYGMY_RCC_GPIOG_DISABLE             RCC->APB2ENR &= ~RCC_IOPGEN;
+#define PYGMY_RCC_TIMER1_ENABLE             RCC->APB2ENR |= RCC_TIM1EN;
+#define PYGMY_RCC_TIMER1_DISABLE            RCC->APB2ENR &= ~RCC_TIM1EN;
+#define PYGMY_RCC_TIMER2_ENABLE             RCC->APB1ENR |= RCC_TIM2EN;
+#define PYGMY_RCC_TIMER2_DISABLE            RCC->APB1ENR &= ~RCC_TIM2EN;
+#define PYGMY_RCC_TIMER3_ENABLE             RCC->APB1ENR |= RCC_TIM3EN;
+#define PYGMY_RCC_TIMER3_DISABLE            RCC->APB1ENR &= ~RCC_TIM3EN;
+#define PYGMY_RCC_TIMER4_ENABLE             RCC->APB1ENR |= RCC_TIM4EN;
+#define PYGMY_RCC_TIMER4_DISABLE            RCC->APB1ENR &= ~RCC_TIM4EN;
+#define PYGMY_RCC_TIMER5_ENABLE             RCC->APB1ENR |= RCC_TIM5EN;
+#define PYGMY_RCC_TIMER5_DISABLE            RCC->APB1ENR &= ~RCC_TIM5EN;
+#define PYGMY_RCC_TIMER6_ENABLE             RCC->APB1ENR |= RCC_TIM6EN;
+#define PYGMY_RCC_TIMER6_DISABLE            RCC->APB1ENR &= ~RCC_TIM6EN;
+#define PYGMY_RCC_TIMER7_ENABLE             RCC->APB1ENR |= RCC_TIM7EN;
+#define PYGMY_RCC_TIMER7_DISABLE            RCC->APB1ENR &= ~RCC_TIM7EN;
+#define PYGMY_RCC_TIMER8_ENABLE             RCC->APB2ENR |= RCC_TIM8EN;
+#define PYGMY_RCC_TIMER8_DISABLE            RCC->APB2ENR &= ~RCC_TIM8EN;                                            
+#define PYGMY_RCC_TIMER9_ENABLE             RCC->APB2ENR |= RCC_TIM9EN;
+#define PYGMY_RCC_TIMER9_DISABLE            RCC->APB2ENR &= ~RCC_TIM9EN;
+#define PYGMY_RCC_TIMER10_ENABLE            RCC->APB2ENR |= RCC_TIM10EN;
+#define PYGMY_RCC_TIMER10_DISABLE           RCC->APB2ENR &= ~RCC_TIM10EN;
+#define PYGMY_RCC_TIMER11_ENABLE            RCC->APB2ENR |= RCC_TIM11EN;
+#define PYGMY_RCC_TIMER11_DISABLE           RCC->APB2ENR &= ~RCC_TIM11EN;
+#define PYGMY_RCC_TIMER12_ENABLE            RCC->APB1ENR |= RCC_TIM12EN;
+#define PYGMY_RCC_TIMER12_DISABLE           RCC->APB1ENR &= ~RCC_TIM12EN;
+#define PYGMY_RCC_TIMER13_ENABLE            RCC->APB1ENR |= RCC_TIM13EN;
+#define PYGMY_RCC_TIMER13_DISABLE           RCC->APB1ENR &= ~RCC_TIM13EN;
+#define PYGMY_RCC_TIMER14_ENABLE            RCC->APB1ENR |= RCC_TIM14EN;
+#define PYGMY_RCC_TIMER14_DISABLE           RCC->APB1ENR &= ~RCC_TIM14EN;
+#define PYGMY_RCC_TIMER15_ENABLE            RCC->APB2ENR |= RCC_TIM15EN;
+#define PYGMY_RCC_TIMER15_DISABLE           RCC->APB2ENR &= ~RCC_TIM15EN;
+#define PYGMY_RCC_TIMER16_ENABLE            RCC->APB2ENR |= RCC_TIM16EN;
+#define PYGMY_RCC_TIMER16_DISABLE           RCC->APB2ENR &= ~RCC_TIM16EN;
+#define PYGMY_RCC_TIMER17_ENABLE            RCC->APB2ENR |= RCC_TIM17EN;
+#define PYGMY_RCC_TIMER17_DISABLE           RCC->APB2ENR &= ~RCC_TIM17EN;
+#define PYGMY_RCC_SPI1_ENABLE               RCC->APB2ENR |= RCC_SPI1EN;
+#define PYGMY_RCC_SPI1_DISABLE              RCC->APB2ENR &= ~RCC_SPI1EN;
+#define PYGMY_RCC_DAC_ENABLE                RCC->APB1ENR |= RCC_DACEN;
+#define PYGMY_RCC_DAC_DISABLE               RCC->APB1ENR &= ~RCC_DACEN;
+#define PYGMY_RCC_USB_ENABLE                RCC->APB1ENR |= RCC_USBEN;
+#define PYGMY_RCC_USB_DISABLE               RCC->APB1ENR &= ~RCC_USBEN;
+#define PYGMY_RCC_USART5_ENABLE             RCC->APB1ENR |= RCC_USART5EN;
+#define PYGMY_RCC_USART5_DISABLE            RCC->APB1ENR &= ~RCC_USART5EN;
+#define PYGMY_RCC_USART4_ENABLE             RCC->APB1ENR |= RCC_USART4EN;
+#define PYGMY_RCC_USART4_DISABLE            RCC->APB1ENR &= ~RCC_USART4EN;
+#define PYGMY_RCC_USART3_ENABLE             RCC->APB1ENR |= RCC_USART3EN;
+#define PYGMY_RCC_USART3_DISABLE            RCC->APB1ENR &= ~RCC_USART3EN;
+#define PYGMY_RCC_USART2_ENABLE             RCC->APB1ENR |= RCC_USART2EN;
+#define PYGMY_RCC_USART2_DISABLE            RCC->APB1ENR &= ~RCC_USART2EN;
+#define PYGMY_RCC_USART1_ENABLE             RCC->APB2ENR |= RCC_USART1EN;
+#define PYGMY_RCC_USART1_DISABLE            RCC->APB2ENR &= ~RCC_USART1EN;
+#define PYGMY_RCC_I2C2_ENABLE               RCC->APB1ENR |= RCC_I2C2EN;
+#define PYGMY_RCC_I2C2_DISABLE              RCC->APB1ENR &= ~RCC_I2C2EN;
+#define PYGMY_RCC_I2C1_ENABLE               RCC->APB1ENR |= RCC_I2C1EN;
+#define PYGMY_RCC_I2C1_DISABLE              RCC->APB1ENR &= ~RCC_I2C1EN;
+#define PYGMY_RCC_SPI3_ENABLE               RCC->APB1ENR |= RCC_SPI3EN;
+#define PYGMY_RCC_SPI3_DISABLE              RCC->APB1ENR &= ~RCC_SPI3EN;
+#define PYGMY_RCC_SPI2_ENABLE               RCC->APB1ENR |= RCC_SPI2EN;
+#define PYGMY_RCC_SPI2_DISABLE              RCC->APB1ENR &= ~RCC_SPI2EN;
+#define PYGMY_RCC_WWDGEN_ENABLE             RCC->APB1ENR |= RCC_WWDGEN;
+#define PYGMY_RCC_WWDGEN_DISABLE            RCC->APB1ENR &= ~RCC_WWDGEN;
 
 
 //--------------------------------------------------------------------------------------------
@@ -1230,28 +1256,28 @@ u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 void streamSetPrintFile( void *pygmyFile );
 
 
-void processCommands( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
-void deleteCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u16 uiIndex );
-void printCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
-u8 getIsCommandQueued( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u8 *ucName  );
-u8 queueCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd );
-void initCommandQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
-void replaceCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd );
+void cmdProcess( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
+void cmdDelete( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u16 uiIndex );
+void cmdPrint( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
+u8 cmdIsQueued( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u8 *ucName  );
+u8 cmdQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd );
+void cmdInitQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
+void cmdReplace( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd );
 
-u16 getMessageIndex( u8 *ucName, u16 uiID );
-u8 sendMessage( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue );
-u8 getMessage( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg );
-u8 isMessage( u8 *ucName, u16 uiID );
-u8 deleteMessage( u8 *ucName, u16 uiID );
-u16 initMessages( void );
-void listMessage( PYGMYMESSAGE *pygmyMsg, u16 uiMsg );
+u16 msgGetIndex( u8 *ucName, u16 uiID );
+u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue );
+u8 msgGet( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg );
+u8 msgIs( u8 *ucName, u16 uiID );
+u8 msgDelete( u8 *ucName, u16 uiID );
+u16 msgInit( void );
+void msgList( PYGMYMESSAGE *pygmyMsg, u16 uiMsg );
 
-u16 newTask( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler );
-u16 newSimpleTask( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler );
-u8 deleteTask( u8 *ucName, u16 uiID );
-void listTask( PYGMYTASK *pygmyTask, u16 uiTask );
-u8 getTask( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask );
-u8 isTaskRunning( u8 *ucName, u16 uiID );
+u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler );
+u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler );
+u8 taskDelete( u8 *ucName, u16 uiID );
+void taskList( PYGMYTASK *pygmyTask, u16 uiTask );
+u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask );
+u8 taskIsRunning( u8 *ucName, u16 uiID );
 
 void TaskException_Handler( void );
 
@@ -1291,8 +1317,5 @@ u32 getStopWatch( void );
 
 //--------------------------------------------------------------------------------------
 //--------------------------------------Deprecated--------------------------------------
-//void printTime( u8 ucStream, PYGMYTIME *pygmyTime );
-//void Pygmy_SYS_PrintInteger( u8 ucStream, u8 *ucFormat, u32 ulData );
-//void Pygmy_SYS_PrintString( u8 ucStream, u8 *ucBuffer );
 
 

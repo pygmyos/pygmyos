@@ -17,7 +17,6 @@
 ***************************************************************************/
 
 #include "pygmy_profile.h"
-//#include "pygmy_port.h"
 
 // Timer1 CH1, PA8 is the dedicated MasterClock Out
 // Timer6 and 7 are used for the DACs
