@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#include "pymgy_profile.h"
+#include "pygmy_profile.h"
 
 const u8 PYGMY_ADC_CHANNELS[] = { PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PB0, PB1, PC0, PC1, PC2, PC3, PC4, PC5, ADCTEMP, ADCREF };
 u16 uiGlobalADC1Channel, uiGlobalADC1[ 16 ];

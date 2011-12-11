@@ -291,6 +291,10 @@ typedef struct {
                 u8 *TXBuffer;
                 } PYGMYFIFO;    
 
+enum {  TIMER0, TIMER1, TIMER2, TIMER3, TIMER4, TIMER5, TIMER6, TIMER7, TIMER8, 
+        TIMER9, TIMER10, TIMER11, TIMER12, TIMER13, TIMER14, TIMER15, TIMER16, TIMER17
+        };
+            
 typedef struct {
                 u32 MainClock;
                 u32 XTAL;
@@ -300,6 +304,8 @@ typedef struct {
                 u16 CursorX;
                 u16 CursorY;
                 u8 CursorState;
+                u8 DelayTimer;
+                u8 PWMTimer;
                 //u8 STDIO;
                 //u8 ATIndex;
                 //u8 ATCount;
@@ -1100,8 +1106,8 @@ typedef struct
 #define PYGMY_RCC_HSI_DISABLE               RCC->CFGR &= ~RCC_HSION;
 #define PYGMY_RCC_PWR_ENABLE                RCC->APB1ENR |= RCC_PWREN;
 #define PYGMY_RCC_PWR_DISABLE               RCC->APB1ENR &= ~RCC_PWREN;
-#define PYGMY_RCC_BKP_ENABLE                RCC->APB1ENR |= RCC_BKEN;
-#define PYGMY_RCC_BKP_DISABLE               RCC->APB1ENR &= ~RCC_BKEN;
+#define PYGMY_RCC_BKP_ENABLE                RCC->APB1ENR |= RCC_BKPEN;
+#define PYGMY_RCC_BKP_DISABLE               RCC->APB1ENR &= ~RCC_BKPEN;
 #define PYGMY_RCC_DMA1_ENABLE               RCC->AHBENR |= RCC_DMA1EN;
 #define PYGMY_RCC_DMA1_DISABLE              RCC->AHBENR &= ~RCC_DMA1EN;
 #define PYGMY_RCC_DMA2_ENABLE               RCC->AHBENR |= RCC_DMA2EN;
@@ -1235,9 +1241,9 @@ u8 putsLCD( u8 *ucBuffer );
 
 void clearRTCFlags( void );
 
-u8 initSystem( void );
-u16 initTasks( void );
-u16 initMessages( void );
+u8 sysInit( void );
+u16 taskInit( void );
+u16 msgInit( void );
 
 void streamInit( void );
 u8 streamReset( u8 ucStream );
@@ -1311,8 +1317,8 @@ void enableXTAL( void );
 void delay( u32 ulDelay );
 void mcoEnable( u8 ucSource );
 void mcoDisable( void );
-void setStopWatch( void );
-u32 getStopWatch( void );
+void stopwatchStart( void );
+u32 stopwatchGet( void );
 
 
 //--------------------------------------------------------------------------------------

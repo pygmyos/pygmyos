@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "profile.h"
+#include "pygmy_profile.h"
 //#include "pygmy_file.h"
 
 #define PYGMY_PBM_TYPEMASK				0xF000

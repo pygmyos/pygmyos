@@ -18,7 +18,7 @@
 
 
 #include <stdarg.h>
-#include "pygmy_sys.h"
+#include "pygmy_profile.h"
 
 //#ifdef __PYGMY_BOOT
 const u8 PYGSYS_INVBITS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
@@ -36,39 +36,42 @@ PYGMYSYSTEM         pygmyGlobalData;
 
 u8 sysInit( void )
 {
-    u32 ulID, ulFreq, ulXTAL, ulPLL;
-  
-    pygmyGlobalData.MCUID = getIDCode( );
+    pygmyGlobalData.MCUID = descriptorGetIDCode( );
     
     if( pygmyGlobalData.MCUID == 0x0416 ){
         // L152
-        ulXTAL = 8000000;
-        ulFreq = 32000000;
-        //ulPLL = RCC_PLL_X4|BIT16|BIT1;;
-        //FPEC->ACR = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY1;
+        pygmyGlobalData.XTAL = 8000000;
+        pygmyGlobalData.MainClock = 32000000;
+        pygmyGlobalData.DelayTimer = TIMER10;
+        pygmyGlobalData.PWMTimer = TIMER11;
     } else if( pygmyGlobalData.MCUID == 0x0420 || pygmyGlobalData.MCUID == 0x0428 ){
         // F100 
-        ulXTAL = 12000000;
-        ulFreq = 24000000;
-        //ulPLL = BIT16|BIT1;;
+        pygmyGlobalData.XTAL = 12000000;
+        pygmyGlobalData.MainClock = 24000000;
+        pygmyGlobalData.DelayTimer = TIMER15;
+        pygmyGlobalData.PWMTimer = TIMER16;
     } else{
         // F103
-        ulXTAL = 8000000;
-        ulFreq = 72000000;
-        //ulPLL = RCC_PLL_X9|BIT16|BIT15|BIT14|BIT10|BIT1;
-        //FPEC->ACR = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2;
+        pygmyGlobalData.XTAL = 8000000;
+        pygmyGlobalData.MainClock = 72000000;
+        pygmyGlobalData.DelayTimer = TIMER10;
+        pygmyGlobalData.PWMTimer = TIMER11;
     } // else
-    pygmyGlobalData.MainClock = ulFreq;
-
-    
-    //initTasks();
-    //initMessages();
+    #define PYGMYTASKS
+    #ifdef PYGMYTASKS
+        //randomFunc()
+        taskInit();
+    #endif
+    #ifdef PYGMYMESSAGES
+        msgInit();
+    #endif
 
 	return( 0 );
 }
 
 //--------------------------------------------------------------------------------------------
 //-------------------------------------Pygmy OS IO Stream-------------------------------------
+#ifdef PYGMYSTREAMS
 void streamInit( void )
 {
     u16 i;
@@ -100,26 +103,6 @@ u8 streamReset( u8 ucStream )
 
     return( 0 );
 }
-/*
-u8 setStream( u8 ucStream, PYGMYFIFO *pygmyFIFO )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].RXIndex    = pygmyFIFO->RXIndex;
-        pygmyGlobalData.Stream[ ucStream ].RXInIndex  = pygmyFIFO->RXInIndex;
-        pygmyGlobalData.Stream[ ucStream ].RXLen      = pygmyFIFO->RXLen; 
-        pygmyGlobalData.Stream[ ucStream ].TXIndex    = pygmyFIFO->TXIndex;
-        pygmyGlobalData.Stream[ ucStream ].TXInIndex  = pygmyFIFO->TXInIndex;
-        pygmyGlobalData.Stream[ ucStream ].TXLen      = pygmyFIFO->TXLen;
-        pygmyGlobalData.Stream[ ucStream ].Put        = pygmyFIFO->Put;
-        pygmyGlobalData.Stream[ ucStream ].Get        = pygmyFIFO->Get;
-        pygmyGlobalData.Stream[ ucStream ].RXBuffer   = pygmyFIFO->RXBuffer;
-        pygmyGlobalData.Stream[ ucStream ].TXBuffer   = pygmyFIFO->TXBuffer;
-        
-        return( 1 );
-    } // if
-
-    return( 0 );
-}*/
 
 void streamResetRX( u8 ucStream )
 {
@@ -264,27 +247,27 @@ u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
     
     return( 0 );
 }
-
+#endif
 //--------------------------------------------------------------------------------------------
 //----------------------------------Pygmy OS Command/Response---------------------------------
-
-void initCommandQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
+#ifdef PYGMYCOMMANDS
+void cmdInitQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
 {
     u16 i;
 
     pygmyCmdQueue->Index = 0;
     pygmyCmdQueue->Count = 0;
     for( i = 0; i < PYGMY_MAXCOMMANDS; i++ ){
-        deleteCommand( pygmyCmdQueue, i );
+        cmdDelete( pygmyCmdQueue, i );
     } // for
 }
 
-void printCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
+void cmdPrint( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
 {
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].PrintHandler();
 }
 
-void deleteCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u16 uiIndex )
+void cmdDelete( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u16 uiIndex )
 {
     pygmyCmdQueue->Commands[ uiIndex ].Status = 0;
     pygmyCmdQueue->Commands[ uiIndex ].Retry = 0;
@@ -298,10 +281,10 @@ void deleteCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u16 uiIndex )
         --pygmyCmdQueue->Count;
     } // if
 
-    processCommands( pygmyCmdQueue ); // Call to move on to next queued command, if any
+    cmdProcess( pygmyCmdQueue ); // Call to move on to next queued command, if any
 }
 
-void processCommands( PYGMYCOMMANDQUEUE *pygmyCmdQueue ) 
+void cmdProcess( PYGMYCOMMANDQUEUE *pygmyCmdQueue ) 
 {
     u16 i;
 
@@ -325,9 +308,9 @@ void processCommands( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
         } // if
         if( pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire <= time() ){
             if( !pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Retry ){
-                deleteCommand( pygmyCmdQueue, pygmyCmdQueue->Index );
+                cmdDelete( pygmyCmdQueue, pygmyCmdQueue->Index );
                 if( pygmyCmdQueue->Count ){
-                    processCommands( pygmyCmdQueue );
+                    cmdProcess( pygmyCmdQueue );
                 } // if
             } else{
                 --pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Retry;
@@ -338,7 +321,7 @@ void processCommands( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
     } 
 }
 
-void replaceCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
+void cmdReplace( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
 {
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Status        = PYGMY_AT_QUEUED;
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Retry         = pygmyCmd->Retry;
@@ -349,17 +332,17 @@ void replaceCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire        = pygmyCmd->Expire;
 
     ++pygmyCmdQueue->Count;
-    processCommands( pygmyCmdQueue );
+    cmdProcess( pygmyCmdQueue );
 }
 
-u8 getCommandRetriesRemaining( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
+u8 cmdGetRetriesRemaining( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
 {
     // returns retries for command currently executing
     
     return( pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Retry );
 }
 
-u8 isCommandQueued( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u8 *ucName  )
+u8 cmdIsQueued( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u8 *ucName  )
 {
     u16 i;
     u8 ucCount;
@@ -371,12 +354,12 @@ u8 isCommandQueued( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u8 *ucName  )
         if( isStringSame( pygmyCmdQueue->Commands[ i ].Name, ucName ) ){
             ++ucCount;
         } // if
-    } // ofr
+    } // for
 
     return( ucCount );
 }
 
-u8 queueCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
+u8 cmdQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
 {
     u16 uiIndex;
 
@@ -396,13 +379,13 @@ u8 queueCommand( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
         pygmyCmdQueue->Commands[ uiIndex ].Expire        = pygmyCmd->Expire;
         
         ++pygmyCmdQueue->Count;
-        processCommands( pygmyCmdQueue );
+        cmdProcess( pygmyCmdQueue );
         return( 1 );
     } 
         
     return( 0 );
 }
-
+#endif
 //--------------------------------End Pygmy OS Command/Response-------------------------------
 //--------------------------------------------------------------------------------------------
 
@@ -502,8 +485,8 @@ void pdiaPrintString( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucBuffer )
 
 //--------------------------------------------------------------------------------------------
 //--------------------------------------Pygmy OS Tasking--------------------------------------
-
-u16 processTasks( void )
+#ifdef PYGMYTASKS
+u16 taskProcess( void )
 {
     u32 ulTime;
     u16 i;
@@ -514,7 +497,7 @@ u16 processTasks( void )
             if( pygmyGlobalTasks[ i ].Expire ){
                 if( pygmyGlobalTasks[ i ].Expire == ulTime ){
                     //deleteTask( &pygmyGlobalTasks[ i ] );
-                    deleteTask( "", pygmyGlobalTasks[ i ].ID );
+                    taskDelete( "", pygmyGlobalTasks[ i ].ID );
                     continue; // Do Not finish processing task after it has ended
                 } // if
             } // if
@@ -536,7 +519,7 @@ u16 processTasks( void )
     return( 1 );
 }
 
-u16 initTasks( void )
+u16 taskInit( void )
 {
     u16 i;
 
@@ -553,22 +536,17 @@ u16 initTasks( void )
     return( 1 );
 }
 
-void TaskException_Handler( void )
-{
-    // ToDo: Add any relevant debug or cleanup code here
-}
-
-u16 newSimpleTask( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
+u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
 {
     // ID = 0 calls for auto generated ID
     // Timer = 2, 1 is reload, this provides approx 1 millisec delay
     // Reload = ulTimer, This value will be loaded into timer on each reload at 1
     // Expire = 0, doesn't expire
 
-    return( newTask( ucName, 0, 2, ulTimer, 0, EventHandler ) ); // return ID or 0 for fail
+    return( taskNew( ucName, 0, 2, ulTimer, 0, EventHandler ) ); // return ID or 0 for fail
 }
 
-u16 newTask( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
+u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
 { 
     u16 i;
 
@@ -610,7 +588,7 @@ u16 newTask( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGM
     //return( PYGMY_TASK_FAIL );
 }
 
-u8 isTaskRunning( u8 *ucName, u16 uiID ) 
+u8 taskIsRunning( u8 *ucName, u16 uiID ) 
 {
     // Return 1 for task found and 0 for not found
     u16 i;
@@ -626,7 +604,7 @@ u8 isTaskRunning( u8 *ucName, u16 uiID )
     return( 0 );
 }
 
-u8 deleteTask( u8 *ucName, u16 uiID )
+u8 taskDelete( u8 *ucName, u16 uiID )
 {
     u16 i; 
 	u8 ucDeleted;
@@ -647,7 +625,7 @@ u8 deleteTask( u8 *ucName, u16 uiID )
     return( ucDeleted );
 }
 
-u8 getTask( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask )
+u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask )
 {
     u16 i;
 
@@ -669,7 +647,7 @@ u8 getTask( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask )
     return( 0 );
 }
 
-void listTask( PYGMYTASK *pygmyTask, u16 uiTask )
+void taskList( PYGMYTASK *pygmyTask, u16 uiTask )
 {
     pygmyTask->ID               = pygmyGlobalTasks[ uiTask ].ID;
     pygmyTask->Name             = pygmyGlobalTasks[ uiTask ].Name;
@@ -679,6 +657,12 @@ void listTask( PYGMYTASK *pygmyTask, u16 uiTask )
     pygmyTask->TimeStamp        = pygmyGlobalTasks[ uiTask ].TimeStamp;
     pygmyTask->Expire           = pygmyGlobalTasks[ uiTask ].Expire;
 }
+#endif
+
+void TaskException_Handler( void )
+{
+    // ToDo: Add any relevant debug or cleanup code here
+}
 
 //------------------------------------End Pygmy OS Tasking------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -686,8 +670,8 @@ void listTask( PYGMYTASK *pygmyTask, u16 uiTask )
 
 //--------------------------------------------------------------------------------------------
 //-------------------------------------Pygmy OS Messaging-------------------------------------
-
-u16 initMessages( void )
+#ifdef PYGMYMESSAGES
+u16 msgInit( void )
 {
     u16 i;
 
@@ -702,7 +686,7 @@ u16 initMessages( void )
     return( 1 );
 }
 
-u8 deleteMessage( u8 *ucName, u16 uiID )
+u8 msgDelete( u8 *ucName, u16 uiID )
 {
     u16 i;
     
@@ -720,16 +704,16 @@ u8 deleteMessage( u8 *ucName, u16 uiID )
     return( 0 );
 }
 
-u8 isMessage( u8 *ucName, u16 uiID )
+u8 msgIs( u8 *ucName, u16 uiID )
 {
-    if( getMessageIndex( ucName, uiID ) == PYGMY_NOMESSAGE ){
+    if( msgGetIndex( ucName, uiID ) == PYGMY_NOMESSAGE ){
         return( 0 );
     } // if
     
     return( 1 );
 }
 
-u16 getMessageIndex( u8 *ucName, u16 uiID )
+u16 msgGetIndex( u8 *ucName, u16 uiID )
 {
     u16 i;
 
@@ -744,25 +728,25 @@ u16 getMessageIndex( u8 *ucName, u16 uiID )
     return( PYGMY_NOMESSAGE );
 }
 
-u8 getMessage( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg )
+u8 msgGet( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg )
 {
     u16 i;
 
-    i = getMessageIndex( ucName, uiID );
+    i = msgGetIndex( ucName, uiID );
     if( i != PYGMY_NOMESSAGE ){
         pygmyMsg->DestName          = pygmyGlobalMessages[ i ].DestName;
         pygmyMsg->Message           = pygmyGlobalMessages[ i ].Message;
         pygmyMsg->Value             = pygmyGlobalMessages[ i ].Value;
         pygmyMsg->TimeStamp         = pygmyGlobalMessages[ i ].TimeStamp;
             
-        deleteMessage( ucName, uiID );
+        msgDelete( ucName, uiID );
         return( 1 );
     } // if
     
     return( 0 );
 }
 
-u8 sendMessage( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue )
+u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue )
 {
     u16 i;
     
@@ -784,7 +768,7 @@ u8 sendMessage( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue )
     return( 0 );
 }
 
-u16 processMessages( void )
+u16 msgProcess( void )
 {
     u32 ulTime;
     u16 i, ii;
@@ -794,7 +778,7 @@ u16 processMessages( void )
         if (  pygmyGlobalMessages[ i ].DestID && !( pygmyGlobalMessages[ i ].DestID & PYGMY_SERVICEDID ) ){// Serviced ID set after task notified
             // Check to make sure message hasn't gone stale, delete if it has
             if( pygmyGlobalMessages[ i ].TimeStamp + 5 == ulTime ){
-                deleteMessage( pygmyGlobalMessages[ i ].DestName, pygmyGlobalMessages[ i ].DestID );
+                msgDelete( pygmyGlobalMessages[ i ].DestName, pygmyGlobalMessages[ i ].DestID );
                 //deleteMessage( &pygmyGlobalMessages[ i ] );
                 continue; // Do Not finish processing task after it has ended
             } // if 
@@ -816,22 +800,22 @@ u16 processMessages( void )
     return( 1 );
 }
 
-void listMessage( PYGMYMESSAGE *pygmyMsg, u16 uiMsg )
+void msgList( PYGMYMESSAGE *pygmyMsg, u16 uiMsg )
 {
-     pygmyMsg->DestID           = pygmyGlobalMessages[ uiMsg ].DestID;     
-     pygmyMsg->DestName         = pygmyGlobalMessages[ uiMsg ].DestName;         
-     pygmyMsg->Message          = pygmyGlobalMessages[ uiMsg ].Message;
-     pygmyMsg->Value            = pygmyGlobalMessages[ uiMsg ].Value;
-     pygmyMsg->TimeStamp        = pygmyGlobalMessages[ uiMsg ].TimeStamp;
+    pygmyMsg->DestID           = pygmyGlobalMessages[ uiMsg ].DestID;     
+    pygmyMsg->DestName         = pygmyGlobalMessages[ uiMsg ].DestName;         
+    pygmyMsg->Message          = pygmyGlobalMessages[ uiMsg ].Message;
+    pygmyMsg->Value            = pygmyGlobalMessages[ uiMsg ].Value;
+    pygmyMsg->TimeStamp        = pygmyGlobalMessages[ uiMsg ].TimeStamp;
 }
-
+#endif
 //-----------------------------------End Pygmy OS Messaging-----------------------------------
 //--------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------
 //----------------------------------------Pygmy OS ID-----------------------------------------
 
-u8 *getIDString( void ) // ( u8 *ucBuffer )
+u8 *sysGetIDString( void ) // ( u8 *ucBuffer )
 {
     static u8 ucIDBuffer[ 25 ];
     u8 i, *ucID;
@@ -846,7 +830,7 @@ u8 *getIDString( void ) // ( u8 *ucBuffer )
     return( (u8*)ucIDBuffer );
 }
 
-u8 *getID( void )
+u8 *sysGetID( void )
 {
     // Returns unique device ID
     u8 *ucID;
@@ -887,14 +871,15 @@ u32 descriptorGetID( void )
     // Connectivity devices = 0x418
     // Low and medium density value line devices = 0x420
     // High density value line devices = 0x428
-    u32 *ulID, ulDescriptorID;
+    
+    u32 *ulID;
     
     ulID = (u32*)(0x08000000 + ( ( SIZEREG->Pages - 2 ) * 1024 )); 
     print( COM3, "\rID Address: %8X", ulID );
     return( *ulID );
 }
 
-u32 getIDRevision( void )
+u32 sysGetIDRevision( void )
 {
     // Returns the device revision from Debug cell registers
     // ToDo: Add at bootloader level
@@ -1085,7 +1070,6 @@ u8 executeCmd( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 void setMainClock( u32 ulClock )
 {
-    u16 i;
     // ToDo: Upgrade this function with selectable prescaler and multiplier  
     PYGMY_RCC_HSE_ENABLE;
     while( !(PYGMY_RCC_HSE_READY) );
@@ -1106,7 +1090,12 @@ void delay( u32 ulDelay )
 {
     // This function uses Timer1 to provide an accurate microsecond delay
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
-    if( ){ // TIM10 // F103XL
+    // F10X low-density devices, the device ID is 0x412
+    // F10X medium-density devices, the device ID is 0x410
+    // F10X high-density devices, the device ID is 0x414
+    // F10X XL-density devices, the device ID is 0x430
+    // F10X connectivity devices, the device ID is 0x418
+    if( pygmyGlobalData.DelayTimer == TIMER10  ){ // TIM10 // F103XL
         TIM10->CR1 = 0;                          // Disable before configuring timer
         if( ulDelay > 0x0000FFFF ){
             TIM10->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
@@ -1125,7 +1114,7 @@ void delay( u32 ulDelay )
         TIM10->SR = 0;
         TIM10->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM10->CR1 & TIM_CEN) );         // Wait for count to complete 
-    } else if( ){ // TIM15 // F100
+    } else if( pygmyGlobalData.DelayTimer == TIMER15 ){ // TIM15 // F100
         TIM15->CR1 = 0;                          // Disable before configuring timer
         if( ulDelay > 0x0000FFFF ){
             TIM15->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
@@ -1191,12 +1180,12 @@ void delay( u32 ulDelay )
     while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete
 }*/
 
-void setStopWatch( void )
+void stopwatchStart( void )
 {
     pygmyGlobalData.StopWatch = ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
 }
 
-u32 getStopWatch( void )
+u32 stopwatchGet( void )
 {
     pygmyGlobalData.StopWatch += ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
     return( pygmyGlobalData.StopWatch );
@@ -1231,11 +1220,11 @@ void SysTick_Handler( void )
     PYGMY_WATCHDOG_REFRESH; 
     pygmyGlobalData.StopWatch += 100;
 
-    #ifdef __PYGMY_TASKS 
-        processTasks();
+    #ifdef PYGMYTASKS 
+        taskProcess();
     #endif
-    #ifdef __PYGMY_MESSAGES
-        processMessages();
+    #ifdef PYGMYMESSAGES
+        msgProcess();
     #endif
 
 }
@@ -1332,50 +1321,6 @@ void USART5_IRQHandler( void )
 
 //--------------------------------------------------------------------------------------------
 //-----------------------------------------Deprecated-----------------------------------------
-
-/*void Pygmy_SYS_PrintInteger( u8 ucStream, u8 *ucFormat, u32 ulData )
-{
-    u8 ucBuffer[ 20 ];
-
-    convertIntToString( ulData, ucFormat, ucBuffer );
-    Pygmy_SYS_PrintString( ucStream, ucBuffer );
-}*/
-
-/*
-void Pygmy_SYS_PrintString( u8 ucStream, u8 *ucBuffer )
-{
-    if(ucStream < PYGMY_SYS_MAXPIPES && pygmyGlobalData.Stream[ ucStream ] ){
-        pygmyGlobalData.Stream[ ucStream ]->Put( ucBuffer );
-    } // if
-}*/
-/*
-void Pygmy_SYS_PrintTime( u8 ucStream, PYGMYTIME *pygmyTime )
-{
-    print( ucStream, "%4d-%2d-%2d %2d:%2d:%2d", pygmyTime->Year,pygmyTime->Month,pygmyTime->Day,
-        pygmyTime->Hour,pygmyTime->Minute,pygmyTime->Second );
-}*/
-/*
-void resetRXBuffer( u8 ucStream )
-{
-    pygmyGlobalData.Stream[ ucStream ]->RXIndex = 0;
-    //pygmyGlobalData.Stream[ ucStream ]->RXInIndex = 0;
-    pygmyGlobalData.Stream[ ucStream ]->RXBuffer[ 0 ] = '\0';
-}*/
-//const u8 PYGSYS_BITS[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
-//const u8 LCD_HEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
-//u8 pygmyGlobalCOM1Buffer[ PYGMY_USART1_BUFFERLEN ];
-/*PYGMYTASK           pygmyGlobalTasks[ PYGMY_MAXTASKS ];
-PYGMYMESSAGE        pygmyGlobalMessages[ PYGMY_MAXMESSAGES ];
-PYGMYATCOMMANDQUEUE pygmyGlobalCmdQueue[ PYGMY_MAXATCOMMANDS ];
-PYGMYSYSTEM     pygmyGlobalData;
-PYGMYFIFO       pygmyUSART1;
-//PYGMYFIFO       pygmyDTMF;
-PYGMYFIFO       pygmyUSART3;
-PYGMYFIFO       pygmyFileFIFO;
-u8 globalDTMFBuffer[64];
-u8 globalUSART3Buffer[ 128 ];
-u8 globalUSART1Buffer[ 640 ];
-*/
 
 //---------------------------------------End Deprecated---------------------------------------
 //--------------------------------------------------------------------------------------------

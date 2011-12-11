@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "profile.h"
+#include "pygmy_profile.h"
 
 #define PYGMY_DAC_CONTINUOUS        BIT0
 
