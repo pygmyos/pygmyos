@@ -38,13 +38,12 @@ u8 sysInit( void )
 {
     pygmyGlobalData.MCUID = descriptorGetIDCode( );
     
-    if( pygmyGlobalData.MCUID == 0x0416 ){
-        // L152
+    if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
         pygmyGlobalData.XTAL = 8000000;
         pygmyGlobalData.MainClock = 32000000;
         pygmyGlobalData.DelayTimer = TIMER10;
         pygmyGlobalData.PWMTimer = TIMER11;
-    } else if( pygmyGlobalData.MCUID == 0x0420 || pygmyGlobalData.MCUID == 0x0428 ){
+    } else if( pygmyGlobalData.MCUID == DESC_STM32F100MD || pygmyGlobalData.MCUID == DESC_STM32F100HD ){
         // F100 
         pygmyGlobalData.XTAL = 12000000;
         pygmyGlobalData.MainClock = 24000000;
@@ -67,6 +66,28 @@ u8 sysInit( void )
     #endif
 
 	return( 0 );
+}
+
+u32 sysGetMainClock( void )
+{
+    return( pygmyGlobalData.MainClock );
+}
+
+void sysSetMainClock( u32 ulFreq )
+{
+    // ToDo: Add preverification code for clock
+    // ToDo: Add code to apply clock settings to RCC
+    pygmyGlobalData.MainClock = ulFreq;
+}
+
+u32 sysGetXTAL( void )
+{
+    return( pygmyGlobalData.XTAL );
+}
+
+void sysSetXTAL( u32 ulFreq )
+{
+    pygmyGlobalData.XTAL = ulFreq;
 }
 
 //--------------------------------------------------------------------------------------------
@@ -1095,44 +1116,10 @@ void delay( u32 ulDelay )
     // F10X high-density devices, the device ID is 0x414
     // F10X XL-density devices, the device ID is 0x430
     // F10X connectivity devices, the device ID is 0x418
-    if( pygmyGlobalData.DelayTimer == TIMER10  ){ // TIM10 // F103XL
-        TIM10->CR1 = 0;                          // Disable before configuring timer
-        if( ulDelay > 0x0000FFFF ){
-            TIM10->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-            ulDelay &= 0x0000FFFF;
-        } // 
-        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
-        if( ulDelay < 60 ){ 
-            // Minimum number of cycles supported
-            ulDelay = 60;
-        } // 
-        TIM10->CR2 = 0;                          //
-        TIM10->SMCR = 0;                         //
-        TIM10->DIER = 0;                         // DMA and interrupt enable register
-        TIM10->CNT = 0;                          // Count Register
-        TIM10->ARR =  ulDelay - 60; // Auto Reload Register
-        TIM10->SR = 0;
-        TIM10->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
-        while( (TIM10->CR1 & TIM_CEN) );         // Wait for count to complete 
-    } else if( pygmyGlobalData.DelayTimer == TIMER15 ){ // TIM15 // F100
-        TIM15->CR1 = 0;                          // Disable before configuring timer
-        if( ulDelay > 0x0000FFFF ){
-            TIM15->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-            ulDelay &= 0x0000FFFF;
-        } // 
-        ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
-        if( ulDelay < 60 ){
-            ulDelay = 60;
-        } // 
-        TIM15->CR2 = 0;                          //
-        TIM15->SMCR = 0;                         //
-        TIM15->DIER = 0;                         // DMA and interrupt enable register
-        TIM15->CNT = 0;                          // Count Register
-        TIM15->ARR =  ulDelay - 60; // Auto Reload Register
-        TIM15->SR = 0;
-        TIM15->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
-        while( (TIM15->CR1 & TIM_CEN) );         // Wait for count to complete 
-    } else{ // TIM1 // F103
+    TIMER *pygmyTimer;
+    
+    if( pygmyGlobalData.DelayTimer == TIMER1 ){
+        // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
         // multipurpose timers and must share Timer1. In this case, Timer1
         // should not be used for PWM output.
@@ -1154,6 +1141,30 @@ void delay( u32 ulDelay )
         TIM1->SR = 0;
         TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
+    } else {
+        if( pygmyGlobalData.DelayTimer == TIMER10 ){
+            pygmyTimer = TIM10; // F103XLD // L15X
+        } else {
+            pygmyTimer = TIM15; // F100
+        } // else
+        pygmyTimer->CR1 = 0;                          // Disable before configuring timer
+        if( ulDelay > 0x0000FFFF ){
+            pygmytimer->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
+            ulDelay &= 0x0000FFFF;
+        } // 
+        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
+        if( ulDelay < 60 ){ 
+            // Minimum number of cycles supported
+            ulDelay = 60;
+        } // 
+        pygmyTimer->CR2 = 0;                          //
+        pygmyTimer->SMCR = 0;                         //
+        pygmyTimer->DIER = 0;                         // DMA and interrupt enable register
+        pygmyTimer->CNT = 0;                          // Count Register
+        pygmyTimer->ARR =  ulDelay - 60; // Auto Reload Register
+        pygmyTimer->SR = 0;
+        pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
+        while( ( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
     } // else
 }
 

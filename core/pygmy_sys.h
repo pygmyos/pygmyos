@@ -1212,6 +1212,20 @@ typedef struct
 #define DBGAFR_NUMBITS_MASK         ((u32)0x00100000)
 
 //---------------------------------------------------------------------------------------------
+//-------------------------------Pygmy Descriptor Defines--------------------------------------
+#define DESC_STM32F100LD                 0x0420
+#define DESC_STM32F100MD                 0x0420
+#define DESC_STM32F100HD                 0x0428
+#define DESC_STM32F103LD                 0x0412
+#define DESC_STM32F103MD                 0x0410
+#define DESC_STM32F103HD                 0x0414
+#define DESC_STM32F103XLD                0x0430
+#define DESC_STM32F105                   0x0418
+#define DESC_STM32F107                   0x0418
+#define DESC_STM32F151                   0x0416
+#define DESC_STM32F152                   0x0416
+
+//---------------------------------------------------------------------------------------------
 //-------------------------------Pygmy Data Integtrity Algorithm Defs--------------------------
 #define PDIA_NEW   1
 #define PDIA_ADD   2
@@ -1242,8 +1256,11 @@ u8 putsLCD( u8 *ucBuffer );
 void clearRTCFlags( void );
 
 u8 sysInit( void );
-u16 taskInit( void );
-u16 msgInit( void );
+u32 sysGetMainClock( void );
+void sysSetMainClock( u32 ulFreq );
+u32 sysGetXTAL( void );
+void sysSetXTAL( u32 ulFreq );
+
 
 void streamInit( void );
 u8 streamReset( u8 ucStream );

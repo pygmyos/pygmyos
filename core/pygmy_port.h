@@ -2026,6 +2026,19 @@ enum {
         PF0,PF1,PF2,PF3,PF4,PF5,PF6,PF7,PF8,PF9,PF10,PF11,PF12,PF13,PF14,PF15,
         ADCTEMP,ADCREF};
 
+
+#define PYGMY_PWM_EN                  BIT0
+#define PYGMY_PWM_DIR                 BIT1           
+    
+typedef struct {    
+                    u16 UpCount;
+                    u16 DownCount;
+                    u16 Count;
+                    u8 Pin;
+                    u8 CR;
+                } PYGMYPWM;
+                    
+    
 void pinConfig( u8 ucPin, u8 ucMode );
 void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode );
 void enablePortClock( u8 ucPin );

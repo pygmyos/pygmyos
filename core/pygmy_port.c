@@ -28,7 +28,12 @@ const u8 PYGMY_TIMERPINS[] = {  PA8,  PA9,  PA10, PA11,     // TIM1
                                 PA0,  PA1,  PA2,  PA3,      // TIM2
                                 PA6,  PA7,  PB0,  PB1,      // TIM3
                                 PB6,  PB7,  PB8,  PB9  };   // TIM4
-
+#ifndef PYGMY_PWMCHANNELS
+    #define PYGMY_PWMCHANNELS 8
+#endif
+                            
+PYGMYPWM globalPygmyPWM[ PYGMY_PWMCHANNELS ];
+                            
 void pinConfig( u8 ucPin, u8 ucMode )
 {
     u32 uiPortMode, uiPortClear;
@@ -75,16 +80,16 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
     globalIRQHandlers[ uiPin ] = pygmyFunc;
     switch( uiPin ){
         case 0:
-            enableInterrupt( EXTI0_IRQ );
+            interruptEnable( EXTI0_IRQ );
             break;
         case 1:
-            enableInterrupt( EXTI1_IRQ );
+            interruptEnable( EXTI1_IRQ );
             break;
         case 2:
-            enableInterrupt( EXTI2_IRQ );
+            interruptEnable( EXTI2_IRQ );
             break;
         case 3:
-            enableInterrupt( EXTI3_IRQ );
+            interruptEnable( EXTI3_IRQ );
             break;
         case 4:
             enableInterrupt( EXTI4_IRQ );
@@ -360,6 +365,96 @@ u8 pinPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
     
     return( 1 );
 }
+
+void pinInitSoftPWM( void )
+{
+    TIMER *pygmyTimer;
+    u16 i;
+
+    for( i = 0; i < PYGMY_PWMCHANNELS; i++ ){
+        globalPygmyPWM[ i ].CR = 0;
+    } // for
+    if( pygmyGlobalData.PWMTimer == TIMER11 ){
+            pygmyTimer = TIM11; // F103XLD // L15X
+            
+        } else {
+            pygmyTimer = TIM16; // F100
+        } // else
+        pygmyTimer->CR1 = 0;                          // Disable before configuring timer
+        if( ulDelay > 0x0000FFFF ){
+            pygmytimer->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
+            ulDelay &= 0x0000FFFF;
+        } // 
+        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
+        if( ulDelay < 60 ){ 
+            // Minimum number of cycles supported
+            ulDelay = 60;
+        } // 
+        pygmyTimer->CR2 = 0;                          //
+        pygmyTimer->SMCR = 0;                         //
+        pygmyTimer->DIER = 0;                         // DMA and interrupt enable register
+        pygmyTimer->CNT = 0;                          // Count Register
+        pygmyTimer->ARR =  ulDelay - 60; // Auto Reload Register
+        pygmyTimer->SR = 0;
+        pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
+        while( ( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
+}
+
+u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
+{
+    u16 i;
+
+    // First find empty PWM register slot
+    for( i = 0; i < PYGMY_PWMCHANNELS; i++ ){
+        if( globalPygmyPWM[ i ].CR == 0 ){
+            break;
+        } // if
+    } // for
+    if( i == PYGMY_PWMCHANNELS ){
+        // No open slots
+        return( 0 );
+    } // if
+    globalPygmyPWM[ i ].CR = PYGMY_PWM_EN;
+    globalPygmyPWM[ i ].Pin = ucPin;
+    sysGetMainClock()
+    globalPygmyPWM[ i ].UpCount = 
+    globalPygmyPWM[ i ].DownCount = 
+    globalPygmyPWM[ i ].Count = globalPygmyPWM[ i ].UpCount;
+    
+}
+
+void pinProcessSoftPWM( void )
+{
+    u16 i;
+
+    for( i = 0; i < PYGMY_PWMCHANNELS; i++ ){
+        if( globalPygmyPWM[ i ].CR & PYGMY_PWM_EN ){
+            if( globalPygmyPWM[ i ].Count ){
+                --globalPygmyPWM[ i ].Count;
+            } else{
+                if( globalPygmyPWM[ i ].CR & PYGMY_PWM_DIR ){
+                    globalPygmyPWM[ i ].Count = globalPygmyPWM[ i ].DownCount;
+                    globalPygmyPWM[ i ].CR &= ~PYGMY_PWM_DIR;
+                    setPin( globalPygmyPWM[ i ].Pin, LOW );
+                } else{
+                    globalPygmyPWM[ i ].Count = globalPygmyPWM[ i ].UpCount;
+                    globalPygmyPWM[ i ].CR |= PYGMY_PWM_DIR;
+                    setPin( globalPygmyPWM[ i ].Pin, HIGH );
+                } // else
+            } // else
+        } // if
+    } // for
+}
+
+void TIM10_IRQHandler( void )
+{
+   pinProcessSoftPWM(); 
+}
+
+void TIM15_IRQHandler( void )
+{
+    pinProcessSoftPWM();
+} 
 
 void EXTI0_IRQHandler( void ) 
 {

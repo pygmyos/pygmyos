@@ -103,50 +103,114 @@ typedef struct
 
 #define AIRCR_VECTKEY_MASK          ((u32)0x05FA0000)
 
-// Naming retains compatibility with ST libs
-#define WWDG_IRQ                    ((u8)0x00)  // Window WatchDog Interrupt 
-#define PVD_IRQ                     ((u8)0x01)  // PVD through EXTI Line detection Interrupt 
-#define TAMPER_IRQ                  ((u8)0x02)  // Tamper Interrupt 
-#define RTC_IRQ                     ((u8)0x03)  // RTC wakeup through EXTI
-#define FLASH_IRQ                   ((u8)0x04)  // FLASH global Interrupt 
-#define RCC_IRQ                     ((u8)0x05)  // RCC global Interrupt 
-#define EXTI0_IRQ                   ((u8)0x06)  // EXTI Line0 Interrupt 
-#define EXTI1_IRQ                   ((u8)0x07)  // EXTI Line1 Interrupt 
-#define EXTI2_IRQ                   ((u8)0x08)  // EXTI Line2 Interrupt 
-#define EXTI3_IRQ                   ((u8)0x09)  // EXTI Line3 Interrupt 
-#define EXTI4_IRQ                   ((u8)0x0A)  // EXTI Line4 Interrupt 
-#define DMACHANNEL1_IRQ             ((u8)0x0B)  // DMA Channel 1 global Interrupt 
-#define DMACHANNEL2_IRQ             ((u8)0x0C)  // DMA Channel 2 global Interrupt 
-#define DMACHANNEL3_IRQ             ((u8)0x0D)  // DMA Channel 3 global Interrupt 
-#define DMACHANNEL4_IRQ             ((u8)0x0E)  // DMA Channel 4 global Interrupt 
-#define DMACHANNEL5_IRQ             ((u8)0x0F)  // DMA Channel 5 global Interrupt 
-#define DMACHANNEL6_IRQ             ((u8)0x10)  // DMA Channel 6 global Interrupt 
-#define DMACHANNEL7_IRQ             ((u8)0x11)  // DMA Channel 7 global Interrupt 
-#define ADC_IRQ                     ((u8)0x12)  // ADC global Interrupt 
-#define USB_HP_CAN_TX_IRQ           ((u8)0x13)  // USB High Priority or CAN TX Interrupts 
-#define USB_LP_CAN_RX0_IRQ          ((u8)0x14)  // USB Low Priority or CAN RX0 Interrupts 
-#define CAN_RX1_IRQ                 ((u8)0x15)  // CAN RX1 Interrupt 
-#define CAN_SCE_IRQ                 ((u8)0x16)  // CAN SCE Interrupt 
-#define EXTI9_5_IRQ                 ((u8)0x17)  // External Line[9:5] Interrupts 
-#define TIM1_BRK_IRQ                ((u8)0x18)  // TIM1 Break Interrupt 
-#define TIM1_UP_IRQ                 ((u8)0x19)  // TIM1 Update Interrupt 
-#define TIM1_TRG_COM_IRQ            ((u8)0x1A)  // TIM1 Trigger and Commutation Interrupt 
-#define TIM1_CC_IRQ                 ((u8)0x1B)  // TIM1 Capture Compare Interrupt 
-#define TIM2_IRQ                    ((u8)0x1C)  // TIM2 global Interrupt 
-#define TIM3_IRQ                    ((u8)0x1D)  // TIM3 global Interrupt 
-#define TIM4_IRQ                    ((u8)0x1E)  // TIM4 global Interrupt 
-#define I2C1_EV_IRQ                 ((u8)0x1F)  // I2C1 Event Interrupt 
-#define I2C1_ER_IRQ                 ((u8)0x20)  // I2C1 Error Interrupt 
-#define I2C2_EV_IRQ                 ((u8)0x21)  // I2C2 Event Interrupt 
-#define I2C2_ER_IRQ                 ((u8)0x22)  // I2C2 Error Interrupt 
-#define SPI1_IRQ                    ((u8)0x23)  // SPI1 global Interrupt 
-#define SPI2_IRQ                    ((u8)0x24)  // SPI2 global Interrupt 
-#define USART1_IRQ                  ((u8)0x25)  // USART1 global Interrupt 
-#define USART2_IRQ                  ((u8)0x26)  // USART2 global Interrupt 
-#define USART3_IRQ                  ((u8)0x27)  // USART3 global Interrupt 
-#define EXTI15_10_IRQ               ((u8)0x28)  // External Line[15:10] Interrupts 
-#define RTCAlarm_IRQ                ((u8)0x29)  // RTC Alarm through EXTI Line Interrupt 
-#define USBWakeUp_IRQ               ((u8)0x2A)  // USB WakeUp from suspend through EXTI Line Interrupt 
+// Naming retains compatibility with ST Reference Material
+// A notable exception being the L15X Low Power series which have a selection
+// of specially allocated vectors marked L15X_IRQ instead of IRQ
+// All other Vectors are compatible through F10X, F2 and F4 series
+// Note that not all vectors are used in all MCUs, refer to Reference manual
+// for specific part number for more information.
+#define WWDG_IRQ                    ((u8)0x00)  // ( 0 ) Window WatchDog 
+#define PVD_IRQ                     ((u8)0x01)  // ( 1 )  PVD through EXTI Line detection
+#define TAMPER_IRQ                  ((u8)0x02)  // ( 2 )  Tamper Pin
+#define RTC_IRQ                     ((u8)0x03)  // ( 3 )  RTC wakeup through EXTI
+#define FLASH_IRQ                   ((u8)0x04)  // ( 4 )  FLASH General
+#define RCC_IRQ                     ((u8)0x05)  // ( 5 )  RCC General
+#define EXTI0_IRQ                   ((u8)0x06)  // ( 6 )  EXTI Line0  
+#define EXTI1_IRQ                   ((u8)0x07)  // ( 7 )  EXTI Line1 
+#define EXTI2_IRQ                   ((u8)0x08)  // ( 8 )  EXTI Line2  
+#define EXTI3_IRQ                   ((u8)0x09)  // ( 9 )  EXTI Line3
+#define EXTI4_IRQ                   ((u8)0x0A)  // ( 10 ) EXTI Line4 
+#define DMA1_CH1_IRQ                ((u8)0x0B)  // ( 11 ) DMA1 Channel1 
+#define DMA1_CH2_IRQ                ((u8)0x0C)  // ( 12 ) DMA1 Channel2 
+#define DMA1_CH3_IRQ                ((u8)0x0D)  // ( 13 ) DMA1 Channel3 
+#define DMA1_CH4_IRQ                ((u8)0x0E)  // ( 14 ) DMA1 Channel4 
+#define DMA1_CH5_IRQ                ((u8)0x0F)  // ( 15 ) DMA1 Channel5 
+#define DMA1_CH6_IRQ                ((u8)0x10)  // ( 16 ) DMA1 Channel6 
+#define DMA1_CH7_IRQ                ((u8)0x11)  // ( 17 ) DMA1 Channel7 
+// Some of the Vectors following have aliases to account for varying allocations across MCUs 
+#define ADC_IRQ                     ((u8)0x12)  // ( 18 ) ADC1 && ( ADC2, ADC3 )
+#define USB_HP_CAN_TX_IRQ           ((u8)0x13)  // ( 19 ) USB High Priority or CAN TX 
+    #define USB_HP_IRQ              ((u8)0x13)  // ( 19 ) USB High Priority
+    #define CAN_TX_IRQ              ((u8)0x13)  // ( 19 ) CAN TX
+#define USB_LP_CAN_RX0_IRQ          ((u8)0x14)  // ( 20 ) USB Low Priority or CAN RX0 
+    #define USB_LP_IRQ              ((u8)0x14)  // ( 20 ) USB Low Priority
+    #define CAN_RX0_IRQ             ((u8)0x14)  // ( 20 ) CAN RX0
+#define CAN_RX1_IRQ                 ((u8)0x15)  // ( 21 ) CAN RX1
+    #define DAC_L15X_IRQ            ((u8)0x15)  // ( 21 ) DAC Underrun ( STM32L15X )
+#define CAN_SCE_IRQ                 ((u8)0x16)  // ( 22 ) CAN SCE 
+    #define COMP_L15X_IRQ           ((u8)0x16)  // ( 23 ) Comparator EXTI ( STM32L15X )
+#define EXTI9_5_IRQ                 ((u8)0x17)  // ( 23 ) External Line[9:5]
+#define TIM1_BRK_IRQ                ((u8)0x18)  // ( 24 ) Timer1 Break
+    #define LCD_L15X_IRQ            ((u8)0x18)  // ( 24 ) LCD ( STM32L15X )
+#define TIM1_UP_IRQ                 ((u8)0x19)  // ( 25 ) Timer1 Update
+    #define TIM9_L15X_IRQ           ((u8)0x19)  // ( 25 ) Timer9 General ( STM32L15X )
+#define TIM1_TRG_COM_IRQ            ((u8)0x1A)  // ( 26 ) Timer1 Trigger and Commutation
+    #define TIM10_IRQ               ((u8)0x1A)  // ( 26 ) Timer10 General ( STM32L15X )
+#define TIM1_CC_IRQ                 ((u8)0x1B)  // ( 27 ) Timer1 Capture Compare
+    #define TIM11_L15X_IRQ          ((u8)0x1B)  // ( 27 ) Timer11 General ( STM32L15X )
+#define TIM2_IRQ                    ((u8)0x1C)  // ( 28 ) Timer2 General
+#define TIM3_IRQ                    ((u8)0x1D)  // ( 29 ) Timer3 General
+#define TIM4_IRQ                    ((u8)0x1E)  // ( 30 ) Timer4 General
+#define I2C1_EV_IRQ                 ((u8)0x1F)  // ( 31 ) I2C1 Event
+#define I2C1_ER_IRQ                 ((u8)0x20)  // ( 32 ) I2C1 Error
+#define I2C2_EV_IRQ                 ((u8)0x21)  // ( 33 ) I2C2 Event
+#define I2C2_ER_IRQ                 ((u8)0x22)  // ( 34 ) I2C2 Error
+#define SPI1_IRQ                    ((u8)0x23)  // ( 35 ) SPI1 General
+#define SPI2_IRQ                    ((u8)0x24)  // ( 36 ) SPI2 General
+#define USART1_IRQ                  ((u8)0x25)  // ( 37 ) USART1 General
+#define USART2_IRQ                  ((u8)0x26)  // ( 38 ) USART2 General
+#define USART3_IRQ                  ((u8)0x27)  // ( 39 ) USART3 General
+#define EXTI15_10_IRQ               ((u8)0x28)  // ( 40 ) External Line[15:10]
+#define RTC_ALARM_IRQ               ((u8)0x29)  // ( 41 ) RTC Alarm through EXTI Line
+#define USB_WAKEUP_IRQ              ((u8)0x2A)  // ( 42 ) USB WakeUp from suspend through EXTI Line
+    #define CEC_IRQ                 ((u8)0x2A)  // ( 42 ) HDMI CEC
+    #define OTG_FS_WKUP_IRQ         ((u8)0x2A)  // ( 42 ) USB OTG FS EXTI Wakeup
+    #define USB_FS_WKUP_L15X_IRQ    ((u8)0x2A)  // ( 42 ) USB FS WakeUp ( STM32L15X )
+#define TIM8_BRK_IRQ                ((u8)0x2B)  // ( 43 ) Timer8 Break
+    #define TIM12_IRQ               ((u8)0x2B)  // ( 43 ) Timer12 General
+    #define TIM6_L15X_IRQ           ((u8)0x2B)  // ( 43 ) Timer6 General ( STM32L15X )
+#define TIM8_UP_IRQ                 ((u8)0x2C)  // ( 44 ) Timer8 Up
+    #define TIM13_IRQ               ((u8)0x2C)  // ( 44 ) Timer13 General
+    #define TIM7_L15X_IRQ           ((u8)0x2C)  // ( 44 ) Timer7 General ( STM32L15X )
+#define TIM8_TRG_COM_IRQ            ((u8)0x2D)  // ( 45 ) Timer8 Trigger
+    #define TIM14_IRQ               ((u8)0x2D)  // ( 45 ) Timer14 General
+#define TIM8_CC_IRQ                 ((u8)0x2E)  // ( 46 ) Timer8 Capture Compare
+#define ADC3_IRQ                    ((u8)0x2F)  // ( 47 ) ADC3 General
+    #define DMA1_CH8_IRQ            ((u8)0x2F)  // ( 47 ) DMA1 Channel8 
+#define FSMC_IRQ                    ((u8)0x30)  // ( 48 ) FSMC General
+#define SDIO_IRQ                    ((u8)0x31)  // ( 49 ) SDIO General
+#define TIM5_IRQ                    ((u8)0x32)  // ( 50 ) Timer5 General
+#define SPI3_IRQ                    ((u8)0x33)  // ( 51 ) SPI3 General
+#define UART4_IRQ                   ((u8)0x34)  // ( 52 ) UART4 General
+#define UART5_IRQ                   ((u8)0x35)  // ( 53 ) UART5 General
+#define TIM6_IRQ                    ((u8)0x36)  // ( 54 ) Timer6 General
+    #define DAC_IRQ                 ((u8)0x36)  // ( 54 ) DAC Underrun
+#define TIM7_IRQ                    ((u8)0x37)  // ( 55 ) Timer7 General
+#define DMA2_CH1_IRQ                ((u8)0x38)  // ( 56 ) DMA2 Channel1
+#define DMA2_CH2_IRQ                ((u8)0x39)  // ( 57 ) DMA2 Channel2
+#define DMA2_CH3_IRQ                ((u8)0x3A)  // ( 58 ) DMA2 Channel3 
+#define DMA2_CH4_5_IRQ              ((u8)0x3B)  // ( 59 ) DMA2 Channel4 and Channel5
+#define DMA2_CH5_IRQ                ((u8)0x3C)  // ( 60 ) DMA2 Channel5 ( if MISC_REMAP set in AFIO_MAPR2 )
+#define ETH_IRQ                     ((u8)0x3D)  // ( 61 ) Ethernet General
+#define ETH_WKUP_IRQ                ((u8)0x3E)  // ( 62 ) Ethernet Wakeup
+#define CAN2_TX                     ((u8)0x3F)  // ( 63 ) CAN2 TX
+#define CAN2_RX0_IRQ                ((u8)0x40)  // ( 64 ) CAN2 RX0
+#define CAN2_RX1_IRQ                ((u8)0x41)  // ( 65 ) CAN2 RX1
+#define CAN2_SCE_IRQ                ((u8)0x42)  // ( 66 ) CAN2 SCE
+#define OTG_FS_IRQ                  ((u8)0x43)  // ( 67 ) USB OTG FS 
+#define DMA2_CH6_IRQ                ((u8)0x44)  // ( 68 ) DMA2 Channel6 
+#define DMA2_CH7_IRQ                ((u8)0x45)  // ( 69 ) DMA2 Channel7
+#define DMA2_CH8_IRQ                ((u8)0x46)  // ( 70 ) DMA2 Channel8
+#define USART6_IRQ                  ((u8)0x47)  // ( 71 ) USART6 General
+#define I2C3_EV_IRQ                 ((u8)0x48)  // ( 72 ) I2C3 Event Interrupt
+#define I2C3_ER_IRQ                 ((u8)0x49)  // ( 73 ) I2C3 Error Interrupt
+#define OTG_HS_EP1_OUT_IRQ          ((u8)0x4A)  // ( 74 ) USB OTG HS EndPoint 1 Out
+#define OTG_HS_EP1_IN_IRQ           ((u8)0x4B)  // ( 75 ) USB OTG HS EndPoint 1 In
+#define OTG_HS_WKUP_IRQ             ((u8)0x4C)  // ( 76 ) USB OTG HS WakeUp
+#define OTG_HS_IRQ                  ((u8)0x4D)  // ( 77 ) USB OTG HS 
+#define DCMI_IRQ                    ((u8)0x4E)  // ( 78 ) DCMI ( Camera Bus )
+#define CRYP_IRQ                    ((u8)0x4F)  // ( 79 ) Cryptographic Cell
+#define HASH_IRQ                    ((u8)0x50)  // ( 80 ) Hash and Ring
 // The following are intentionally defined out-of-range for special handling
 #define MEMFAULT_IRQ                ((u8)0xF0)  // System Register Memory Fault
 #define BUSFAULT_IRQ                ((u8)0xF1)  // System Register Bus Fault
