@@ -140,13 +140,19 @@ typedef struct
 #define CAN_SCE_IRQ                 ((u8)0x16)  // ( 22 ) CAN SCE 
     #define COMP_L15X_IRQ           ((u8)0x16)  // ( 23 ) Comparator EXTI ( STM32L15X )
 #define EXTI9_5_IRQ                 ((u8)0x17)  // ( 23 ) External Line[9:5]
-#define TIM1_BRK_IRQ                ((u8)0x18)  // ( 24 ) Timer1 Break
+#define TIM1_BRK_IRQ                ((u8)0x18)  // ( 24 ) Timer1 Break 
+    #define TIM9_IRQ                ((u8)0x18)  // ( 24 ) Timer9 General  ( F103XL )
+    #define TIM15_IRQ               ((u8)0x18)  // ( 24 ) Timer15 General ( F100 )
     #define LCD_L15X_IRQ            ((u8)0x18)  // ( 24 ) LCD ( STM32L15X )
 #define TIM1_UP_IRQ                 ((u8)0x19)  // ( 25 ) Timer1 Update
+    #define TIM10_IRQ               ((u8)0x19)  // ( 25 ) Timer10 General ( F103XL )
+    #define TIM16_IRQ               ((u8)0x19)  // ( 25 ) Timer16 General ( F100 )
     #define TIM9_L15X_IRQ           ((u8)0x19)  // ( 25 ) Timer9 General ( STM32L15X )
 #define TIM1_TRG_COM_IRQ            ((u8)0x1A)  // ( 26 ) Timer1 Trigger and Commutation
-    #define TIM10_IRQ               ((u8)0x1A)  // ( 26 ) Timer10 General ( STM32L15X )
+    #define TIM11_IRQ               ((u8)0x1A)  // ( 26 ) Timer11 Global ( F103XL )
+    #define TIM10_L15X_IRQ          ((u8)0x1A)  // ( 26 ) Timer10 General ( STM32L15X )
 #define TIM1_CC_IRQ                 ((u8)0x1B)  // ( 27 ) Timer1 Capture Compare
+    #define TIM17_IRQ               ((u8)0x1B)  // ( 27 ) Timer17 General ( F100 )
     #define TIM11_L15X_IRQ          ((u8)0x1B)  // ( 27 ) Timer11 General ( STM32L15X )
 #define TIM2_IRQ                    ((u8)0x1C)  // ( 28 ) Timer2 General
 #define TIM3_IRQ                    ((u8)0x1D)  // ( 29 ) Timer3 General

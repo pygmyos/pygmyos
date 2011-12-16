@@ -77,7 +77,7 @@ void audioPlayWave( u8 *ucName )
     DAC1_INIT;
     SHIELD_SHUTDOWN_INIT;
     SHIELD_SHUTDOWN_LOW;
-    interruptEnable( DMACHANNEL3_IRQ );
+    interruptEnable( DMA1_CH3_IRQ );
     dac1Output( globalAudioBuffer, 1024, ulSampleRate, PYGMY_DAC_CONTINUOUS );
 }
 

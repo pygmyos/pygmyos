@@ -2037,16 +2037,24 @@ typedef struct {
                     u8 Pin;
                     u8 CR;
                 } PYGMYPWM;
-                    
-    
+
+extern const TIMER *PYGMY_TIMERS[];
+            
+void pinSetSoftPWMFreq( u32 ulFreq );
+u32 pinGetSoftPWMFreq( void );
+void pinInitSoftPWM( void );            
+u8 pinRemoveSoftPWM( u8 ucPin );
+u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle );
+            
+            
 void pinConfig( u8 ucPin, u8 ucMode );
 void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode );
 void enablePortClock( u8 ucPin );
-GPIO *getPortFromPin( u8 ucPin );
+GPIO *pinGetPort( u8 ucPin );
 void pinSet( u8 ucPin, u8 ucState);
 u8 pinGet( u8 ucPin );
-void *getTimerFromPin( u8 ucPin );
-u8 getChannelFromPin( u8 ucPin );
+void *pinGetTimer( u8 ucPin );
+u8 pinGetChannel( u8 ucPin );
 u8 pinPWM( u8 ucPin, u32 uiFreq, u8 ucDutyCycle );
 u8 setTimer( u8 ucPin, u32 uiFreq, u8 ucDutyCycle );
     

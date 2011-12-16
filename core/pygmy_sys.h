@@ -291,8 +291,10 @@ typedef struct {
                 u8 *TXBuffer;
                 } PYGMYFIFO;    
 
-enum {  TIMER0, TIMER1, TIMER2, TIMER3, TIMER4, TIMER5, TIMER6, TIMER7, TIMER8, 
-        TIMER9, TIMER10, TIMER11, TIMER12, TIMER13, TIMER14, TIMER15, TIMER16, TIMER17
+// Warning! there is no Timer0, it is included as a place holder
+enum {  PYGMY_TIMER0,   PYGMY_TIMER1,   PYGMY_TIMER2,   PYGMY_TIMER3,   PYGMY_TIMER4,   PYGMY_TIMER5, 
+        PYGMY_TIMER6,   PYGMY_TIMER7,   PYGMY_TIMER8,   PYGMY_TIMER9,   PYGMY_TIMER10,  PYGMY_TIMER11, 
+        PYGMY_TIMER12,  PYGMY_TIMER13,  PYGMY_TIMER14,  PYGMY_TIMER15,  PYGMY_TIMER16,  PYGMY_TIMER17
         };
             
 typedef struct {
@@ -1222,8 +1224,8 @@ typedef struct
 #define DESC_STM32F103XLD                0x0430
 #define DESC_STM32F105                   0x0418
 #define DESC_STM32F107                   0x0418
-#define DESC_STM32F151                   0x0416
-#define DESC_STM32F152                   0x0416
+#define DESC_STM32L151                   0x0416
+#define DESC_STM32L152                   0x0416
 
 //---------------------------------------------------------------------------------------------
 //-------------------------------Pygmy Data Integtrity Algorithm Defs--------------------------
@@ -1260,7 +1262,12 @@ u32 sysGetMainClock( void );
 void sysSetMainClock( u32 ulFreq );
 u32 sysGetXTAL( void );
 void sysSetXTAL( u32 ulFreq );
-
+void *sysGetTimer( u8 ucTimer );
+u8 sysGetDelayTimer( void );
+u8 sysGetPWMTimer( void );
+u8 sysEnableTimerInterrupt( u8 ucTimer );
+void sysDisableTimerClock( u8 ucTimer );
+void sysEnableTimerClock( u8 ucTimer );
 
 void streamInit( void );
 u8 streamReset( u8 ucStream );
@@ -1295,6 +1302,7 @@ u8 msgDelete( u8 *ucName, u16 uiID );
 u16 msgInit( void );
 void msgList( PYGMYMESSAGE *pygmyMsg, u16 uiMsg );
 
+void taskInit( void );
 u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler );
 u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler );
 u8 taskDelete( u8 *ucName, u16 uiID );

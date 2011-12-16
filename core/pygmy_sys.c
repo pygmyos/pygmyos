@@ -36,36 +36,135 @@ PYGMYSYSTEM         pygmyGlobalData;
 
 u8 sysInit( void )
 {
-    pygmyGlobalData.MCUID = descriptorGetIDCode( );
-    
+    pygmyGlobalData.MCUID = descriptorGetID( );
+    pygmyGlobalData.XTAL = 12000000;
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
-        pygmyGlobalData.XTAL = 8000000;
+        pygmyGlobalData.XTAL = 16000000;
         pygmyGlobalData.MainClock = 32000000;
-        pygmyGlobalData.DelayTimer = TIMER10;
-        pygmyGlobalData.PWMTimer = TIMER11;
+        pygmyGlobalData.DelayTimer = PYGMY_TIMER11;
+        pygmyGlobalData.PWMTimer = PYGMY_TIMER9;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F100MD || pygmyGlobalData.MCUID == DESC_STM32F100HD ){
-        // F100 
-        pygmyGlobalData.XTAL = 12000000;
         pygmyGlobalData.MainClock = 24000000;
-        pygmyGlobalData.DelayTimer = TIMER15;
-        pygmyGlobalData.PWMTimer = TIMER16;
-    } else{
-        // F103
-        pygmyGlobalData.XTAL = 8000000;
+        pygmyGlobalData.DelayTimer = PYGMY_TIMER15;
+        pygmyGlobalData.PWMTimer = PYGMY_TIMER16;
+    } else if( pygmyGlobalData.MCUID == DESC_STM32F103XL ){
         pygmyGlobalData.MainClock = 72000000;
-        pygmyGlobalData.DelayTimer = TIMER10;
-        pygmyGlobalData.PWMTimer = TIMER11;
+        pygmyGlobalData.DelayTimer = PYGMY_TIMER9;
+        pygmyGlobalData.PWMTimer = PYGMY_TIMER10;
+    } else{
+        pygmyGlobalData.MainClock = 72000000;
+        pygmyGlobalData.DelayTimer = PYGMY_TIMER1;
+        pygmyGlobalData.PWMTimer = PYGMY_TIMER0;
     } // else
-    #define PYGMYTASKS
-    #ifdef PYGMYTASKS
-        //randomFunc()
+    #ifdef __PYGMYTASKS
         taskInit();
     #endif
-    #ifdef PYGMYMESSAGES
+    #ifdef __PYGMYMESSAGES
         msgInit();
     #endif
 
 	return( 0 );
+}
+
+void sysEnableTimerClock( u8 ucTimer )
+{
+    if( ucTimer == PYGMY_TIMER1 ){
+        PYGMY_RCC_TIM1_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER2 ){
+        PYGMY_RCC_TIM2_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER3 ){
+        PYGMY_RCC_TIM3_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER4 ){
+        PYGMY_RCC_TIM4_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER5 ){
+        PYGMY_RCC_TIM5_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER6 ){
+        PYGMY_RCC_TIM6_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER7 ){
+        PYGMY_RCC_TIM7_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER8 ){
+        PYGMY_RCC_TIM8_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER9 ){
+        PYGMY_RCC_TIM9_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER10 ){
+        PYGMY_RCC_TIM10_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER11 ){
+        PYGMY_RCC_TIM11_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER12 ){
+        PYGMY_RCC_TIM12_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER13 ){
+        PYGMY_RCC_TIM13_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER14 ){
+        PYGMY_RCC_TIM14_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER15 ){
+        PYGMY_RCC_TIM15_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER16 ){
+        PYGMY_RCC_TIM16_ENABLE;
+    } else if( ucTimer == PYGMY_TIMER17 ){
+        PYGMY_RCC_TIM17_ENABLE;
+    } // else if
+}
+
+void sysDisableTimerClock( u8 ucTimer )
+{
+    if( ucTimer == PYGMY_TIMER1 ){
+        PYGMY_RCC_TIM1_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER2 ){
+        PYGMY_RCC_TIM2_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER3 ){
+        PYGMY_RCC_TIM3_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER4 ){
+        PYGMY_RCC_TIM4_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER5 ){
+        PYGMY_RCC_TIM5_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER6 ){
+        PYGMY_RCC_TIM6_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER7 ){
+        PYGMY_RCC_TIM7_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER8 ){
+        PYGMY_RCC_TIM8_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER9 ){
+        PYGMY_RCC_TIM9_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER10 ){
+        PYGMY_RCC_TIM10_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER11 ){
+        PYGMY_RCC_TIM11_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER12 ){
+        PYGMY_RCC_TIM12_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER13 ){
+        PYGMY_RCC_TIM13_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER14 ){
+        PYGMY_RCC_TIM14_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER15 ){
+        PYGMY_RCC_TIM15_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER16 ){
+        PYGMY_RCC_TIM16_DISABLE;
+    } else if( ucTimer == PYGMY_TIMER17 ){
+        PYGMY_RCC_TIM17_DISABLE;
+    } // else if
+}
+
+u8 sysEnableTimerInterrupt( u8 ucTimer )
+{
+    u8 ucIRQ;
+    
+    ucIRQ = interruptGetTimerVector( ucTimer );
+    if( ucIRQ ){
+        interruptEnable( ucIRQ );
+        return( 1 );
+    } // if
+    
+    return( 0 ); // Invalid timer selected
+}
+
+u8 sysGetDelayTimer( void )
+{
+    return( pygmyGlobalData.DelayTimer );
+}
+
+u8 sysGetPWMTimer( void )
+{
+    return( pygmyGlobalData.PWMTimer );
 }
 
 u32 sysGetMainClock( void )
@@ -506,7 +605,7 @@ void pdiaPrintString( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucBuffer )
 
 //--------------------------------------------------------------------------------------------
 //--------------------------------------Pygmy OS Tasking--------------------------------------
-#ifdef PYGMYTASKS
+#ifdef __PYGMYTASKS
 u16 taskProcess( void )
 {
     u32 ulTime;
@@ -540,7 +639,7 @@ u16 taskProcess( void )
     return( 1 );
 }
 
-u16 taskInit( void )
+void taskInit( void )
 {
     u16 i;
 
@@ -553,8 +652,6 @@ u16 taskInit( void )
         pygmyGlobalTasks[ i ].TimeStamp     = 0;
         pygmyGlobalTasks[ i ].Expire        = 0;
     } // for   
-
-    return( 1 );
 }
 
 u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
@@ -691,7 +788,7 @@ void TaskException_Handler( void )
 
 //--------------------------------------------------------------------------------------------
 //-------------------------------------Pygmy OS Messaging-------------------------------------
-#ifdef PYGMYMESSAGES
+#ifdef __PYGMYMESSAGES
 u16 msgInit( void )
 {
     u16 i;
@@ -896,7 +993,7 @@ u32 descriptorGetID( void )
     u32 *ulID;
     
     ulID = (u32*)(0x08000000 + ( ( SIZEREG->Pages - 2 ) * 1024 )); 
-    print( COM3, "\rID Address: %8X", ulID );
+    //print( COM3, "\rID Address: %8X", ulID );
     return( *ulID );
 }
 
@@ -1109,16 +1206,12 @@ void setMainClock( u32 ulClock )
 
 void delay( u32 ulDelay )
 {
-    // This function uses Timer1 to provide an accurate microsecond delay
+    // This function uses a general purpose timer to provide an accurate microsecond delay
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
-    // F10X low-density devices, the device ID is 0x412
-    // F10X medium-density devices, the device ID is 0x410
-    // F10X high-density devices, the device ID is 0x414
-    // F10X XL-density devices, the device ID is 0x430
-    // F10X connectivity devices, the device ID is 0x418
+    
     TIMER *pygmyTimer;
     
-    if( pygmyGlobalData.DelayTimer == TIMER1 ){
+    if( pygmyGlobalData.DelayTimer == PYGMY_TIMER1 ){
         // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
         // multipurpose timers and must share Timer1. In this case, Timer1
@@ -1142,14 +1235,11 @@ void delay( u32 ulDelay )
         TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
     } else {
-        if( pygmyGlobalData.DelayTimer == TIMER10 ){
-            pygmyTimer = TIM10; // F103XLD // L15X
-        } else {
-            pygmyTimer = TIM15; // F100
-        } // else
+        pygmyTimer = sysGetTimer( pygmyGlobalData.DelayTimer );
+        
         pygmyTimer->CR1 = 0;                          // Disable before configuring timer
         if( ulDelay > 0x0000FFFF ){
-            pygmytimer->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
+            pygmyTimer->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
             ulDelay &= 0x0000FFFF;
         } // 
         ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
@@ -1166,6 +1256,50 @@ void delay( u32 ulDelay )
         pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( ( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
     } // else
+}
+
+void *sysGetTimer( u8 ucTimer )
+{
+    // This function converts a numeric Timer representation to a
+    // pointer to Timer structure
+    switch( ucTimer ){
+        case PYGMY_TIMER1:
+            return( TIM1 );
+        case PYGMY_TIMER2:
+            return( TIM2 );
+        case PYGMY_TIMER3:
+            return( TIM3 );
+        case PYGMY_TIMER4:
+            return( TIM4 );
+        case PYGMY_TIMER5:
+            return( TIM5 );
+        case PYGMY_TIMER6:
+            return( TIM6 );
+        case PYGMY_TIMER7:
+            return( TIM7 );
+        case PYGMY_TIMER8:
+            return( TIM8 );
+        case PYGMY_TIMER9:
+            return( TIM9 );
+        case PYGMY_TIMER10:
+            return( TIM10 );
+        case PYGMY_TIMER11:
+            return( TIM11 );
+        case PYGMY_TIMER12:
+            return( TIM12 );
+        case PYGMY_TIMER13:
+            return( TIM13 );
+        case PYGMY_TIMER14:
+            return( TIM14 );
+        case PYGMY_TIMER15:
+            return( TIM15 );
+        case PYGMY_TIMER16:
+            return( TIM16 );
+        case PYGMY_TIMER17:
+            return( TIM17 );
+        default:
+            return( NULL );
+    } // switch
 }
 
 /*void delay( u32 ulDelay )
@@ -1229,12 +1363,13 @@ void mcoDisable( void )
 void SysTick_Handler( void )
 {
     PYGMY_WATCHDOG_REFRESH; 
+    
     pygmyGlobalData.StopWatch += 100;
 
-    #ifdef PYGMYTASKS 
+    #ifdef __PYGMYTASKS 
         taskProcess();
     #endif
-    #ifdef PYGMYMESSAGES
+    #ifdef __PYGMYMESSAGES
         msgProcess();
     #endif
 
