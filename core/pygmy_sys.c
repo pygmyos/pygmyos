@@ -22,16 +22,16 @@
 #include <stdarg.h>
 #include "pygmy_profile.h"
 
-//#ifdef __PYGMY_BOOT
+
 const u8 PYGSYS_INVBITS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 const u8 PYGMY_DAYSINMONTH[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 const u32 PYGMY_BITMASKS[] = { BIT0,BIT1,BIT2,BIT3,BIT4,BIT5,BIT6,BIT7,BIT8,BIT9,BIT10,BIT11,BIT12,BIT13,BIT14,BIT15,
                               BIT16,BIT17,BIT18,BIT19,BIT20,BIT21,BIT22,BIT23,BIT24,BIT25,BIT26,BIT27,BIT28,BIT29,BIT30,BIT31};
 const u32 PYGMY_INVBITMASKS[] = {BIT31,BIT30,BIT29,BIT28,BIT27,BIT26,BIT25,BIT24,BIT23,BIT22,BIT21,BIT20,BIT19,BIT18,BIT17,BIT16,
                                BIT15,BIT14,BIT13,BIT12,BIT11,BIT10,BIT9,BIT8,BIT7,BIT6,BIT5,BIT4,BIT3,BIT2,BIT1,BIT0};
-//#endif
-// Global System Variables
 
+// Global System Variables                          
+                           
 PYGMYTASK           pygmyGlobalTasks[ PYGMY_MAXTASKS ];
 PYGMYMESSAGE        pygmyGlobalMessages[ PYGMY_MAXMESSAGES ];
 PYGMYSYSTEM         pygmyGlobalData;
@@ -49,15 +49,66 @@ u8 sysInit( void )
         pygmyGlobalData.MainClock = 24000000;
         pygmyGlobalData.DelayTimer = PYGMY_TIMER15;
         pygmyGlobalData.PWMTimer = PYGMY_TIMER16;
-    } else if( pygmyGlobalData.MCUID == DESC_STM32F103XL ){
+    } else if( pygmyGlobalData.MCUID == DESC_STM32F103XLD ){
         pygmyGlobalData.MainClock = 72000000;
         pygmyGlobalData.DelayTimer = PYGMY_TIMER9;
         pygmyGlobalData.PWMTimer = PYGMY_TIMER10;
-    } else{
+    } else if ( pygmyGlobalData.MCUID == DESC_STM32F103HD ){
+        pygmyGlobalData.MainClock = 72000000;
+        pygmyGlobalData.DelayTimer = PYGMY_TIMER1;
+        pygmyGlobalData.PWMTimer = PYGMY_TIMER8;
+    } else{ // STM32F103LD and MD
         pygmyGlobalData.MainClock = 72000000;
         pygmyGlobalData.DelayTimer = PYGMY_TIMER1;
         pygmyGlobalData.PWMTimer = PYGMY_TIMER0;
     } // else
+    sysEnableTimerClock( pygmyGlobalData.DelayTimer );
+    // The following implements default stream config from the profile
+    // If no defaults are defined, configuration must be done manually
+    #ifdef __PYGMYSTREAMS
+        streamInit();
+        
+        #ifdef __PYGMYSTREAMUSB
+        
+        #endif
+        #ifdef __PYGMYSTREAMCOM1
+            
+            streamSetRXBuffer( COM1, globalCOM1RXBuffer, __PYGMYCOM1BUFFERLEN );
+            streamSetPut( COM1, putsUSART1 );
+        #endif
+        #ifdef __PYGMYSTREAMCOM2
+            
+            streamSetRXBuffer( COM2, globalCOM2RXBuffer, __PYGMYCOM2BUFFERLEN );
+            streamSetPut( COM2, putsUSART2 );
+        #endif
+        #ifdef __PYGMYSTREAMCOM3
+            
+            streamSetRXBuffer( COM3, globalCOM3RXBuffer, __PYGMYCOM3BUFFERLEN );
+            streamSetPut( COM3, putsUSART3 );
+        #endif
+        #ifdef __PYGMYSTREAMCOM4 
+            
+            streamSetRXBuffer( COM4, globalCOM4RXBuffer, __PYGMYCOM4BUFFERLEN );
+            streamSetPut( COM4, putsUSART4 );
+        #endif
+        #ifdef __PYGMYSTREAMCOM5
+            
+            streamSetRXBuffer( COM5, globalCOM5RXBuffer, __PYGMYCOM5BUFFERLEN );
+            streamSetPut( COM5, putsUSART5 );
+        #endif
+        #ifdef __PYGMYFILES
+            #ifdef __PYGMYSTREAMFILE
+                streamSetPut( FILE, putsFILE );
+            #endif
+        #endif
+        #ifdef __PYGMYSTREAMLCD
+            
+            streamSetPut( LCD, putsLCD );
+        #endif
+    #endif
+    #ifdef __PYGMYFILES
+        fileMountRoot();
+    #endif
     #ifdef __PYGMYTASKS
         taskInit();
     #endif
@@ -68,81 +119,209 @@ u8 sysInit( void )
 	return( 0 );
 }
 
+void sysEnableComClock( u8 ucPort )
+{
+    #ifdef __PYGMYSTREAMCOM1
+        if( ucPort == COM1 ){
+            PYGMY_RCC_USART1_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM1
+    #ifdef __PYGMYSTREAMCOM2
+        if( ucPort == COM2 ){
+            PYGMY_RCC_USART2_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM2
+    #ifdef __PYGMYSTREAMCOM3
+        if( ucPort == COM3 ){
+            PYGMY_RCC_USART3_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM3
+    #ifdef __PYGMYSTREAMCOM4
+        if( ucPort == COM4 ){
+            PYGMY_RCC_USART4_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM4
+    #ifdef __PYGMYSTREAMCOM5
+        if( ucPort == COM5 ){
+            PYGMY_RCC_USART5_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM5
+    #ifdef __PYGMYSTREAMCOM6
+        if( ucPort == COM6 ){
+            PYGMY_RCC_USART6_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM6
+    #ifdef __PYGMYSTREAMSP1
+        if( ucPort == SP1 ){
+            PYGMY_RCC_SPI1_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMSP1
+    #ifdef __PYGMYSTREAMSP2
+        if( ucPort == SP2 ){
+            PYGMY_RCC_SPI2_ENABLE;
+        } // if 
+    #endif // __PYGMYSTREAMSP2
+    #ifdef __PYGMYSTREAMSP3
+        if( ucPort == SP3 ){
+            PYGMY_RCC_SPI3_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMSP3
+    #ifdef __PYGMYSTREAMBUS1
+        if( ucPort == BUS1 ){
+            PYGMY_RCC_I2C1_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMBUS1
+    #ifdef __PYGMYSTREAMBUS2
+        if( ucPort == BUS2 ){
+            PYGMY_RCC_I2C2_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMBUS2
+    #ifdef __PYGMYSTREAMBUS3
+        if( ucPort == BUS3 ){
+            PYGMY_RCC_I2C3_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMBUS3
+}
+
+void sysDisableComClock( u8 ucPort )
+{
+    #ifdef __PYGMYSTREAMCOM1
+        if( ucPort == COM1 ){
+            PYGMY_RCC_USART1_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM1
+    #ifdef __PYGMYSTREAMCOM2
+        if( ucPort == COM2 ){
+            PYGMY_RCC_USART2_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM2
+    #ifdef __PYGMYSTREAMCOM3
+        if( ucPort == COM3 ){
+            PYGMY_RCC_USART3_ENABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM3
+    #ifdef __PYGMYSTREAMCOM4
+        if( ucPort == COM4 ){
+            PYGMY_RCC_USART4_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM4
+    #ifdef __PYGMYSTREAMCOM5
+        if( ucPort == COM5 ){
+            PYGMY_RCC_USART5_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM5
+    #ifdef __PYGMYSTREAMCOM6
+        if( ucPort == COM6 ){
+            PYGMY_RCC_USART6_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMCOM6
+    #ifdef __PYGMYSTREAMSP1
+        if( ucPort == SP1 ){
+            PYGMY_RCC_SPI1_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMSP1
+    #ifdef __PYGMYSTREAMSP2
+        if( ucPort == SP2 ){
+            PYGMY_RCC_SPI2_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMSP2
+    #ifdef __PYGMYSTREAMSP3
+        if( ucPort == SP3 ){
+            PYGMY_RCC_SPI3_DISABLE;
+        } // if 
+    #endif // __PYGMYSTREAMSP3
+    #ifdef __PYGMYSTREAMBUS1
+        if( ucPort == BUS1 ){
+            PYGMY_RCC_I2C1_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMBUS1
+    #ifdef __PYGMYSTREAMBUS2
+        if( ucPort == BUS2 ){
+            PYGMY_RCC_I2C2_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMBUS2
+    #ifdef __PYGMYSTREAMBUS3
+        if( ucPort == BUS3 ){
+            PYGMY_RCC_I2C3_DISABLE;
+        } // if
+    #endif // __PYGMYSTREAMBUS3
+}
+
 void sysEnableTimerClock( u8 ucTimer )
 {
     if( ucTimer == PYGMY_TIMER1 ){
-        PYGMY_RCC_TIM1_ENABLE;
+        PYGMY_RCC_TIMER1_ENABLE;
     } else if( ucTimer == PYGMY_TIMER2 ){
-        PYGMY_RCC_TIM2_ENABLE;
+        PYGMY_RCC_TIMER2_ENABLE;
     } else if( ucTimer == PYGMY_TIMER3 ){
-        PYGMY_RCC_TIM3_ENABLE;
+        PYGMY_RCC_TIMER3_ENABLE;
     } else if( ucTimer == PYGMY_TIMER4 ){
-        PYGMY_RCC_TIM4_ENABLE;
+        PYGMY_RCC_TIMER4_ENABLE;
     } else if( ucTimer == PYGMY_TIMER5 ){
-        PYGMY_RCC_TIM5_ENABLE;
+        PYGMY_RCC_TIMER5_ENABLE;
     } else if( ucTimer == PYGMY_TIMER6 ){
-        PYGMY_RCC_TIM6_ENABLE;
+        PYGMY_RCC_TIMER6_ENABLE;
     } else if( ucTimer == PYGMY_TIMER7 ){
-        PYGMY_RCC_TIM7_ENABLE;
+        PYGMY_RCC_TIMER7_ENABLE;
     } else if( ucTimer == PYGMY_TIMER8 ){
-        PYGMY_RCC_TIM8_ENABLE;
+        PYGMY_RCC_TIMER8_ENABLE;
     } else if( ucTimer == PYGMY_TIMER9 ){
-        PYGMY_RCC_TIM9_ENABLE;
+        PYGMY_RCC_TIMER9_ENABLE;
     } else if( ucTimer == PYGMY_TIMER10 ){
-        PYGMY_RCC_TIM10_ENABLE;
+        PYGMY_RCC_TIMER10_ENABLE;
     } else if( ucTimer == PYGMY_TIMER11 ){
-        PYGMY_RCC_TIM11_ENABLE;
+        PYGMY_RCC_TIMER11_ENABLE;
     } else if( ucTimer == PYGMY_TIMER12 ){
-        PYGMY_RCC_TIM12_ENABLE;
+        PYGMY_RCC_TIMER12_ENABLE;
     } else if( ucTimer == PYGMY_TIMER13 ){
-        PYGMY_RCC_TIM13_ENABLE;
+        PYGMY_RCC_TIMER13_ENABLE;
     } else if( ucTimer == PYGMY_TIMER14 ){
-        PYGMY_RCC_TIM14_ENABLE;
+        PYGMY_RCC_TIMER14_ENABLE;
     } else if( ucTimer == PYGMY_TIMER15 ){
-        PYGMY_RCC_TIM15_ENABLE;
+        PYGMY_RCC_TIMER15_ENABLE;
     } else if( ucTimer == PYGMY_TIMER16 ){
-        PYGMY_RCC_TIM16_ENABLE;
+        PYGMY_RCC_TIMER16_ENABLE;
     } else if( ucTimer == PYGMY_TIMER17 ){
-        PYGMY_RCC_TIM17_ENABLE;
+        PYGMY_RCC_TIMER17_ENABLE;
     } // else if
 }
 
 void sysDisableTimerClock( u8 ucTimer )
 {
     if( ucTimer == PYGMY_TIMER1 ){
-        PYGMY_RCC_TIM1_DISABLE;
+        PYGMY_RCC_TIMER1_DISABLE;
     } else if( ucTimer == PYGMY_TIMER2 ){
-        PYGMY_RCC_TIM2_DISABLE;
+        PYGMY_RCC_TIMER2_DISABLE;
     } else if( ucTimer == PYGMY_TIMER3 ){
-        PYGMY_RCC_TIM3_DISABLE;
+        PYGMY_RCC_TIMER3_DISABLE;
     } else if( ucTimer == PYGMY_TIMER4 ){
-        PYGMY_RCC_TIM4_DISABLE;
+        PYGMY_RCC_TIMER4_DISABLE;
     } else if( ucTimer == PYGMY_TIMER5 ){
-        PYGMY_RCC_TIM5_DISABLE;
+        PYGMY_RCC_TIMER5_DISABLE;
     } else if( ucTimer == PYGMY_TIMER6 ){
-        PYGMY_RCC_TIM6_DISABLE;
+        PYGMY_RCC_TIMER6_DISABLE;
     } else if( ucTimer == PYGMY_TIMER7 ){
-        PYGMY_RCC_TIM7_DISABLE;
+        PYGMY_RCC_TIMER7_DISABLE;
     } else if( ucTimer == PYGMY_TIMER8 ){
-        PYGMY_RCC_TIM8_DISABLE;
+        PYGMY_RCC_TIMER8_DISABLE;
     } else if( ucTimer == PYGMY_TIMER9 ){
-        PYGMY_RCC_TIM9_DISABLE;
+        PYGMY_RCC_TIMER9_DISABLE;
     } else if( ucTimer == PYGMY_TIMER10 ){
-        PYGMY_RCC_TIM10_DISABLE;
+        PYGMY_RCC_TIMER10_DISABLE;
     } else if( ucTimer == PYGMY_TIMER11 ){
-        PYGMY_RCC_TIM11_DISABLE;
+        PYGMY_RCC_TIMER11_DISABLE;
     } else if( ucTimer == PYGMY_TIMER12 ){
-        PYGMY_RCC_TIM12_DISABLE;
+        PYGMY_RCC_TIMER12_DISABLE;
     } else if( ucTimer == PYGMY_TIMER13 ){
-        PYGMY_RCC_TIM13_DISABLE;
+        PYGMY_RCC_TIMER13_DISABLE;
     } else if( ucTimer == PYGMY_TIMER14 ){
-        PYGMY_RCC_TIM14_DISABLE;
+        PYGMY_RCC_TIMER14_DISABLE;
     } else if( ucTimer == PYGMY_TIMER15 ){
-        PYGMY_RCC_TIM15_DISABLE;
+        PYGMY_RCC_TIMER15_DISABLE;
     } else if( ucTimer == PYGMY_TIMER16 ){
-        PYGMY_RCC_TIM16_DISABLE;
+        PYGMY_RCC_TIMER16_DISABLE;
     } else if( ucTimer == PYGMY_TIMER17 ){
-        PYGMY_RCC_TIM17_DISABLE;
+        PYGMY_RCC_TIMER17_DISABLE;
     } // else if
 }
 
@@ -191,185 +370,6 @@ void sysSetXTAL( u32 ulFreq )
     pygmyGlobalData.XTAL = ulFreq;
 }
 
-//--------------------------------------------------------------------------------------------
-//-------------------------------------Pygmy OS IO Stream-------------------------------------
-#ifdef PYGMYSTREAMS
-void streamInit( void )
-{
-    u16 i;
-    
-    for( i = 0; i < MAXCOMPORTS; i++ ){
-        streamReset( i );
-    } // for
-    
-}
-
-u8 streamReset( u8 ucStream )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].RXBufferLen  = 0;
-        pygmyGlobalData.Stream[ ucStream ].RXIndex      = 0;
-        //pygmyGlobalData.Stream[ ucStream ].RXInIndex    = 0;
-        pygmyGlobalData.Stream[ ucStream ].RXLen        = 0; 
-        pygmyGlobalData.Stream[ ucStream ].TXBufferLen  = 0;
-        pygmyGlobalData.Stream[ ucStream ].TXIndex      = 0;
-        //pygmyGlobalData.Stream[ ucStream ].TXInIndex    = 0;
-        pygmyGlobalData.Stream[ ucStream ].TXLen        = 0;
-        pygmyGlobalData.Stream[ ucStream ].Put          = (void *)TaskException_Handler;
-        pygmyGlobalData.Stream[ ucStream ].Get          = (void *)TaskException_Handler;
-        pygmyGlobalData.Stream[ ucStream ].RXBuffer     = NULL;
-        pygmyGlobalData.Stream[ ucStream ].TXBuffer     = NULL;
-        
-        return( 1 );
-    } // if
-
-    return( 0 );
-}
-
-void streamResetRX( u8 ucStream )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].RXIndex = 0;
-        pygmyGlobalData.Stream[ ucStream ].RXLen = 0;
-    } // if
-}
-
-void streamResetTX( u8 ucStream )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].TXIndex = 0;
-        pygmyGlobalData.Stream[ ucStream ].TXLen = 0;
-    } // if
-}
-
-void streamTXChar( u8 ucStream, void *pygmyUSART )
-{
-    USART_TYPEDEF *ptrUSART = (USART_TYPEDEF *)pygmyUSART;
-    
-    if( ucStream < MAXCOMPORTS && pygmyGlobalData.Stream[ ucStream ].TXLen ){
-		--pygmyGlobalData.Stream[ ucStream ].TXLen;  
-		ptrUSART->DR = pygmyGlobalData.Stream[ ucStream ].TXBuffer[ pygmyGlobalData.Stream[ ucStream ].TXIndex ]; 
-        pygmyGlobalData.Stream[ ucStream ].TXIndex = ( pygmyGlobalData.Stream[ ucStream ].TXIndex + 1 ) % 
-            pygmyGlobalData.Stream[ ucStream ].TXBufferLen;
-    } else{
-        ptrUSART->CR1 &= ~USART_TXEIE;
-    } // else
-}
-
-u8 streamGetChar( u8 ucStream )
-{
-    u16 i;
-
-    if( ucStream < MAXCOMPORTS && pygmyGlobalData.Stream[ ucStream ].RXLen ){
-        i = pygmyGlobalData.Stream[ ucStream ].RXIndex;
-        pygmyGlobalData.Stream[ ucStream ].RXIndex = ( pygmyGlobalData.Stream[ ucStream ].RXIndex+1 ) % pygmyGlobalData.Stream[ ucStream ].RXBufferLen; // modulo prevents overrun
-        --pygmyGlobalData.Stream[ ucStream ].RXLen;
-        return( pygmyGlobalData.Stream[ ucStream ].RXBuffer[ i ] );
-    } // if
-
-    return(  0 );
-}
-
-u8 streamPutChar( u8 ucStream, u8 ucChar )
-{
-    u16 uiIndex;
-    
-    //for( i = 0; i < 1000; i++ ){
-        if( ucStream < MAXCOMPORTS && pygmyGlobalData.Stream[ ucStream ].TXLen < ( pygmyGlobalData.Stream[ ucStream ].TXBufferLen - 1 ) ){
-            uiIndex = ( pygmyGlobalData.Stream[ ucStream ].TXIndex + pygmyGlobalData.Stream[ ucStream ].TXLen ) % pygmyGlobalData.Stream[ ucStream ].TXBufferLen;
-            pygmyGlobalData.Stream[ ucStream ].TXBuffer[ uiIndex ] = ucChar;
-            ++pygmyGlobalData.Stream[ ucStream ].TXLen;
-			return( 1 );
-        } // if
-        //delay( 50 );
-    //}
-    
-    return( 0 );
-}
-
-u8 streamPopChar( u8 ucStream )
-{
-    u16 i;
-
-    if( ucStream < MAXCOMPORTS && pygmyGlobalData.Stream[ ucStream ].RXLen ){
-        --pygmyGlobalData.Stream[ ucStream ].RXLen;
-        i = ( pygmyGlobalData.Stream[ ucStream ].RXIndex + ( pygmyGlobalData.Stream[ ucStream ].RXLen ) ) % pygmyGlobalData.Stream[ ucStream ].RXBufferLen;
-        return( pygmyGlobalData.Stream[ ucStream ].RXBuffer[ i ] );
-    } // if
-    
-    return( 0 );
-}
-
-u8 streamPeekChar( u8 ucStream )
-{
-    u16 i;
-
-    if( ucStream < MAXCOMPORTS && pygmyGlobalData.Stream[ ucStream ].RXLen ){
-        i = ( pygmyGlobalData.Stream[ ucStream ].RXIndex + ( pygmyGlobalData.Stream[ ucStream ].RXLen - 1 ) ) % pygmyGlobalData.Stream[ ucStream ].RXBufferLen;
-        return( pygmyGlobalData.Stream[ ucStream ].RXBuffer[ i ] );
-    } // if
-    
-    return( 0 );
-}
-
-void streamPushChar( u8 ucStream, u8 ucChar )
-{
-    u16 i;
-
-    if( ucStream < MAXCOMPORTS && pygmyGlobalData.Stream[ ucStream ].RXLen < pygmyGlobalData.Stream[ ucStream ].RXBufferLen){
-        i = ( pygmyGlobalData.Stream[ ucStream ].RXIndex + pygmyGlobalData.Stream[ ucStream ].RXLen ) % pygmyGlobalData.Stream[ ucStream ].RXBufferLen;
-         //print( COM1, "\nIndex: %d Len: %d\n", pygmyGlobalData.Stream[ COM1 ].RXIndex, pygmyGlobalData.Stream[ COM1 ].RXLen );
-        ++pygmyGlobalData.Stream[ ucStream ].RXLen;
-         //print( COM1, "\nIndex: %d Len: %d\n", pygmyGlobalData.Stream[ COM1 ].RXIndex, pygmyGlobalData.Stream[ COM1 ].RXLen );
-    
-        pygmyGlobalData.Stream[ ucStream ].RXBuffer[ i ] = ucChar;
-    } // if
-}
-
-u8 streamSetPut( u8 ucStream, void *ptrFunc )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].Put = ptrFunc;
-    
-        return( 1 );
-    } // if
-
-    return( 0 );
-}
-
-u8 streamSetGet( u8 ucStream, void *ptrFunc )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].Get = ptrFunc;
-    
-        return( 1 );
-    } // if
-
-    return( 0 );
-}
-
-u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].RXBuffer = ucBuffer;
-        pygmyGlobalData.Stream[ ucStream ].RXBufferLen = uiLen;
-        return( 1 );
-    } // if
-
-    return( 0 );
-}
-
-u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
-{
-    if( ucStream < MAXCOMPORTS ){
-        pygmyGlobalData.Stream[ ucStream ].TXBuffer = ucBuffer;
-        pygmyGlobalData.Stream[ ucStream ].TXBufferLen = uiLen;
-        return( 1 );
-    } // if
-    
-    return( 0 );
-}
-#endif
 //--------------------------------------------------------------------------------------------
 //----------------------------------Pygmy OS Command/Response---------------------------------
 #ifdef PYGMYCOMMANDS
@@ -597,7 +597,7 @@ void pdiaPrintString( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucBuffer )
         if( ucMode == PDIA_END ){
             pdiaEncode( 0, PDIA_END, ulSum );
         }
-        pygmyGlobalData.Stream[ ucStream ].Put( ucBuffer );
+        globalStreams[ ucStream ].Put( ucBuffer );
     }
 }
 
@@ -1044,17 +1044,17 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
             sFormat[ i ] = 0; // Terminate format string
             if( *ucBuffer == '%' ){ // Format specifer was only escaping '%' char, print
                 ucValue[ 0 ] = '%';
-                 pygmyGlobalData.Stream[ ucStream ].Put( ucValue );
+                globalStreams[ ucStream ].Put( ucValue );
             } else if( *ucBuffer == 'c' ){ 
                 ucValue[ 0 ] = (u8)va_arg( ap, int );
-                 pygmyGlobalData.Stream[ ucStream ].Put( ucValue );
+                 globalStreams[ ucStream ].Put( ucValue );
             } else if( *ucBuffer == 's' ){
                 sValue = va_arg( ap, u8 * );
                 uiLen = len( sValue );
                 
                 ucValue[ 0 ] = ' ';
                 if( sFormat[ 0 ] == '-' ){
-                    pygmyGlobalData.Stream[ ucStream ].Put( sValue );
+                    globalStreams[ ucStream ].Put( sValue );
                     ii = convertStringToInt( (u8*)(sFormat+1) );
                     if( ii > uiLen ){
                         ii -= uiLen;
@@ -1062,7 +1062,7 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
                         ii = 0;
                     } // else
                     for( i = 0; i < ii; i++ ){
-                         pygmyGlobalData.Stream[ ucStream ].Put( ucValue );
+                         globalStreams[ ucStream ].Put( ucValue );
                     } // for
                 } else{
                     ii = convertStringToInt( sFormat );
@@ -1072,16 +1072,16 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
                         ii = 0;
                     }
                     for( i = 0; i < ii; i++ ){
-                         pygmyGlobalData.Stream[ ucStream ].Put( ucValue );
+                         globalStreams[ ucStream ].Put( ucValue );
                     } // for
-                     pygmyGlobalData.Stream[ ucStream ].Put( sValue );
+                    globalStreams[ ucStream ].Put( sValue );
                 } // else
             } else if( *ucBuffer == 'i' || *ucBuffer == 'd' ||
                 *ucBuffer == 'x' || *ucBuffer == 'X' || *ucBuffer == 'o' ){
                 sFormat[ i++ ] = *ucBuffer; // PrintInteger requires format char
                 sFormat[ i ] = 0; // terminate at new index
                 convertIntToString( va_arg( ap, u32 ), sFormat, ucIntBuffer );
-                 pygmyGlobalData.Stream[ ucStream ].Put( ucIntBuffer );
+                globalStreams[ ucStream ].Put( ucIntBuffer );
             } else if( *ucBuffer == 't' ){
                 convertSecondsToSystemTime( va_arg( ap, s32 ), &pygmyTime );
                 print( ucStream, "%4d-%2d-%2d %2d:%2d:%2d", pygmyTime.Year,pygmyTime.Month,pygmyTime.Day,
@@ -1090,54 +1090,12 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
         } else{
             ucValue[ 0 ] = *ucBuffer;
             ucValue[ 1 ] = 0;
-             pygmyGlobalData.Stream[ ucStream ].Put( ucValue );
+            globalStreams[ ucStream ].Put( ucValue );
         }
     } // for
     va_end( ap );
 }
 
-u8 putsUSART1FIFO( u8 *ucBuffer )
-{
-    
-	return( 1 );
-}
-
-u8 putsUSART2FIFO( u8 *ucBuffer )
-{
-	return( 1 );
-}
-
-u8 putsUSART3FIFO( u8 *ucBuffer )
-{   
-    u16 i;
-	
-    for( ; *ucBuffer; ){
-		USART3->CR1 &= ~USART_TXEIE;
-        for( i = 0; i < 1000; i++ ){
-			if( streamPutChar( COM3, *ucBuffer ) ){
-				++ucBuffer;
-				break;
-			} // if
-			USART3->CR1 |= USART_TXEIE;
-		}
-		
-    } // for
-    
-    return( 1 );
-}
-
-#ifdef USART4
-u8 putsUSART4FIFO( u8 *ucBuffer )
-{
-	return( 1 );
-}
-#endif
-#ifdef USART5
-u8 putsUSART5FIFO( u8 *ucBuffer )
-{
-	return( 1 );
-}
-#endif
 
 void streamSetPrintFile( void *pygmyFile )
 {
@@ -1376,93 +1334,6 @@ void SysTick_Handler( void )
     #endif
 
 }
-
-#ifndef __PYGMY_BOOT
-void USART1_IRQHandler( void )
-{
-    if( USART1->SR & USART_RXNE){
-        streamPushChar( COM1, USART1->DR ); 
-        if( pygmyGlobalData.Stream[ COM1 ].Get ){
-            pygmyGlobalData.Stream[ COM1 ].Get();
-        } // if
-    } // if
-    if( USART1->SR & USART_TXE ){
-        streamTXChar( COM1, USART1 );
-		
-    } // if
-    //USART1->SR &= ~USART_RXNE;
-    USART1->SR = 0;
-}
-
-void USART2_IRQHandler( void )
-{
-    if( USART2->SR & USART_RXNE){
-        streamPushChar( COM2, USART2->DR ); 
-        if( pygmyGlobalData.Stream[ COM2 ].Get ){
-            pygmyGlobalData.Stream[ COM2 ].Get();
-        } // if
-    } // if
-    if( USART2->SR & USART_TXE ){
-        streamTXChar( COM2, USART2 );
-    } // if
-    USART2->SR = 0;
-}
-
-
-void USART3_IRQHandler( void )
-{
-    if( USART3->SR & USART_RXNE){
-        streamPushChar( COM3, USART3->DR ); 
-        if( pygmyGlobalData.Stream[ COM3 ].Get ){
-            pygmyGlobalData.Stream[ COM3 ].Get();
-        } // if
-    } // if
-    if( USART3->SR & USART_TXE ){
-       //streamTXChar( COM3, USART3 );
-	   if( pygmyGlobalData.Stream[ COM3 ].TXLen ){
-			--pygmyGlobalData.Stream[ COM3 ].TXLen;  
-			USART3->DR = pygmyGlobalData.Stream[ COM3 ].TXBuffer[ pygmyGlobalData.Stream[ COM3 ].TXIndex ]; 
-			pygmyGlobalData.Stream[ COM3 ].TXIndex = ( pygmyGlobalData.Stream[ COM3 ].TXIndex + 1 ) % 
-				pygmyGlobalData.Stream[ COM3 ].TXBufferLen;
-		} else {
-			USART3->CR1 &= ~USART_TXEIE;
-		} // else
-    } // if
-    USART3->SR = 0;
-}
-#endif
-
-#ifdef USART4
-void USART4_IRQHandler( void )
-{
-    if( USART4->SR & USART_RXNE){
-        streamPushChar( COM4, USART4->DR ); 
-        if( pygmyGlobalData.Stream[ COM4 ].Get ){
-            pygmyGlobalData.Stream[ COM4 ].Get();
-        } // if
-    } // if
-    if( USART4->SR & USART_TXE ){
-       streamTXChar( COM4, USART4 );
-    } // if
-    USART4->SR = 0;
-}
-#endif
-
-#ifdef USART5
-void USART5_IRQHandler( void )
-{
-    if( USART5->SR & USART_RXNE){
-        streamPushChar( COM5, USART5->DR ); 
-        if( pygmyGlobalData.Stream[ COM5 ].Get ){
-            pygmyGlobalData.Stream[ COM5 ].Get();
-        } // if
-    } // if
-    if( USART5->SR & USART_TXE ){
-       streamTXChar( COM5, USART5 );
-    } // if
-    USART5->SR = 0;
-}
-#endif
 
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------
 //--------------------------------------------------------------------------------------------

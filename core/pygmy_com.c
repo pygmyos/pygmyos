@@ -20,75 +20,122 @@
 
 #include "pygmy_profile.h"
 
+#ifdef __PYGMYSTREAMS
+    PYGMYFIFO globalStreams[ MAXCOMPORTS ];
+#endif
+#ifdef __PYGMYSTREAMCOM1
+    u8 globalCOM1RXBuffer[ __PYGMYCOM1BUFFERLEN ];
+#endif
+#ifdef __PYGMYSTREAMCOM2
+    u8 globalCOM2RXBuffer[ __PYGMYCOM2BUFFERLEN ];
+#endif
+#ifdef __PYGMYSTREAMCOM3
+    u8 globalCOM3RXBuffer[ __PYGMYCOM3BUFFERLEN ];
+#endif
+#ifdef __PYGMYSTREAMCOM4
+    u8 globalCOM4RXBuffer[ __PYGMYCOM4BUFFERLEN ];
+#endif
+#ifdef __PYGMYSTREAMCOM5
+    u8 globalCOM5RXBuffer[ __PYGMYCOM5BUFFERLEN ];
+#endif
 
 void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
 {
+    USART_TYPEDEF *ptrUSART;
     // ToDo: Add multi-protocol support
-    // ToDo: Rewrite to use pointer to USART registers to consolidate shared code
-    if( ucPort == COM1 ){
-        PYGMY_RCC_USART1_ENABLE;
-        enableInterrupt( USART1_IRQ );
-        setInterruptPriority( USART1_IRQ, 1 );
-        USART1->CR3 = 0;
-        if( ucOptions & RTS ){
-            pinConfig( PA12, ALT );
-            USART1->CR3 |= USART_RTSE;
+   
+    //sysEnableComClock( ucPort );
+    #ifdef __PYGMYSTREAMCOM1
+        if( ucPort == COM1 ){
+            PYGMY_RCC_USART1_ENABLE;
+            enableInterrupt( USART1_IRQ );
+            setInterruptPriority( USART1_IRQ, 1 );
+            ptrUSART = USART1;
+            if( ucOptions & RTS ){
+                PA12_ALT;
+            } // if
+            if( ucOptions & CTS ){
+                PA11_FLOAT;
+            } // if
+            PA9_ALT;
+            PA10_FLOAT;
         } // if
-        if( ucOptions & CTS ){
-            pinConfig( PA11, IN );
-            USART1->CR3 |= USART_CTSE;
+    #endif // __PYGMYSTREAMCOM1
+    #ifdef __PYGMYSTREAMCOM2
+        if( ucPort == COM2 ){
+            PYGMY_RCC_USART2_ENABLE;
+            setInterruptPriority( USART2_IRQ, 2 );
+            enableInterrupt( USART2_IRQ );
+            if( ucOptions & RTS ){
+                PA1_ALT;
+            } // if
+            if( ucOptions & CTS ){
+                PA0_FLOAT;
+            } // if
+            PA2_ALT;
+            PA3_FLOAT;
         } // if
-        pinConfig( PA9, ALT );
-        pinConfig( PA10, IN );
-        USART1->BRR = generateBaud( pygmyGlobalData.MainClock, uiRate );
-        if( ucOptions & TXIE ){
-            USART1->CR1 = ( USART_UE | USART_TXEIE | USART_RXNEIE | USART_TE | USART_RE  );
-        } else{
-            USART1->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-        } // else
-    } else if( ucPort == COM2 ){
-        PYGMY_RCC_USART2_ENABLE;
-        setInterruptPriority( USART2_IRQ, 2 );
-        enableInterrupt( USART2_IRQ );
-        if( ucOptions & RTS ){
-            pinConfig( PA1, ALT );
-            USART2->CR3 |= USART_RTSE;
+    #endif // __PYGMYSTREAMCOM2
+    #ifdef __PYGMYSTREAMCOM3
+        if( ucPort == COM3 ){
+            PYGMY_RCC_USART3_ENABLE;
+            setInterruptPriority( USART3_IRQ, 3 );
+            enableInterrupt( USART3_IRQ );
+            if( ucOptions & RTS ){
+                PB14_ALT;
+            } // if
+            if( ucOptions & CTS ){
+                PB13_FLOAT;
+            } // if
+            PB10_ALT;
+            PB11_FLOAT;
         } // if
-        if( ucOptions & CTS ){
-            pinConfig( PA0, IN );
-            USART2->CR3 |= USART_CTSE;
+    #endif // __PYGMYSTREAMCOM3
+    #ifdef __PYGMYSTREAMCOM4
+        if( ucPort == COM4 ){
+            PYGMY_RCC_USART4_ENABLE;
+            enableInterrupt( USART4_IRQ );
+            setInterruptPriority( USART4_IRQ, 1 );
+            ptrUSART = USART4;
+            PC10_ALT;
+            PC11_FLOAT;
         } // if
-        pinConfig( PA2, ALT );
-        pinConfig( PA3, IN );
-        USART2->BRR = generateBaud( pygmyGlobalData.MainClock, uiRate );
-        USART2->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-        if( ucOptions & TXIE ){
-            USART2->CR1 = ( USART_UE | USART_TXEIE | USART_RXNEIE | USART_TE | USART_RE  );
-        } else{
-            USART2->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-        } // else
-    } else if( ucPort == COM3 ){
-        PYGMY_RCC_USART3_ENABLE;
-        setInterruptPriority( USART3_IRQ, 3 );
-        enableInterrupt( USART3_IRQ );
-        if( ucOptions & RTS ){
-            pinConfig( PB14, ALT );
-            USART3->CR3 |= USART_RTSE;
+    #endif // __PYGMYSTREAMCOM4
+    #ifdef __PYGMYSTREAMCOM5
+        if( ucPort == COM5 ){
+            PYGMY_RCC_USART5_ENABLE;
+            enableInterrupt( USART5_IRQ );
+            setInterruptPriority( USART5_IRQ, 1 );
+            ptrUSART = USART5;
+            PC12_ALT;
+            PD2_FLOAT;
         } // if
-        if( ucOptions & CTS ){
-            pinConfig( PB13, IN );
-            USART3->CR3 |= USART_CTSE;
+    #endif // __PYGMYSTREAMCOM5
+    #ifdef __PYGMYSTREAMCOM6
+        if( ucPort == COM6 ){
+            PYGMY_RCC_USART6_ENABLE;
+            enableInterrupt( USART6_IRQ );
+            setInterruptPriority( USART6_IRQ, 1 );
+            ptrUSART = USART6;
+            PG10_ALT;
+            PG11_FLOAT;
         } // if
-        pinConfig( PB10, ALT );
-        pinConfig( PB11, IN );
-        USART3->BRR = generateBaud( pygmyGlobalData.MainClock, uiRate );
-        USART3->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-        //if( ucOptions & TXIE ){
-        //    USART3->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-        //} else{
-        //    USART3->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-        //} // else
-    } // else if
+    #endif // __PYGMYSTREAMCOM4  
+            
+    ptrUSART->CR3 = 0;
+    // Warning! CTS and RTS are not supported on UART4-UART5
+    if( ucOptions & RTS ){
+        ptrUSART->CR3 |= USART_RTSE;
+    } // if
+    if( ucOptions & CTS ){
+        ptrUSART->CR3 |= USART_CTSE;
+    } // if
+    ptrUSART->BRR = generateBaud( sysGetMainClock(), uiRate );
+    if( ucOptions & TXIE ){
+        ptrUSART->CR1 = ( USART_UE | USART_TXEIE | USART_RXNEIE | USART_TE | USART_RE  );
+    } else{
+        ptrUSART->CR1 = ( USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
+    } // else
 }
 
 void comDisable( u8 ucPort )
@@ -133,6 +180,7 @@ u16 generateBaud( u32 uiClock, u32 uiRate )
     return( (u16)uiBRR ); 
 }
 
+#ifdef __PYGMYSTREAMCOM1
 u8 putsUSART1( u8 *ucBuffer )
 {
     for( ; *ucBuffer ; ){
@@ -144,6 +192,27 @@ u8 putsUSART1( u8 *ucBuffer )
     return( 1 );
 }
 
+u8 putsUSART1FIFO( u8 *ucBuffer )
+{
+    u16 i;
+	
+    for( ; *ucBuffer; ){
+		USART1->CR1 &= ~USART_TXEIE;
+        for( i = 0; i < __PYGMYCOM1BUFFERLEN; i++ ){
+			if( streamPutChar( COM1, *ucBuffer ) ){
+				++ucBuffer;
+				break;
+			} // if
+			USART1->CR1 |= USART_TXEIE;
+		} // for
+		
+    } // for
+    
+	return( 1 );
+}
+#endif // __PYGMYSTREAMCOM1
+
+#ifdef __PYGMYSTREAMCOM2
 u8 putsUSART2( u8 *ucBuffer )
 { 
     for( ; *ucBuffer ; ){
@@ -155,6 +224,27 @@ u8 putsUSART2( u8 *ucBuffer )
     return( 1 );
 }
 
+u8 putsUSART2FIFO( u8 *ucBuffer )
+{   
+    u16 i;
+	
+    for( ; *ucBuffer; ){
+		USART2->CR1 &= ~USART_TXEIE;
+        for( i = 0; i < __PYGMYCOM2BUFFERLEN; i++ ){
+			if( streamPutChar( COM2, *ucBuffer ) ){
+				++ucBuffer;
+				break;
+			} // if
+			USART2->CR1 |= USART_TXEIE;
+		} // for
+		
+    } // for
+    
+	return( 1 );
+}
+#endif // __PYGMYSTREAMCOM2
+
+#ifdef __PYGMYSTREAMCOM3
 u8 putsUSART3( u8 *ucBuffer )
 { 
     for( ; *ucBuffer ; ){
@@ -165,6 +255,122 @@ u8 putsUSART3( u8 *ucBuffer )
     
     return( 1 );
 }
+
+u8 putsUSART3FIFO( u8 *ucBuffer )
+{   
+    u16 i;
+	
+    for( ; *ucBuffer; ){
+		USART3->CR1 &= ~USART_TXEIE;
+        for( i = 0; i < __PYGMYCOM3BUFFERLEN; i++ ){
+			if( streamPutChar( COM3, *ucBuffer ) ){
+				++ucBuffer;
+				break;
+			} // if
+			USART3->CR1 |= USART_TXEIE;
+		} // for
+		
+    } // for
+    
+    return( 1 );
+}
+#endif // __PYGMYSTREAMCOM3
+
+#ifdef __PYGMYSTREAMCOM4
+u8 putsUSART4( u8 *ucBuffer )
+{ 
+    for( ; *ucBuffer ; ){
+        if( USART4->SR & USART_TXE ){
+            USART4->DR = *(ucBuffer++);
+        } // if   
+    } // for
+    
+    return( 1 );
+}
+
+u8 putsUSART4FIFO( u8 *ucBuffer )
+{
+    u16 i;
+	
+    for( ; *ucBuffer; ){
+		USART4->CR1 &= ~USART_TXEIE;
+        for( i = 0; i < __PYGMYCOM4BUFFERLEN; i++ ){
+			if( streamPutChar( COM4, *ucBuffer ) ){
+				++ucBuffer;
+				break;
+			} // if
+			USART4->CR1 |= USART_TXEIE;
+		} // for
+		
+    } // for
+    
+	return( 1 );
+}
+#endif // __PYGMYSTREAMCOM4
+
+#ifdef __PYGMYSTREAMCOM5
+u8 putsUSART5( u8 *ucBuffer )
+{ 
+    for( ; *ucBuffer ; ){
+        if( USART5->SR & USART_TXE ){
+            USART5->DR = *(ucBuffer++);
+        } // if   
+    } // for
+    
+    return( 1 );
+}
+
+u8 putsUSART5FIFO( u8 *ucBuffer )
+{
+    u16 i;
+	
+    for( ; *ucBuffer; ){
+		USART5->CR1 &= ~USART_TXEIE;
+        for( i = 0; i < __PYGMYCOM5BUFFERLEN; i++ ){
+			if( streamPutChar( COM5, *ucBuffer ) ){
+				++ucBuffer;
+				break;
+			} // if
+			USART5->CR1 |= USART_TXEIE;
+		} // for
+		
+    } // for
+    
+	return( 1 );
+}
+#endif // __PYGMYSTREAMCOM5
+
+#ifdef __PYGMYSTREAMCOM6
+u8 putsUSART6( u8 *ucBuffer )
+{ 
+    for( ; *ucBuffer ; ){
+        if( USART6->SR & USART_TXE ){
+            USART6->DR = *(ucBuffer++);
+        } // if   
+    } // for
+    
+    return( 1 );
+}
+
+u8 putsUSART6FIFO( u8 *ucBuffer )
+{
+    u16 i;
+	
+    for( ; *ucBuffer; ){
+		USART6->CR1 &= ~USART_TXEIE;
+        for( i = 0; i < __PYGMYCOM6BUFFERLEN; i++ ){
+			if( streamPutChar( COM6, *ucBuffer ) ){
+				++ucBuffer;
+				break;
+			} // if
+			USART6->CR1 |= USART_TXEIE;
+		} // for
+		
+    } // for
+    
+	return( 1 );
+}
+#endif // __PYGMYSTREAMCOM6
 
 void parallelConfig( PYGMYPARALLELPORT *pygmyPort, u8 ucWidth, u8 ucCS, u8 ucA0, u8 ucWR, u8 ucRD, u8 ucD0 )
 {
@@ -527,3 +733,268 @@ u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C )
         
     return( ucByte );
 }
+
+//--------------------------------------------------------------------------------------------
+//-------------------------------------Pygmy OS IO Stream-------------------------------------
+#ifdef __PYGMYSTREAMS
+void streamInit( void )
+{
+    u16 i;
+    
+    for( i = 0; i < MAXCOMPORTS; i++ ){
+        streamReset( i );
+    } // for
+    
+}
+
+u8 streamReset( u8 ucStream )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].RXBufferLen  = 0;
+        globalStreams[ ucStream ].RXIndex      = 0;
+        globalStreams[ ucStream ].RXLen        = 0; 
+        globalStreams[ ucStream ].TXBufferLen  = 0;
+        globalStreams[ ucStream ].TXIndex      = 0;
+        globalStreams[ ucStream ].TXLen        = 0;
+        globalStreams[ ucStream ].Put          = (void *)TaskException_Handler;
+        globalStreams[ ucStream ].Get          = (void *)TaskException_Handler;
+        globalStreams[ ucStream ].RXBuffer     = NULL;
+        globalStreams[ ucStream ].TXBuffer     = NULL;
+        
+        return( 1 );
+    } // if
+
+    return( 0 );
+}
+
+void streamResetRX( u8 ucStream )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].RXIndex = 0;
+        globalStreams[ ucStream ].RXLen = 0;
+    } // if
+}
+
+void streamResetTX( u8 ucStream )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].TXIndex = 0;
+        globalStreams[ ucStream ].TXLen = 0;
+    } // if
+}
+
+void streamTXChar( u8 ucStream, void *pygmyUSART )
+{
+    USART_TYPEDEF *ptrUSART = (USART_TYPEDEF *)pygmyUSART;
+    
+    if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].TXLen ){
+		--globalStreams[ ucStream ].TXLen;  
+		ptrUSART->DR = globalStreams[ ucStream ].TXBuffer[ globalStreams[ ucStream ].TXIndex ]; 
+        globalStreams[ ucStream ].TXIndex = ( globalStreams[ ucStream ].TXIndex + 1 ) % 
+            globalStreams[ ucStream ].TXBufferLen;
+    } else{
+        ptrUSART->CR1 &= ~USART_TXEIE;
+    } // else
+}
+
+u8 streamGetChar( u8 ucStream )
+{
+    u16 i;
+
+    if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen ){
+        i = globalStreams[ ucStream ].RXIndex;
+        globalStreams[ ucStream ].RXIndex = ( globalStreams[ ucStream ].RXIndex+1 ) % globalStreams[ ucStream ].RXBufferLen; // modulo prevents overrun
+        --globalStreams[ ucStream ].RXLen;
+        return( globalStreams[ ucStream ].RXBuffer[ i ] );
+    } // if
+
+    return(  0 );
+}
+
+u8 streamPutChar( u8 ucStream, u8 ucChar )
+{
+    u16 uiIndex;
+    
+    //for( i = 0; i < 1000; i++ ){
+        if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].TXLen < ( globalStreams[ ucStream ].TXBufferLen - 1 ) ){
+            uiIndex = ( globalStreams[ ucStream ].TXIndex + globalStreams[ ucStream ].TXLen ) % globalStreams[ ucStream ].TXBufferLen;
+            globalStreams[ ucStream ].TXBuffer[ uiIndex ] = ucChar;
+            ++globalStreams[ ucStream ].TXLen;
+			return( 1 );
+        } // if
+        //delay( 50 );
+    //}
+    
+    return( 0 );
+}
+
+u8 streamPopChar( u8 ucStream )
+{
+    u16 i;
+
+    if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen ){
+        --globalStreams[ ucStream ].RXLen;
+        i = ( globalStreams[ ucStream ].RXIndex + ( globalStreams[ ucStream ].RXLen ) ) % globalStreams[ ucStream ].RXBufferLen;
+        return( globalStreams[ ucStream ].RXBuffer[ i ] );
+    } // if
+    
+    return( 0 );
+}
+
+u8 streamPeekChar( u8 ucStream )
+{
+    u16 i;
+
+    if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen ){
+        i = ( globalStreams[ ucStream ].RXIndex + ( globalStreams[ ucStream ].RXLen - 1 ) ) % globalStreams[ ucStream ].RXBufferLen;
+        return( globalStreams[ ucStream ].RXBuffer[ i ] );
+    } // if
+    
+    return( 0 );
+}
+
+void streamPushChar( u8 ucStream, u8 ucChar )
+{
+    u16 i;
+
+    if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen < globalStreams[ ucStream ].RXBufferLen){
+        i = ( globalStreams[ ucStream ].RXIndex + globalStreams[ ucStream ].RXLen ) % globalStreams[ ucStream ].RXBufferLen;
+        ++globalStreams[ ucStream ].RXLen;
+        globalStreams[ ucStream ].RXBuffer[ i ] = ucChar;
+    } // if
+}
+
+u8 streamSetPut( u8 ucStream, void *ptrFunc )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].Put = ptrFunc;
+    
+        return( 1 );
+    } // if
+
+    return( 0 );
+}
+
+u8 streamSetGet( u8 ucStream, void *ptrFunc )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].Get = ptrFunc;
+    
+        return( 1 );
+    } // if
+
+    return( 0 );
+}
+
+u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].RXBuffer = ucBuffer;
+        globalStreams[ ucStream ].RXBufferLen = uiLen;
+        return( 1 );
+    } // if
+
+    return( 0 );
+}
+
+u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
+{
+    if( ucStream < MAXCOMPORTS ){
+        globalStreams[ ucStream ].TXBuffer = ucBuffer;
+        globalStreams[ ucStream ].TXBufferLen = uiLen;
+        return( 1 );
+    } // if
+    
+    return( 0 );
+}
+#endif
+
+#ifdef __PYGMYSTREAMCOM1
+void USART1_IRQHandler( void )
+{
+    if( USART1->SR & USART_RXNE){
+        streamPushChar( COM1, USART1->DR ); 
+        if( globalStreams[ COM1 ].Get ){
+            globalStreams[ COM1 ].Get();
+        } // if
+    } // if
+    if( USART1->SR & USART_TXE ){
+        streamTXChar( COM1, USART1 );
+		
+    } // if
+    USART1->SR = 0;
+}
+#endif
+
+#ifdef __PYGMYSTREAMCOM2
+void USART2_IRQHandler( void )
+{
+    if( USART2->SR & USART_RXNE){
+        streamPushChar( COM2, USART2->DR ); 
+        if( globalStreams[ COM2 ].Get ){
+            globalStreams[ COM2 ].Get();
+        } // if
+    } // if
+    if( USART2->SR & USART_TXE ){
+        streamTXChar( COM2, USART2 );
+    } // if
+    USART2->SR = 0;
+}
+#endif
+
+#ifdef __PYGMYSTREAMCOM3
+void USART3_IRQHandler( void )
+{
+    if( USART3->SR & USART_RXNE){
+        streamPushChar( COM3, USART3->DR ); 
+        if( globalStreams[ COM3 ].Get ){
+            globalStreams[ COM3 ].Get();
+        } // if
+    } // if
+    if( USART3->SR & USART_TXE ){
+       streamTXChar( COM3, USART3 );
+	   /*if( pygmyGlobalData.Stream[ COM3 ].TXLen ){
+			--pygmyGlobalData.Stream[ COM3 ].TXLen;  
+			USART3->DR = pygmyGlobalData.Stream[ COM3 ].TXBuffer[ pygmyGlobalData.Stream[ COM3 ].TXIndex ]; 
+			pygmyGlobalData.Stream[ COM3 ].TXIndex = ( pygmyGlobalData.Stream[ COM3 ].TXIndex + 1 ) % 
+				pygmyGlobalData.Stream[ COM3 ].TXBufferLen;
+		} else {
+			USART3->CR1 &= ~USART_TXEIE;
+		} // else
+        */
+    } // if
+    USART3->SR = 0;
+}
+#endif
+
+#ifdef __PYGMYSTREAMCOM4
+void USART4_IRQHandler( void )
+{
+    if( USART4->SR & USART_RXNE){
+        streamPushChar( COM4, USART4->DR ); 
+        if( globalStreams[ COM4 ].Get ){
+            globalStreams[ COM4 ].Get();
+        } // if
+    } // if
+    if( USART4->SR & USART_TXE ){
+       streamTXChar( COM4, USART4 );
+    } // if
+    USART4->SR = 0;
+}
+#endif
+
+#ifdef __PYGMYSTREAMCOM5
+void USART5_IRQHandler( void )
+{
+    if( USART5->SR & USART_RXNE){
+        streamPushChar( COM5, USART5->DR ); 
+        if( globalStreams[ COM5 ].Get ){
+            globalStreams[ COM5 ].Get();
+        } // if
+    } // if
+    if( USART5->SR & USART_TXE ){
+       streamTXChar( COM5, USART5 );
+    } // if
+    USART5->SR = 0;
+}
+#endif

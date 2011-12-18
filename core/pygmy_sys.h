@@ -19,6 +19,7 @@
 ***************************************************************************/
 
 #pragma once
+//#include "pygmy_com.h"
 
 #define NULL                                (void*)0
 #define TRUE                                1
@@ -214,7 +215,7 @@ typedef volatile unsigned char  const       vuc8;
 #define PYGMY_AT_NOCARRIER          BIT5
 #define PYGMY_AT_CONNECT            BIT6
 #define PYGMY_AT_RETRY              BIT7
-#define PYGMY_USART1_BUFFERLEN      512
+//#define PYGMY_USART1_BUFFERLEN      512
 
 //-------------------------------------------------------------------------------
 //------------------------------Pygmy OS Datatypes-------------------------------
@@ -277,22 +278,8 @@ typedef struct {
                 u32 Expire;
                 } PYGMYTASK;            
             
-typedef struct {
-                //u8 Status;
-                u16 RXBufferLen;
-                u16 RXIndex;
-                //u16 RXInIndex;
-                u16 RXLen;
-                u16 TXBufferLen;
-                u16 TXIndex;
-                //u16 TXInIndex;
-                u16 TXLen;
-                PYGMYCMDPTR Put;
-                PYGMYVOIDPTR Get;
-                u8 *RXBuffer;
-                u8 *TXBuffer;
-                } PYGMYFIFO;    
 
+            
 // Warning! there is no Timer0, it is included as a place holder
 enum {  PYGMY_TIMER0,   PYGMY_TIMER1,   PYGMY_TIMER2,   PYGMY_TIMER3,   PYGMY_TIMER4,   PYGMY_TIMER5, 
         PYGMY_TIMER6,   PYGMY_TIMER7,   PYGMY_TIMER8,   PYGMY_TIMER9,   PYGMY_TIMER10,  PYGMY_TIMER11, 
@@ -305,17 +292,14 @@ typedef struct {
                 u32 StopWatch;
                 u32 Status;
                 u16 MCUID;
-                u16 CursorX;
-                u16 CursorY;
+                //u16 CursorX;
+                //u16 CursorY;
                 u8 CursorState;
                 u8 DelayTimer;
                 u8 PWMTimer;
-                //u8 STDIO;
-                //u8 ATIndex;
-                //u8 ATCount;
                 
                 //PYGMYATCOMMAND ATCommands[ PYGMY_AT_MAXCOMMANDS ];
-                PYGMYFIFO Stream[ 16 ];
+                //PYGMYFIFO Stream[ MAXCOMPORTS ];
                 void *File; // Reserved for use by print, PYGMYFILE type
                 } PYGMYSYSTEM;
             
@@ -641,23 +625,6 @@ typedef struct {
 #define APB2PERIPH_BASE       (PERIPH_BASE + 0x10000)
 #define AHBPERIPH_BASE        (PERIPH_BASE + 0x20000)
 
-#define TIM2_BASE                   (APB1PERIPH_BASE + 0x0000)
-#define TIM3_BASE                   (APB1PERIPH_BASE + 0x0400)
-#define TIM4_BASE                   (APB1PERIPH_BASE + 0x0800)
-#define TIM5_BASE                   (APB1PERIPH_BASE + 0x0C00)
-#define TIM6_BASE                   (APB1PERIPH_BASE + 0x1000)
-#define TIM7_BASE                   (APB1PERIPH_BASE + 0x1400)
-#define TIM8_BASE                   (APB2PERIPH_BASE + 0x3400)
-#define TIM9_BASE                   (APB2PERIPH_BASE + 0x4C00)
-#define TIM10_BASE                  (APB2PERIPH_BASE + 0x5000)
-#define TIM11_BASE                  (APB2PERIPH_BASE + 0x5400)
-#define TIM12_BASE                  (APB1PERIPH_BASE + 0x1800)
-#define TIM13_BASE                  (APB1PERIPH_BASE + 0x1C00)
-#define TIM14_BASE                  (APB1PERIPH_BASE + 0x2000)
-#define TIM15_BASE                  (APB2PERIPH_BASE + 0x4000)
-#define TIM16_BASE                  (APB2PERIPH_BASE + 0x4400)
-#define TIM17_BASE                  (APB2PERIPH_BASE + 0x4800)
-
 #ifndef RTC_BASE
     #define RTC_BASE                (APB1PERIPH_BASE + 0x2800)
 #endif
@@ -674,9 +641,7 @@ typedef struct {
 //#define AFIO_BASE             (APB2PERIPH_BASE + 0x0000)
 //#define EXTI_BASE             (APB2PERIPH_BASE + 0x0400)
 
-//#define ADC1_BASE             (APB2PERIPH_BASE + 0x2400)
-//#define ADC2_BASE             (APB2PERIPH_BASE + 0x2800)
-#define TIM1_BASE             (APB2PERIPH_BASE + 0x2C00)
+
 #define DAC_BASE                    (APB1PERIPH_BASE + 0x7400)
 #define DAC                 ((DAC_TYPEDEF *) DAC_BASE)
 
@@ -776,41 +741,45 @@ typedef struct
 #define PYGMY_DMA2_CH5_ENABLE       DMA2_CH3->CCR |= DMA_EN;
 
 #define RCC_BASE              (AHBPERIPH_BASE + 0x1000)
-//#define SCS_BASE              ((u32)0xE000E000)         // System Control
-//#define SysTick_BASE          (SCS_BASE + 0x0010)
-//#define NVIC_BASE             (SCS_BASE + 0x0100)
-//#define SCB_BASE              (SCS_BASE + 0x0D00)       // System Control
 
-// Define Pointers to registers ( access through structures for STM32 
-#define TIM1                    ((TIM1_TYPEDEF *) TIM1_BASE)
-#define TIM2                ((TIM_TYPEDEF *) TIM2_BASE)
-#define TIM3                ((TIM_TYPEDEF *) TIM3_BASE)
-#define TIM4                ((TIM_TYPEDEF *) TIM4_BASE)
-#define TIM5                ((TIM_TYPEDEF *) TIM5_BASE)
-#define TIM6                ((TIM_TYPEDEF *) TIM6_BASE)
-#define TIM7                ((TIM_TYPEDEF *) TIM7_BASE)
-#define TIM8                ((TIM_TYPEDEF *) TIM8_BASE)
-#define TIM9                ((TIM_TYPEDEF *) TIM9_BASE)
-#define TIM10               ((TIM_TYPEDEF *) TIM10_BASE)
-#define TIM11               ((TIM_TYPEDEF *) TIM11_BASE)
-#define TIM12               ((TIM_TYPEDEF *) TIM12_BASE)
-#define TIM13               ((TIM_TYPEDEF *) TIM13_BASE)
-#define TIM14               ((TIM_TYPEDEF *) TIM14_BASE)
-#define TIM15               ((TIM_TYPEDEF *) TIM15_BASE)
-#define TIM16               ((TIM_TYPEDEF *) TIM16_BASE)
-#define TIM17               ((TIM_TYPEDEF *) TIM17_BASE)
+// Timers
+#define TIM1_BASE                   (APB2PERIPH_BASE + 0x2C00)
+#define TIM2_BASE                   (APB1PERIPH_BASE + 0x0000)
+#define TIM3_BASE                   (APB1PERIPH_BASE + 0x0400)
+#define TIM4_BASE                   (APB1PERIPH_BASE + 0x0800)
+#define TIM5_BASE                   (APB1PERIPH_BASE + 0x0C00)
+#define TIM6_BASE                   (APB1PERIPH_BASE + 0x1000)
+#define TIM7_BASE                   (APB1PERIPH_BASE + 0x1400)
+#define TIM8_BASE                   (APB2PERIPH_BASE + 0x3400)
+#define TIM9_BASE                   (APB2PERIPH_BASE + 0x4C00)
+#define TIM10_BASE                  (APB2PERIPH_BASE + 0x5000)
+#define TIM11_BASE                  (APB2PERIPH_BASE + 0x5400)
+#define TIM12_BASE                  (APB1PERIPH_BASE + 0x1800)
+#define TIM13_BASE                  (APB1PERIPH_BASE + 0x1C00)
+#define TIM14_BASE                  (APB1PERIPH_BASE + 0x2000)
+#define TIM15_BASE                  (APB2PERIPH_BASE + 0x4000)
+#define TIM16_BASE                  (APB2PERIPH_BASE + 0x4400)
+#define TIM17_BASE                  (APB2PERIPH_BASE + 0x4800)
 
-/*
-#ifndef RTC
-    #define RTC                 ((RTC_TYPEDEF *) RTC_BASE)
-#endif
-#ifndef WWDG
-    #define WWDG                ((WWDG_TYPEDEF *) WWDG_BASE)
-#endif
-#ifndef IWDG
-    #define IWDG                ((IWDG_TYPEDEF *) IWDG_BASE)
-#endif
-*/
+#define TIM1                        ((TIM1_TYPEDEF *) TIM1_BASE)
+#define TIM2                        ((TIM_TYPEDEF *) TIM2_BASE)
+#define TIM3                        ((TIM_TYPEDEF *) TIM3_BASE)
+#define TIM4                        ((TIM_TYPEDEF *) TIM4_BASE)
+#define TIM5                        ((TIM_TYPEDEF *) TIM5_BASE)
+#define TIM6                        ((TIM_TYPEDEF *) TIM6_BASE)
+#define TIM7                        ((TIM_TYPEDEF *) TIM7_BASE)
+#define TIM8                        ((TIM_TYPEDEF *) TIM8_BASE)
+#define TIM9                        ((TIM_TYPEDEF *) TIM9_BASE)
+#define TIM10                       ((TIM_TYPEDEF *) TIM10_BASE)
+#define TIM11                       ((TIM_TYPEDEF *) TIM11_BASE)
+#define TIM12                       ((TIM_TYPEDEF *) TIM12_BASE)
+#define TIM13                       ((TIM_TYPEDEF *) TIM13_BASE)
+#define TIM14                       ((TIM_TYPEDEF *) TIM14_BASE)
+#define TIM15                       ((TIM_TYPEDEF *) TIM15_BASE)
+#define TIM16                       ((TIM_TYPEDEF *) TIM16_BASE)
+#define TIM17                       ((TIM_TYPEDEF *) TIM17_BASE)
+
+
 #ifndef BKP
     #define BKP                 ((BKP_TYPEDEF *) BKP_BASE)
 #endif
@@ -818,22 +787,8 @@ typedef struct
     #define PWR                 ((PWR_TYPEDEF *) PWR_BASE)
 #endif
 
-//#define ADC1                ((ADC_TypeDef *) ADC1_BASE)
-//#define ADC2                ((ADC_TypeDef *) ADC2_BASE)
-
-#ifndef SPI1
-    #define SPI1                    ((SPI_TYPEDEF *) SPI1_BASE)
-#endif
-#ifndef USART1
-    #define USART1                  ((USART_TYPEDEF *) USART1_BASE)
-#endif
-
-//#define FLASH                   ((FLASH_TypeDef *) FLASH_BASE)
 #define OB                      ((OB_TYPEDEF *) OB_BASE) 
 #define RCC                     ((RCC_TYPEDEF *) RCC_BASE)
-//#define SysTick             ((SysTick_TypeDef *) SysTick_BASE)
-//#define NVIC                ((NVIC_TypeDef *) NVIC_BASE)
-//#define SCB                 ((SCB_TypeDef *) SCB_BASE)  
 
 
 //--------------------------------------------------------------------------------------------
@@ -999,7 +954,7 @@ typedef struct
 #define RCC_PWREN               BIT28                  
 #define RCC_BKPEN               BIT27                  
 #define RCC_CANEN               BIT25                   
-#define RCC_USBEN               BIT23                 
+#define RCC_I2C3EN              BIT23                 
 #define RCC_I2C2EN              BIT22                  
 #define RCC_I2C1EN              BIT21                  
 #define RCC_USART5EN            BIT20                 
@@ -1037,7 +992,7 @@ typedef struct
 #define RCC_LSIRDY              BIT1                  
 #define RCC_LSION               BIT0               
 
-enum { SYSCLK, HSI, HSE, PLLDIV2 };
+//enum { SYSCLK, HSI, HSE, PLLDIV2 };
 
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------Reset-------------------------------------------
@@ -1174,6 +1129,10 @@ typedef struct
 #define PYGMY_RCC_TIMER17_DISABLE           RCC->APB2ENR &= ~RCC_TIM17EN;
 #define PYGMY_RCC_SPI1_ENABLE               RCC->APB2ENR |= RCC_SPI1EN;
 #define PYGMY_RCC_SPI1_DISABLE              RCC->APB2ENR &= ~RCC_SPI1EN;
+#define PYGMY_RCC_SPI2_ENABLE               RCC->APB1ENR |= RCC_SPI2EN;
+#define PYGMY_RCC_SPI2_DISABLE              RCC->APB1ENR &= ~RCC_SPI2EN;
+#define PYGMY_RCC_SPI3_ENABLE               RCC->APB1ENR |= RCC_SPI3EN;
+#define PYGMY_RCC_SPI3_DISABLE              RCC->APB1ENR &= ~RCC_SPI3EN;
 #define PYGMY_RCC_DAC_ENABLE                RCC->APB1ENR |= RCC_DACEN;
 #define PYGMY_RCC_DAC_DISABLE               RCC->APB1ENR &= ~RCC_DACEN;
 #define PYGMY_RCC_USB_ENABLE                RCC->APB1ENR |= RCC_USBEN;
@@ -1188,14 +1147,13 @@ typedef struct
 #define PYGMY_RCC_USART2_DISABLE            RCC->APB1ENR &= ~RCC_USART2EN;
 #define PYGMY_RCC_USART1_ENABLE             RCC->APB2ENR |= RCC_USART1EN;
 #define PYGMY_RCC_USART1_DISABLE            RCC->APB2ENR &= ~RCC_USART1EN;
-#define PYGMY_RCC_I2C2_ENABLE               RCC->APB1ENR |= RCC_I2C2EN;
-#define PYGMY_RCC_I2C2_DISABLE              RCC->APB1ENR &= ~RCC_I2C2EN;
 #define PYGMY_RCC_I2C1_ENABLE               RCC->APB1ENR |= RCC_I2C1EN;
 #define PYGMY_RCC_I2C1_DISABLE              RCC->APB1ENR &= ~RCC_I2C1EN;
-#define PYGMY_RCC_SPI3_ENABLE               RCC->APB1ENR |= RCC_SPI3EN;
-#define PYGMY_RCC_SPI3_DISABLE              RCC->APB1ENR &= ~RCC_SPI3EN;
-#define PYGMY_RCC_SPI2_ENABLE               RCC->APB1ENR |= RCC_SPI2EN;
-#define PYGMY_RCC_SPI2_DISABLE              RCC->APB1ENR &= ~RCC_SPI2EN;
+#define PYGMY_RCC_I2C2_ENABLE               RCC->APB1ENR |= RCC_I2C2EN;
+#define PYGMY_RCC_I2C2_DISABLE              RCC->APB1ENR &= ~RCC_I2C2EN;
+#define PYGMY_RCC_I2C3_ENABLE               RCC->APB1ENR |= RCC_I2C3EN;
+#define PYGMY_RCC_I2C3_DISABLE              RCC->APB1ENR &= ~RCC_I2C3EN;
+
 #define PYGMY_RCC_WWDGEN_ENABLE             RCC->APB1ENR |= RCC_WWDGEN;
 #define PYGMY_RCC_WWDGEN_DISABLE            RCC->APB1ENR &= ~RCC_WWDGEN;
 
@@ -1249,11 +1207,7 @@ extern PYGMYSYSTEM pygmyGlobalData;
 
 void print( u8 ucStream, u8 *ucBuffer, ... );
 //void setPrintFile( PYGMYFILE *pygmyFile );
-u8 putsUSART1FIFO( u8 *ucBuffer );
-u8 putsUSART2FIFO( u8 *ucBuffer );
-u8 putsUSART3FIFO( u8 *ucBuffer );
-u8 putsUSART4FIFO( u8 *ucBuffer );
-u8 putsUSART5FIFO( u8 *ucBuffer );
+
 u8 putsFILE( u8 *ucBuffer );
 u8 putsLCD( u8 *ucBuffer );
 
@@ -1268,23 +1222,11 @@ void *sysGetTimer( u8 ucTimer );
 u8 sysGetDelayTimer( void );
 u8 sysGetPWMTimer( void );
 u8 sysEnableTimerInterrupt( u8 ucTimer );
+void sysEnableComClock( u8 ucPort );
+void sysDisableComClock( u8 ucPort );
 void sysDisableTimerClock( u8 ucTimer );
 void sysEnableTimerClock( u8 ucTimer );
 
-void streamInit( void );
-u8 streamReset( u8 ucStream );
-void streamResetRX( u8 ucStream );
-void streamResetTX( u8 ucStream );
-void streamTXChar( u8 ucStream, void *pygmyUSART );
-u8 streamGetChar( u8 ucStream );
-u8 streamPutChar( u8 ucStream, u8 ucChar );
-u8 streamPopChar( u8 ucStream );
-u8 streamPeekChar( u8 ucStream );
-void streamPushChar( u8 ucStream, u8 ucChar );
-u8 streamSetPut( u8 ucStream, void *ptrFunc );
-u8 streamSetGet( u8 ucStream, void *ptrFunc );
-u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
-u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 void streamSetPrintFile( void *pygmyFile );
 
 

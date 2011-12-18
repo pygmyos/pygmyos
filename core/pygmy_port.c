@@ -39,7 +39,7 @@ const u8 PYGMY_TIMERPINS[] = {  PA8,  PA9,  PA10, PA11,     // TIM1
                             
 PYGMYPWM globalPygmyPWM[ PYGMY_PWMCHANNELS ];
 u32 globalPygmyPWMFreq, globalPygmyPWMCR = 0;
-                            
+                          
 void pinConfig( u8 ucPin, u8 ucMode )
 {
     u32 uiPortMode, uiPortClear;
@@ -50,8 +50,8 @@ void pinConfig( u8 ucPin, u8 ucMode )
     // CRL contains the config bits for 0-7
     // CRH contains the config bits for 8-15
     // each bit is configured with 4 bits
-    enablePortClock( ucPin ); // Enable clock BEFORE accessing registers
-    pygmyPort = getPortFromPin( ucPin );
+    pinEnablePortClock( ucPin ); // Enable clock BEFORE accessing registers
+    pygmyPort = pinGetPort( ucPin );
     uiPortMode = ( PIN_CLEAR & ucMode) << ( ( ucPin % 8 ) * 4 );
     uiPortClear = ~( PIN_CLEAR << ( ( ucPin % 8 ) * 4 ) ); // Clear before setting bits
     uiPin = ucPin % 16;
@@ -132,7 +132,7 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
     EXTI->SWIER = 0x00000000;
 }
 
-void enablePortClock( u8 ucPin )
+void pinEnablePortClock( u8 ucPin )
 {
     if( ucPin < 16 ){
         PYGMY_RCC_GPIOA_ENABLE;
@@ -149,7 +149,7 @@ void enablePortClock( u8 ucPin )
     }
 }
 
-GPIO *getPortFromPin( u8 ucPin )
+GPIO *pinGetPort( u8 ucPin )
 {
     if( ucPin < 16 ){
         return( GPIOA );
@@ -274,40 +274,42 @@ u8 pinGetChannel( u8 ucPin )
 
 u8 pinCounter( u8 ucPin )
 {
-
+    
 }
 
 u8 pinPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
 {
     TIMER *pygmyTimer;
     TIMER1 *pygmyTimer1;
-    u32 ulDuty;
+    u32 ulDuty, ulMainClock;
     u8 ucChannel;
 
     // ToDo: Add clock frequency to pygmyGlobalData and use to set frequency here
-    if( ucDutyCycle > 100 ){
+    if( ucDutyCycle > 100 || sysGetPWMTimer() == PYGMY_TIMER0 ){
         return( 0 );
     } // if
-    pygmyTimer = getTimerFromPin( ucPin );
-    //pygmyTimer1 = getTimerFromPin( ucPin );//(TIMER1 *)pygmyTimer; 
-    ucChannel = getChannelFromPin( ucPin );
-    
-    if( !ucChannel || !pygmyTimer ){
+    pygmyTimer = pinGetTimer( ucPin );
+    pygmyTimer1 = pinGetTimer( ucPin );
+    ucChannel = pinGetChannel( ucPin );
+    if( !ucChannel || !pygmyTimer || sysGetDelayTimer() == PYGMY_TIMER1 ){
+        // Timer1 is unavailable for hardware PWM on all F103s except the F103XLD
         // pin selected isn't a timer pin, call softPWM
-        return( pinAddSoftPWM() );
+        return( pinAddSoftPWM( ucPin, ulFreq, ucDutyCycle ) );
     } // if
     if( ulFreq == 0 ){
         ulFreq = 1;
     } // if
-    if( ulFreq > 24000000 ){
-        ulFreq = 24000000;
+    ulMainClock = sysGetMainClock();
+    if( ulFreq > ulMainClock ){
+        return( 0 );
     } // if
-    ulFreq = 24000000 / ulFreq;
+    ulFreq = ulMainClock / ulFreq;
     ulDuty = ( ulFreq / 100 ) * ucDutyCycle;
        
     pinConfig( ucPin, ALT );
     if( pygmyTimer1 == TIM1 ){
         PYGMY_RCC_TIMER1_ENABLE;
+        interruptEnable( TIM1_UP_IRQ );
         pygmyTimer1->CR1 = 0;            // Disable before configuring timer
         pygmyTimer1->CR2 = 0;                        //
         pygmyTimer1->BDTR |= (TIM_MOE|TIM_AOE);
@@ -338,12 +340,11 @@ u8 pinPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
         pygmyTimer1->EGR |= TIM_UG;
         pygmyTimer1->CR1 = TIM_ARPE|TIM_CEN;
     } else{
+        PYGMY_RCC_TIMER2_ENABLE;
         PYGMY_RCC_TIMER3_ENABLE;
         PYGMY_RCC_TIMER4_ENABLE;
         pygmyTimer->CR1 = 0;//&= ~( TIM_CEN );            // Disable before configuring timer
         pygmyTimer->CR2 = 0;                        //
-        //pygmyTimer->SMCR = 0;                       //
-        //pygmyTimer->DIER = 0;                       // DMA and interrupt enable register
         pygmyTimer->CNT = 0;                        // Count Register
         pygmyTimer->ARR = ulFreq;                   // Auto Reload Register
         pygmyTimer->PSC = 0;                        // Prescaler
@@ -371,6 +372,77 @@ u8 pinPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
         pygmyTimer->EGR |= TIM_UG;
         pygmyTimer->CR1 = TIM_ARPE|TIM_CEN;
     } // else
+    
+    return( 1 );
+}
+
+u8 pinPulseHigh( u8 ucPin, u32 ulDeadTime, u32 ulPulse )
+{
+    u16 i;
+    
+    // This function's timing is based on SoftPWM Frequency
+    // If frequency is set to 10000, then count is decremented 10000 per second
+    // First find empty PWM register slot
+    if( globalPygmyPWMCR == 0 ){
+        pinInitSoftPWM( );
+    } // if
+    for( i = 0; i < PYGMY_PWMCHANNELS; i++ ){
+        if( globalPygmyPWM[ i ].CR == 0 || globalPygmyPWM[ i ].Pin == ucPin ){
+            globalPygmyPWM[ i ].CR = 0; // if pin already exists, CR must be cleared 
+            break;
+        } // if 
+    } // for
+    if( i == PYGMY_PWMCHANNELS ){
+        // No open slots
+        return( 0 );
+    } // if
+
+    pinConfig( ucPin, OUT );
+    pinSet( ucPin, LOW );
+    globalPygmyPWM[ i ].UpCount = ulPulse;
+    globalPygmyPWM[ i ].DownCount = ulDeadTime;
+    globalPygmyPWM[ i ].Count = globalPygmyPWM[ i ].DownCount; 
+    globalPygmyPWM[ i ].Pin = ucPin;
+    globalPygmyPWM[ i ].CR = ( PYGMY_PWM_DIR | PYGMY_PWM_EN );
+    
+    return( 1 );
+}
+
+u8 pinToggle( u8 ucPin, u32 ulFreq )
+{
+    // This function uses the PWM time base frequency
+    // Max toggle speed is PWM frequency / 2
+    return( pinAddSoftPWM( ucPin, ulFreq, 50 ) );
+}
+
+u8 pinPulseLow( u8 ucPin, u32 ulDeadTime, u32 ulPulse )
+{
+    u16 i;
+    
+    // This function's timing is based on SoftPWM Frequency
+    // If frequency is set to 10000, then count is decremented 10000 per second
+    // First find empty PWM register slot
+    if( globalPygmyPWMCR == 0 ){
+        pinInitSoftPWM( );
+    } // if
+    for( i = 0; i < PYGMY_PWMCHANNELS; i++ ){
+        if( globalPygmyPWM[ i ].CR == 0 || globalPygmyPWM[ i ].Pin == ucPin ){
+            globalPygmyPWM[ i ].CR = 0; // if pin already exists, CR must be cleared 
+            break;
+        } // if 
+    } // for
+    if( i == PYGMY_PWMCHANNELS ){
+        // No open slots
+        return( 0 );
+    } // if
+
+    pinConfig( ucPin, OUT );
+    pinSet( ucPin, HIGH );
+    globalPygmyPWM[ i ].UpCount = ulPulse;
+    globalPygmyPWM[ i ].DownCount = ulDeadTime;
+    globalPygmyPWM[ i ].Count = globalPygmyPWM[ i ].UpCount; 
+    globalPygmyPWM[ i ].Pin = ucPin;
+    globalPygmyPWM[ i ].CR = PYGMY_PWM_EN;
     
     return( 1 );
 }
@@ -403,10 +475,13 @@ void pinInitSoftPWM( void )
     if( ucTimer < 2 ){
         return; // Timer1 cannot be used for SoftPWM
     } // if
+    
     pygmyTimer = sysGetTimer( ucTimer );
+    
     sysEnableTimerClock( ucTimer );
     sysEnableTimerInterrupt( ucTimer );
-   
+    //PYGMY_RCC_TIMER16_ENABLE;
+    //interruptEnable( TIM16_IRQ );
     pygmyTimer->CR1     = 0;                            // Disable before configuring timer
     pygmyTimer->CR2     = 0;                            //
     pygmyTimer->SMCR    = 0;                            //
@@ -437,6 +512,9 @@ u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
     u16 i;
 
     // First find empty PWM register slot
+    if( globalPygmyPWMCR == 0 ){
+        pinInitSoftPWM( );
+    } // if
     for( i = 0; i < PYGMY_PWMCHANNELS; i++ ){
         if( globalPygmyPWM[ i ].CR == 0 || globalPygmyPWM[ i ].Pin == ucPin ){
             globalPygmyPWM[ i ].CR = 0; // if pin already exists, CR must be cleared 
@@ -466,6 +544,7 @@ u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
         globalPygmyPWM[ i ].DownCount = globalPygmyPWMFreq / ( ulFreq * ( 100 / ( 100 - ucDutyCycle ) ) );
         if( ( globalPygmyPWM[ i ].UpCount + globalPygmyPWM[ i ].DownCount ) > globalPygmyPWMFreq ){
             // main counter has insufficient resolution
+            print( COM3, "\rInsufficient resolution" );
             return( 0 );
         } // if
         globalPygmyPWM[ i ].CR = PYGMY_PWM_EN;

@@ -318,11 +318,14 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
                 } // if
             } // if
             lcdSetCursor( pygmyWidget->X + uiX, pygmyWidget->Y + uiY  );
-            print( LCD, pygmyWidget->String );
+            #ifdef __PYGMYSTREAMLCD
+                print( LCD, pygmyWidget->String );
+            #endif
         } else{
-            
             lcdSetCursor( pygmyWidget->X, pygmyWidget->Y );
-            print( LCD, "%d", pygmyWidget->Value );
+            #ifdef __PYGMYSTREAMLCD
+                print( LCD, "%d", pygmyWidget->Value );
+            #endif
         } // else
         //drawLine( pygmyWidget->X, pygmyWidget->Y, pygmyWidget
     } // if

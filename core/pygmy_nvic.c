@@ -20,25 +20,27 @@
 
 #include "pygmy_profile.h"
 
-const u8 PYGMY_TIMERIRQS[] = {      
+const u8 PYGMY_TIMERVECTORS[] = {      
     0,          TIM1_UP_IRQ,    TIM2_IRQ,       TIM3_IRQ,       TIM4_IRQ,       TIM5_IRQ, 
     TIM6_IRQ,   TIM7_IRQ,       TIM8_UP_IRQ,    TIM9_IRQ,       TIM10_IRQ,      TIM11_IRQ, 
     TIM12_IRQ,  TIM13_IRQ,      TIM14_IRQ,      TIM15_IRQ,      TIM16_IRQ,      TIM17_IRQ 
 };
-const u8 PYGMY_TIMERIRQS_L15X[] = { 
+
+const u8 PYGMY_TIMERVECTORS_L15X[] = { 
     0,          0,              TIM2_IRQ,       TIM3_IRQ,       TIM4_IRQ,       0, 
     TIM6_IRQ,   TIM7_IRQ,       0,              TIM9_L15X_IRQ,  TIM10_L15X_IRQ, TIM11_L15X_IRQ,
     0,          0,              0,              0,              0,              0
 };
 
-void interruptGetTimerVector( u8 ucTimer )
+u8 interruptGetTimerVector( u8 ucTimer )
 {
     // return value of 0 means no timer present
-    if( sysGetMCUID() == PYGMY_STM32L151 ){
-        return( PYGMY_TIMERVECTORS_L152[ ucTimer ] );
+    if( descriptorGetID() == DESC_STM32L151 ){
+        return( PYGMY_TIMERVECTORS_L15X[ ucTimer ] );
     } else{
         return( PYGMY_TIMERVECTORS[ ucTimer ] );
     } // else
+    
 }
 
 void interruptEnable( u32 ulVector )

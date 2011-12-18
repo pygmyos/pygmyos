@@ -315,7 +315,10 @@ typedef struct
     #define PYGMY_RESET             SCB->AIRCR = (AIRCR_VECTKEY_MASK | BIT2);
 #endif
 
-//void configExternalInterrupt( u16 uiPort, u16 uiPin, u16 uiMode );
+extern const u8 PYGMY_TIMERVECTORS[];
+extern const u8 PYGMY_TIMERVECTORS_L15X[];
+
+u8 interruptGetTimerVector( u8 ucTimer );
 void extiConfig( u8 ucPin, u16 uiMode );
 void interruptEnable( u32 ulVector );
 void interruptDisable( u32 ulVector );

@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "pygmy_sys.h"
+#include "pygmy_profile.h"
 
 //--------------------------------------------------------------------------------------------
 //------------------------------------------I2C-----------------------------------------------
@@ -261,20 +261,33 @@ typedef struct
 
 
 #define SPI2_BASE                   (APB1PERIPH_BASE + 0x3800)
+#define SPI3_BASE                   (APB1PERIPH_BASE + 0x3C00)
 #define USART2_BASE                 (APB1PERIPH_BASE + 0x4400)
 #define USART3_BASE                 (APB1PERIPH_BASE + 0x4800)
+#define USART4_BASE                 (APB1PERIPH_BASE + 0x4C00)
+#define USART5_BASE                 (APB1PERIPH_BASE + 0x5000)
 #define I2C1_BASE                   (APB1PERIPH_BASE + 0x5400)
 #define I2C2_BASE                   (APB1PERIPH_BASE + 0x5800)
+#define I2C3_BASE                   (APB1PERIPH_BASE + 0x5C00)
 #define CAN_BASE                    (APB1PERIPH_BASE + 0x6400)
 
 #define SPI1_BASE                   (APB2PERIPH_BASE + 0x3000)
 #define USART1_BASE                 (APB2PERIPH_BASE + 0x3800)
 
+#define SDIO_BASE                   (AHBPERIPH_BASE + 0x8000)
+
+#define SDIO                        ((SDIO_TYPEDEF *) SDIO_BASE)
+#define SPI1                        ((SPI_TYPEDEF *) SPI1_BASE)
 #define SPI2                        ((SPI_TYPEDEF *) SPI2_BASE)
+#define SPI3                        ((SPI_TYPEDEF *) SPI3_BASE)
+#define USART1                      ((USART_TYPEDEF *) USART1_BASE)
 #define USART2                      ((USART_TYPEDEF *) USART2_BASE)
 #define USART3                      ((USART_TYPEDEF *) USART3_BASE)
+#define USART4                      ((USART_TYPEDEF *) USART4_BASE)
+#define USART5                      ((USART_TYPEDEF *) USART5_BASE)
 #define I2C1                        ((I2C_TYPEDEF *) I2C1_BASE)
 #define I2C2                        ((I2C_TYPEDEF *) I2C2_BASE)
+#define I2C3                        ((I2C_TYPEDEF *) I2C3_BASE)
 #define CAN                         ((CAN_TYPEDEF *) CAN_BASE)
 
 //----------------------------------End Hardware USARTS---------------------------------------
@@ -285,15 +298,76 @@ typedef struct
 #define DATA        1
 #define COMMAND     0
 
+typedef struct {
+                //u8 Status;
+                u16 RXBufferLen;
+                u16 RXIndex;
+                u16 RXLen;
+                u16 TXBufferLen;
+                u16 TXIndex;
+                u16 TXLen;
+                PYGMYCMDPTR Put;
+                PYGMYVOIDPTR Get;
+                u8 *RXBuffer;
+                u8 *TXBuffer;
+                } PYGMYFIFO;    
+
 enum {
         STDIO,
-        COM1,
-        COM2,
-        COM3,
-        COM4,
-        COM5,
-        FILE,
-        LCD,
+        #ifdef __PYGMYSTREAMCOM1
+            COM1,
+        #endif
+        #ifdef __PYGMYSTREAMCOM2
+            COM2,
+        #endif
+        #ifdef __PYGMYSTREAMCOM3
+            COM3,
+        #endif
+        #ifdef __PYGMYSTREAMCOM4
+            COM4,
+        #endif
+        #ifdef __PYGMYSTREAMCOM5
+            COM5,
+        #endif
+        #ifdef __PYGMYSTREAMCOM6
+            COM6,
+        #endif
+        #ifdef __PYGMYSTREAMSP1
+            SP1,
+        #endif
+        #ifdef __PYGMYSTREAMSP2
+            SP2,
+        #endif
+        #ifdef __PYGMYSTREAMSP3
+            SP3,
+        #endif
+        #ifdef __PYGMYSTREAMBUS1
+            BUS1,
+        #endif
+        #ifdef __PYGMYSTREAMBUS2
+            BUS2,
+        #endif
+        #ifdef __PYGMYSTREAMBUS3
+            BUS3,
+        #endif
+        #ifdef __PYGMYSTREAMSDIO
+            SDIO,
+        #endif
+        #ifdef __PYGMYSTREAMFILE
+            FILE,
+        #endif
+        #ifdef __PYGMYSTREAMLCD
+            LCD,
+        #endif
+        #ifdef __PYGMYSTREAMUSER1
+            USER1,
+        #endif
+        #ifdef __PYGMYSTREAMUSER2
+            USER2,
+        #endif
+        #ifdef __PYGMYSTREAMUSER3
+            USER3
+        #endif
         MAXCOMPORTS,
         };
 
@@ -348,11 +422,48 @@ typedef struct{
                 u16 Mask;
                 u8 Width;
                 } PYGMYPARALLELPORT;
-            
-//--------------------------------End Pygmy OS Comports----------------------------------------  
-//--------------------------------------------------------------------------------------------
 
-    
+#ifdef __PYGMYSTREAMS
+    extern PYGMYFIFO globalStreams[];
+#endif
+#ifndef __PYGMYCOMBUFFERLEN
+    #define __PYGMYCOMBUFFERLEN 128 // Create default if none defined in profile
+#endif
+#ifndef __PYGMYCOM1BUFFERLEN
+    #define __PYGMYCOM1BUFFERLEN __PYGMYCOMBUFFERLEN
+#endif
+#ifndef __PYGMYCOM2BUFFERLEN
+    #define __PYGMYCOM2BUFFERLEN __PYGMYCOMBUFFERLEN
+#endif
+#ifndef __PYGMYCOM3BUFFERLEN
+    #define __PYGMYCOM3BUFFERLEN __PYGMYCOMBUFFERLEN
+#endif   
+#ifndef __PYGMYCOM4BUFFERLEN
+    #define __PYGMYCOM4BUFFERLEN __PYGMYCOMBUFFERLEN
+#endif   
+#ifndef __PYGMYCOM5BUFFERLEN
+    #define __PYGMYCOM5BUFFERLEN __PYGMYCOMBUFFERLEN
+#endif
+#ifdef __PYGMYSTREAMCOM1
+    extern u8 globalCOM1RXBuffer[];
+#endif
+#ifdef __PYGMYSTREAMCOM2
+    extern u8 globalCOM2RXBuffer[];
+#endif
+#ifdef __PYGMYSTREAMCOM3
+    extern u8 globalCOM3RXBuffer[];
+#endif
+#ifdef __PYGMYSTREAMCOM4
+    extern u8 globalCOM4RXBuffer[];
+#endif
+#ifdef __PYGMYSTREAMCOM5
+    extern u8 globalCOM5RXBuffer[];
+#endif
+
+
+//--------------------------------End Pygmy OS Comports----------------------------------------  
+//---------------------------------------------------------------------------------------------
+
 void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate );
 void comDisable( u8 ucPort );
 void comEnable( u8 ucPort );
@@ -360,6 +471,13 @@ u16 generateBaud( u32 uiClock, u32 uiRate );
 u8 putsUSART1( u8 *ucBuffer );
 u8 putsUSART2( u8 *ucBuffer );
 u8 putsUSART3( u8 *ucBuffer );
+u8 putsUSART4( u8 *ucBuffer );
+u8 putsUSART5( u8 *ucBuffer );
+u8 putsUSART1FIFO( u8 *ucBuffer );
+u8 putsUSART2FIFO( u8 *ucBuffer );
+u8 putsUSART3FIFO( u8 *ucBuffer );
+u8 putsUSART4FIFO( u8 *ucBuffer );
+u8 putsUSART5FIFO( u8 *ucBuffer );
 void resetRXBuffer( u8 ucStream );
          
 void parallelConfig( PYGMYPARALLELPORT *pygmyPort, u8 ucWidth, u8 ucCS, u8 ucA0, u8 ucWR, u8 ucRD, u8 ucD0 );
@@ -382,3 +500,17 @@ u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u8 ucAddress, u8 *ucBuffer, u16 uiLen
 u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte );
 u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C );
     
+void streamInit( void );
+u8 streamReset( u8 ucStream );
+void streamResetRX( u8 ucStream );
+void streamResetTX( u8 ucStream );
+void streamTXChar( u8 ucStream, void *pygmyUSART );
+u8 streamGetChar( u8 ucStream );
+u8 streamPutChar( u8 ucStream, u8 ucChar );
+u8 streamPopChar( u8 ucStream );
+u8 streamPeekChar( u8 ucStream );
+void streamPushChar( u8 ucStream, u8 ucChar );
+u8 streamSetPut( u8 ucStream, void *ptrFunc );
+u8 streamSetGet( u8 ucStream, void *ptrFunc );
+u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
+u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );

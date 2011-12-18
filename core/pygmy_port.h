@@ -2033,9 +2033,9 @@ enum {
 #define PYGMY_PWM_DIR                 BIT1           
     
 typedef struct {    
-                    u16 UpCount;
-                    u16 DownCount;
-                    u16 Count;
+                    u32 UpCount;
+                    u32 DownCount;
+                    u32 Count;
                     u8 Pin;
                     u8 CR;
                 } PYGMYPWM;
@@ -2047,11 +2047,12 @@ u32 pinGetSoftPWMFreq( void );
 void pinInitSoftPWM( void );            
 u8 pinRemoveSoftPWM( u8 ucPin );
 u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle );
-            
+u8 pinPulseHigh( u8 ucPin, u32 ulDeadTime, u32 ulPulse );
+u8 pinPulseLow( u8 ucPin, u32 ulDeadTime, u32 ulPulse );            
             
 void pinConfig( u8 ucPin, u8 ucMode );
 void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode );
-void enablePortClock( u8 ucPin );
+void pinEnablePortClock( u8 ucPin );
 GPIO *pinGetPort( u8 ucPin );
 void pinSet( u8 ucPin, u8 ucState);
 u8 pinGet( u8 ucPin );
