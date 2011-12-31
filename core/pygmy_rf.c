@@ -32,6 +32,7 @@ u32 globalRFConfig;
 PYGMYSPIPORT pygmyRFSPI;
 const u8 ucAddrP0[] = {0x78,0x78,0x78,0x78,0x78};
 u32 pygmyGlobalRFID;
+u8 globalRFTXPayload[ 32 ];
 
 u32 rfGetID( void )
 {
@@ -57,31 +58,9 @@ void rfGetRXPayload( u8 *ucBuffer )
         ucBuffer[ i ] = '\0';
         RF_CS_HIGH;
         print( COM3, ucBuffer );
-       // rfProcessPacket( ucBuffer, ucLen );
+        rfProcessPacket( ucBuffer, ucLen );
     } // while
     rfClearStatus();
-}
-
-void rfSendOpenSocket( u32 ulDestID, u8 ucType  )
-{
-    u16 uiCRC;
-    u8 ucBuffer[ 32 ];
-
-    ucBuffer[ 0 ] = ulDestID >> 24;
-    ucBuffer[ 1 ] = ulDestID >> 16;
-    ucBuffer[ 2 ] = ulDestID >> 8;
-    ucBuffer[ 3 ] = 0xFF; // No port defined yet
-    if( ucType == RF_FILE ){
-    
-    } else if( ucType == RF_AVSTREAM ){
-    
-    } else if( ucType == RF_COMLINK ){
-        ucBuffer[ 4 ] = RF_OPEN | RF_COMLINK;
-        ucBuffer[ 5 ] = 0;
-        uiCRC = sysCRC16( ucBuffer, 6 );
-        ucBuffer[ 6 ] = (u8)uiCRC >> 8;
-        ucBuffer[ 7 ] = (u8)uiCRC;
-    } // else if
 }
 
 void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
@@ -105,12 +84,14 @@ void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
     u8 i, ucCMD, ucType, ucPort, ucChunk;
  
     if( sysCRC8( 31, ucBuffer ) != ucBuffer[ 31 ] ){
+        print( COM3, "\rCRC Fail" );
         return;
     } // if
     ulID = bufferToU32( ucBuffer );
     ucPort = (u8)ulID;
     ucBuffer += 4;
     if ( ulID & 0xFFFFFF00 != pygmyGlobalRFID ){
+        print( COM3, "\rWrong ID" );
         return;
     } // if
     ucCMD = *(ucBuffer++);
@@ -122,11 +103,11 @@ void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
         rfOpenSocket( ulDestID & 0xFFFFFF00, ucType );
         print( COM3, "\rSocket Opened, ID: %8X", ulDestID & 0xFFFFFF00 );
     } else if( ucCMD & RF_CLOSE ){
-        
+        print( COM3, "\rSocket Closed" );
     } else if( ucCMD & RF_RXTX ){
-        
+        print( COM3, "\rRXTX" );
     } else if( ucCMD & RF_ACK ){
-        
+        print( COM3, "\rACK" );
     } // else if
 }
 
@@ -140,10 +121,34 @@ u8 rfOpenSocket( u32 ulDest, u8 ucType )
             pygmyGlobalRFSockets[ i ].SocketType = ucType;
             pygmyGlobalRFSockets[ i ].PacketCount = 0;
             pygmyGlobalRFSockets[ i ].StartTime = timeGet();
+            rfSendOpenSocket( ulDest, ucType );
             return( i );
         } // if
     } // for
     return( 0xFF );
+}
+
+void rfSendOpenSocket( u32 ulDest, u8 ucType  )
+{
+    u16 uiCRC;
+    u8 ucBuffer[ 32 ];
+
+    //ucBuffer = globalRFTXPayload;
+    ucBuffer[ 0 ] = ulDest >> 24;
+    ucBuffer[ 1 ] = ulDest >> 16;
+    ucBuffer[ 2 ] = ulDest >> 8;
+    ucBuffer[ 3 ] = 0xFF; // No port defined yet
+    if( ucType == RF_FILE ){
+    
+    } else if( ucType == RF_AVSTREAM ){
+    
+    } else if( ucType == RF_COMLINK ){
+        ucBuffer[ 4 ] = RF_OPEN | RF_COMLINK;
+        ucBuffer[ 5 ] = 0;
+        uiCRC = sysCRC16( ucBuffer, 6 );
+        ucBuffer[ 6 ] = (u8)uiCRC >> 8;
+        ucBuffer[ 7 ] = (u8)uiCRC;
+    } // else if
 }
 
 void rfCloseSocket( u8 ucSocket )
@@ -169,7 +174,7 @@ void rfInit( void )
 {
     u8 i, *strID;
 
-    strID = getID( );
+    strID = sysGetID( );
     pdiaEncode( 0, PDIA_NEW, &pygmyGlobalRFID );
     for( i = 0; i < 12; i++ ){
         pdiaEncode( strID[ i ], PDIA_ADD, &pygmyGlobalRFID );

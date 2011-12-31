@@ -21,7 +21,12 @@
 #include "pygmy_profile.h"
 
 const u8 PYGMY_ADC_CHANNELS[] = { PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PB0, PB1, PC0, PC1, PC2, PC3, PC4, PC5, ADCTEMP, ADCREF };
-u16 uiGlobalADC1Channel, uiGlobalADC1[ 16 ];
+u16 uiGlobalADC1Channel, uiGlobalADC1[ 16 ], globalADCStatus = 0;
+
+u16 adcGetStatus( void )
+{
+    return( globalADCStatus );
+}
 
 void ADC1_2_IRQHandler( void )
 {
@@ -159,7 +164,7 @@ void adcDisableAll( u8 ucChannel )
 
 void adcSingleSampleInit( void )
 {
-    u16 i;
+    //u16 i;
 
     PYGMY_RCC_ADC1_ENABLE;
     ADC1->CR2 = 0;
@@ -172,6 +177,7 @@ void adcSingleSampleInit( void )
     ADC1->SQR3 = 0;
     ADC1->CR2 = (ADC_CAL|ADC_EXTTRIG|ADC_EXTSEL_SWSTART|ADC_ADON);
     while( ADC1->CR2 & ADC_CAL );
+    globalADCStatus = BIT0;
     //for( i = 0; i < 10; i++ ){
     //    adcSingleSample( ADCREF );
     //} // for

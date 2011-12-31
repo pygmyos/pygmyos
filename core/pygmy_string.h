@@ -31,7 +31,7 @@
 
 //extern const u8 PYGMYBASE64CHARS[];
 //extern const u8 PYGMYHEXCHARS[];
-
+u8 convertStringToPin( u8 *ucBuffer );
 u16 bufferToU16( u8 *ucBuffer );
 u32 bufferToU32( u8 *ucBuffer );
 s8 isSeparator( u8 ucChar );

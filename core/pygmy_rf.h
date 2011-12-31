@@ -188,6 +188,7 @@
 #define RF_COMLINK          1       // Com Link
 #define RF_FILE             2       // File Transfer
 #define RF_AVSTREAM         3       // AV Streaming Data         
+#define RF_CONTROL          4       // Control/Movement
 
 typedef struct {
                 u32 StartTime;
@@ -209,6 +210,7 @@ u8 rfSendFile( u8 *ucParams );
 u32 rfGetID( void );
 void rfProcessPacket( u8 *ucBuffer, u8 ucLen );
 u8 rfOpenSocket( u32 ulDest, u8 ucType );
+void rfSendOpenSocket( u32 ulDest, u8 ucType );
 void rfCloseSocket( u8 ucSocket );
 void rfFlushTX( void );
 void rfFlushRX( void );

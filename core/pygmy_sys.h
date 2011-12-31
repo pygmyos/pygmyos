@@ -1219,6 +1219,8 @@ void sysSetMainClock( u32 ulFreq );
 u32 sysGetXTAL( void );
 void sysSetXTAL( u32 ulFreq );
 void *sysGetTimer( u8 ucTimer );
+u8 *sysGetID( void );
+void *sysGetFile( void );
 u8 sysGetDelayTimer( void );
 u8 sysGetPWMTimer( void );
 u8 sysEnableTimerInterrupt( u8 ucTimer );
@@ -1280,9 +1282,9 @@ u32 convertSystemTimeToSeconds( PYGMYTIME *pygmyTime );
 void convertSecondsToSystemTime( u32 ulSeconds, PYGMYTIME *pygmyTime );
 */
 
-u8 executeCmd( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
+//u8 executeCmd( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
 
-void enableXTAL( void );
+//void enableXTAL( void );
 void delay( u32 ulDelay );
 void mcoEnable( u8 ucSource );
 void mcoDisable( void );

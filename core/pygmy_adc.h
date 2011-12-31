@@ -105,6 +105,7 @@ typedef struct{
 
 extern const u8 PYGMY_ADC_CHANNELS[];
 
+u16 adcGetStatus( void );
 void adcInit( void ); //PYGMYADC *pygmyADC );
 u16 adcSingleSample( u8 ucPin );
 void adcSingleSampleInit( void );

@@ -48,7 +48,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
     #ifdef __PYGMYSTREAMCOM1
         if( ucPort == COM1 ){
             PYGMY_RCC_USART1_ENABLE;
-            enableInterrupt( USART1_IRQ );
+            interruptEnable( USART1_IRQ );
             setInterruptPriority( USART1_IRQ, 1 );
             ptrUSART = USART1;
             if( ucOptions & RTS ){
@@ -65,7 +65,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM2 ){
             PYGMY_RCC_USART2_ENABLE;
             setInterruptPriority( USART2_IRQ, 2 );
-            enableInterrupt( USART2_IRQ );
+            interruptEnable( USART2_IRQ );
             if( ucOptions & RTS ){
                 PA1_ALT;
             } // if
@@ -80,7 +80,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM3 ){
             PYGMY_RCC_USART3_ENABLE;
             setInterruptPriority( USART3_IRQ, 3 );
-            enableInterrupt( USART3_IRQ );
+            interruptEnable( USART3_IRQ );
             if( ucOptions & RTS ){
                 PB14_ALT;
             } // if
@@ -94,7 +94,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
     #ifdef __PYGMYSTREAMCOM4
         if( ucPort == COM4 ){
             PYGMY_RCC_USART4_ENABLE;
-            enableInterrupt( USART4_IRQ );
+            interruptEnable( USART4_IRQ );
             setInterruptPriority( USART4_IRQ, 1 );
             ptrUSART = USART4;
             PC10_ALT;
@@ -104,7 +104,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
     #ifdef __PYGMYSTREAMCOM5
         if( ucPort == COM5 ){
             PYGMY_RCC_USART5_ENABLE;
-            enableInterrupt( USART5_IRQ );
+            interruptEnable( USART5_IRQ );
             setInterruptPriority( USART5_IRQ, 1 );
             ptrUSART = USART5;
             PC12_ALT;
@@ -114,7 +114,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
     #ifdef __PYGMYSTREAMCOM6
         if( ucPort == COM6 ){
             PYGMY_RCC_USART6_ENABLE;
-            enableInterrupt( USART6_IRQ );
+            interruptEnable( USART6_IRQ );
             setInterruptPriority( USART6_IRQ, 1 );
             ptrUSART = USART6;
             PG10_ALT;
@@ -392,11 +392,11 @@ void parallelConfig( PYGMYPARALLELPORT *pygmyPort, u8 ucWidth, u8 ucCS, u8 ucA0,
         pinConfig( ucD0, OUT );
     } // for
     
-    pygmyPort->PortCS   = getPortFromPin( ucCS );
-    pygmyPort->PortA0   = getPortFromPin( ucA0 );
-    pygmyPort->PortWR   = getPortFromPin( ucWR );
-    pygmyPort->PortRD   = getPortFromPin( ucRD );
-    pygmyPort->PortDATA = getPortFromPin( ucD0 );
+    pygmyPort->PortCS   = pinGetPort( ucCS );
+    pygmyPort->PortA0   = pinGetPort( ucA0 );
+    pygmyPort->PortWR   = pinGetPort( ucWR );
+    pygmyPort->PortRD   = pinGetPort( ucRD );
+    pygmyPort->PortDATA = pinGetPort( ucD0 );
     
     pygmyPort->PinCS = PYGMY_BITMASKS[ ucCS % 16 ];
     pygmyPort->PinA0 = PYGMY_BITMASKS[ ucA0 % 16 ];
@@ -419,12 +419,12 @@ void parallelWrite( PYGMYPARALLELPORT *pygmyPort, u8 ucA0, u16 uiWord )
         pygmyPort->PortA0->BRR = pygmyPort->PinA0;
     } // else
     
-    pygmyPort->PortCS->BRR = pygmyPort->PinCS;
-    pygmyPort->PortDATA->ODR &= ~pygmyPort->Mask;
-    pygmyPort->PortDATA->ODR |= uiWord;
-    pygmyPort->PortWR->BRR = pygmyPort->PinWR; // Go high to set to inactive
-    pygmyPort->PortWR->BSRR = pygmyPort->PinWR; // Go low to clock out data/cmd
-    pygmyPort->PortCS->BSRR = pygmyPort->PinCS;
+    pygmyPort->PortCS->BRR      = pygmyPort->PinCS;
+    pygmyPort->PortDATA->ODR    &= ~pygmyPort->Mask;
+    pygmyPort->PortDATA->ODR    |= uiWord;
+    pygmyPort->PortWR->BRR      = pygmyPort->PinWR; // Go high to set to inactive
+    pygmyPort->PortWR->BSRR     = pygmyPort->PinWR; // Go low to clock out data/cmd
+    pygmyPort->PortCS->BSRR     = pygmyPort->PinCS;
 }
 
 /*
@@ -527,17 +527,17 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI 
     pinConfig( ucSCK, OUT );
     if( ucMOSI != NONE ){
         pinConfig( ucMOSI, OUT );
-        pygmySPI->PortMOSI  = getPortFromPin( ucMOSI );
+        pygmySPI->PortMOSI  = pinGetPort( ucMOSI );
         pygmySPI->PinMOSI   = PYGMY_BITMASKS[ ucMOSI % 16 ];
     } // if
     if( ucMISO != NONE ){
         pinConfig( ucMISO, IN );
-        pygmySPI->PortMISO  = getPortFromPin( ucMISO );
+        pygmySPI->PortMISO  = pinGetPort( ucMISO );
         pygmySPI->PinMISO   = PYGMY_BITMASKS[ ucMISO % 16 ];
     } // if
 
-    pygmySPI->PortCS    = getPortFromPin( ucCS );
-    pygmySPI->PortSCK   = getPortFromPin( ucSCK );   
+    pygmySPI->PortCS    = pinGetPort( ucCS );
+    pygmySPI->PortSCK   = pinGetPort( ucSCK );   
     
     pygmySPI->PinCS     = PYGMY_BITMASKS[ ucCS % 16 ];
     pygmySPI->PinSCK    = PYGMY_BITMASKS[ ucSCK % 16 ];   
@@ -546,6 +546,105 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI 
     pinSet( ucCS, HIGH );
 }
 
+//--------------------------------------I2C Hardware Interface-------------------------------------
+//-------------------------------------------------------------------------------------------------
+void i2cInit( I2C_TYPEDEF *i2c )
+{
+    u8 i;
+
+    #ifndef __PYGMYI2COWNADDRESS
+        #define __PYGMYI2COWNADDRESS 0x10
+    #endif // __PYGMYI2COWNADDRESS
+    i2cSetAddress( I2C1, 0, __PYGMYI2COWNADDRESS );
+    i2cSetAddress( I2C1, 1, __PYGMYI2COWNADDRESS + 3 );
+    i2cSetAddress( I2C2, 0, __PYGMYI2COWNADDRESS + 1 );
+    i2cSetAddress( I2C2, 1, __PYGMYI2COWNADDRESS + 4 );
+    i2cSetAddress( I2C3, 0, __PYGMYI2COWNADDRESS + 2 );
+    i2cSetAddress( I2C3, 1, __PYGMYI2COWNADDRESS + 5 );
+    i2c->CR2 = ( I2C_ITEVTEN|I2C_ITERREN|36 ); // 36 Periph Clock
+    i2c->CR1 = ( I2C_ACK|I2C_STOP|I2C_PE );
+}
+
+void i2cSetAddress( I2C_TYPEDEF *i2c, u8 ucDual, u16 uiAddress )
+{   
+    /*u8 i;
+
+    if( i2c == I2C1 ){
+        i = 0;
+    } else if( i2c == I2C2 ){
+        i = 1;
+    } else{
+        i = 2;
+    } // else
+    uiAddress <<= 1 ;
+    if( ucDual && !( uiAddress & ( BIT9|BIT8 ) ) ){
+        globalI2COwnAddress[ i ][ ucDual ] = 0x03FE & uiAddress;
+    } else {
+        globalI2C
+    }
+    if(  ){
+        i2c->OAR1 = BIT15 | ( globalI2COwnAddress[ i ][ 0 ]  );
+        globalI2COwnAddress[ i ][ 1 ] = 0;
+    } else if( ucDual ){
+        globalI2COwnAddress[ i ][ 1 ] = 0x00FE & uiAddress;
+    } // else
+    i2c->OAR2 = globalI2COwnAddress[ i ][ 1 ] | ( ucDual & BIT0 );
+    */
+}
+
+void i2cReset( I2C_TYPEDEF *i2c )
+{
+    i2c->CR1 |= I2C_SWRST;
+}
+
+#ifdef __PYGMYSTREAMSBUS1
+void I2C1_EV_IRQHandler( void ) 
+{ 
+    if( I2C1->SR & I2C_RXNE){
+        streamPushChar( BUS1, I2C1->DR ); 
+        if( globalStreams[ BUS1 ].Get ){
+            globalStreams[ BUS1 ].Get();
+        } // if
+    } // if
+    if( I2C1->SR & USART_TXE ){
+        streamTXChar( BUS1, I2C1 );
+		
+    } // if
+    //I2C1->SR = 0;
+}
+#endif // __PYGMYSTREAMSBUS1
+
+void I2C1_ER_IRQHandler( void ) 
+{
+
+}
+
+void I2C2_EV_IRQHandler( void ) 
+{ 
+
+}
+
+void I2C2_ER_IRQHandler( void ) 
+{
+
+}
+
+void I2C3_EV_IRQHandler( void )
+{
+
+}
+
+void I2C3_ER_IRQHandler( void )
+{
+
+}
+
+//------------------------------------End I2C Hardware Interface-----------------------------------
+//-------------------------------------------------------------------------------------------------
+
+//--------------------------------------I2C Software Interface-------------------------------------
+//-------------------------------------------------------------------------------------------------
+
 void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u16 uiSpeed )
 {
     pinConfig( ucSCL, PULLUP );
@@ -553,8 +652,8 @@ void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u16 uiSpeed )
     
     pygmyI2C->SCL = ucSCL;
     pygmyI2C->SDA = ucSDA;
-    pygmyI2C->PortSCL   = getPortFromPin( ucSCL );
-    pygmyI2C->PortSDA   = getPortFromPin( ucSDA );
+    pygmyI2C->PortSCL   = pinGetPort( ucSCL );
+    pygmyI2C->PortSDA   = pingetPort( ucSDA );
                         
     pygmyI2C->PinSCL    = PYGMY_BITMASKS[ ucSCL % 16 ];
     pygmyI2C->PinSDA    = PYGMY_BITMASKS[ ucSDA % 16 ];
@@ -734,6 +833,9 @@ u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C )
     return( ucByte );
 }
 
+//--------------------------------------I2C Software Interface-------------------------------------
+//-------------------------------------------------------------------------------------------------
+
 //--------------------------------------------------------------------------------------------
 //-------------------------------------Pygmy OS IO Stream-------------------------------------
 #ifdef __PYGMYSTREAMS
@@ -783,17 +885,17 @@ void streamResetTX( u8 ucStream )
     } // if
 }
 
-void streamTXChar( u8 ucStream, void *pygmyUSART )
+void streamTXChar( u8 ucStream, void *pygmyPeriph )
 {
-    USART_TYPEDEF *ptrUSART = (USART_TYPEDEF *)pygmyUSART;
+    //USART_TYPEDEF *ptrPeriph = (USART_TYPEDEF *)pygmyUSART;
     
     if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].TXLen ){
 		--globalStreams[ ucStream ].TXLen;  
-		ptrUSART->DR = globalStreams[ ucStream ].TXBuffer[ globalStreams[ ucStream ].TXIndex ]; 
+		((USART_TYPEDEF *)pygmyPeriph)->DR = globalStreams[ ucStream ].TXBuffer[ globalStreams[ ucStream ].TXIndex ]; 
         globalStreams[ ucStream ].TXIndex = ( globalStreams[ ucStream ].TXIndex + 1 ) % 
             globalStreams[ ucStream ].TXBufferLen;
     } else{
-        ptrUSART->CR1 &= ~USART_TXEIE;
+        ((USART_TYPEDEF *)pygmyPeriph)->CR1 &= ~USART_TXEIE;
     } // else
 }
 

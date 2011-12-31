@@ -98,14 +98,14 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
             interruptEnable( EXTI3_IRQ );
             break;
         case 4:
-            enableInterrupt( EXTI4_IRQ );
+            interruptEnable( EXTI4_IRQ );
             break;
         case 5:
         case 6:
         case 7:
         case 8:
         case 9:
-            enableInterrupt( EXTI9_5_IRQ );
+            interruptEnable( EXTI9_5_IRQ );
             break;
         case 10:
         case 11:
@@ -113,7 +113,7 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
         case 13:
         case 14:
         case 15:
-            enableInterrupt( EXTI15_10_IRQ );
+            interruptEnable( EXTI15_10_IRQ );
             break;
     } // switch
     uiMask = ( 0x0001 << uiPin );

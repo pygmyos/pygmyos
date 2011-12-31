@@ -23,6 +23,16 @@
 const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 
+u8 convertStringToPin( u8 *ucBuffer )
+{
+    u8 *ucParam;
+
+    ucParam = getNextSubString( ucBuffer, WHITESPACE );
+    replaceChars( ucParam, "pP", ' ' );
+    
+    return( convertStringToInt( ucParam ) );
+}
+
 u16 bufferToU16( u8 *ucBuffer )
 {
     u16 ii;

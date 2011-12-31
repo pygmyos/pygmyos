@@ -244,10 +244,7 @@ void TIM1_CC_IRQHandler (void) { while(1); }
 void TIM2_IRQHandler (void) { while(1); }
 void TIM3_IRQHandler (void) { while(1); }
 void TIM4_IRQHandler (void) { while(1); }
-void I2C1_EV_IRQHandler (void) { while(1); }
-void I2C1_ER_IRQHandler (void) { while(1); }
-void I2C2_EV_IRQHandler (void) { while(1); }
-void I2C2_ER_IRQHandler (void) { while(1); }
+
 void SPI1_IRQHandler (void) { while(1); }
 void SPI2_IRQHandler (void) { while(1); }
 void USART1_IRQHandler (void) { while(1); }

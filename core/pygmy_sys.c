@@ -960,6 +960,11 @@ u8 *sysGetID( void )
     return( ucID );
 }
 
+void *sysGetFile( void )
+{
+    return( &pygmyGlobalData.File );
+}
+
 u32 descriptorGetMainClock( void )
 {
     // Returns the HSE programmed into the descriptor page by bootloader
@@ -1113,35 +1118,9 @@ u8 putsFILE( u8 *ucBuffer )
 //-------------------------------------End Pygmy OS Print-------------------------------------
 //--------------------------------------------------------------------------------------------
 
-//--------------------------------------------------------------------------------------------
-//------------------------------------Pygmy CMD Interface-------------------------------------
-u8 executeCmd( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
-{
-    u16 ii;
-    u8 *ucCommand;
-    
-    ucCommand = getNextSubString( ucBuffer, WHITESPACE|PUNCT );
-    if( !ucCommand ){
-        return( 0 );
-    } // if
-        
-    for( ii = 0; 1; ii++ ){
-        if( isStringSame( NULL, pygmyCmds[ ii ].Name ) ){
-            return( 0 );
-        } // if
-        if( isStringSame( ucCommand, pygmyCmds[ ii ].Name ) ){
-            // Parameters should not be passed here, they are passed using getNextSubString
-            if( pygmyCmds[ ii ].Call( (u8*)"" ) ){
-                return( 1 );
-            }else{
-                return( 0 );
-            } // else
-        } // if
-    } // for
-}
 
-//----------------------------------End Pygmy CMD Interface-----------------------------------
-//--------------------------------------------------------------------------------------------
+
+
 
 //--------------------------------------------------------------------------------------------
 //---------------------------------------Pygmy OS XTAL----------------------------------------

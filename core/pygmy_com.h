@@ -47,6 +47,60 @@ typedef struct
   u16 RESERVED8;
 } I2C_TYPEDEF;
 
+// Register CR1
+#define I2C_SWRST               BIT15
+#define I2C_ALERT               BIT13
+#define I2C_PEC                 BIT12
+#define I2C_POS                 BIT11
+#define I2C_ACK                 BIT10
+#define I2C_STOP                BIT9
+#define I2C_START               BIT8
+#define I2C_NOSTRETCH           BIT7
+#define I2C_ENGC                BIT6
+#define I2C_ENPEC               BIT5
+#define I2C_ENARP               BIT4
+#define I2C_SMBTYPE             BIT3
+#define I2C_SMBUS               BIT1
+#define I2C_PE                  BIT0
+// Register CR2
+#define I2C_LAST                BIT12
+#define I2C_DMAEN               BIT11
+#define I2C_ITBUFEN             BIT10
+#define I2C_ITEVTEN             BIT9
+#define I2C_ITERREN             BIT8
+// Register OAR1
+#define I2C_ADDMODE             BIT15 // 7Bit addr must be left shifted 1
+// Register OAR2
+#define I2C_ENDUAL              BIT0 // 7Bit addr must be left shifted 1 and ENDUAL set for dual addr
+// Register SR1
+#define I2C_SMBALERT            BIT15
+#define I2C_TIMEOUT             BIT14
+#define I2C_PECERR              BIT12
+#define I2C_OVR                 BIT11
+#define I2C_AF                  BIT10
+#define I2C_ARLO                BIT9
+#define I2C_BERR                BIT8
+#define I2C_TXE                 BIT7
+#define I2C_RXNE                BIT6
+#define I2C_STOPF               BIT4
+#define I2C_ADD10               BIT3
+#define I2C_BTF                 BIT2
+#define I2C_ADDR                BIT1
+#define I2C_SB                  BIT0
+// Register SR2
+#define I2C_PEC                 ( BIT15|BIT14|BIT13|BIT12|BIT11|BIT10|BIT9|BIT8 )
+#define I2C_DUALF               BIT7
+#define I2C_SMBHOST             BIT6
+#define I2C_SMBDEFAULT          BIT5
+#define I2C_GENCALL             BIT4
+#define I2C_TRA                 BIT2
+#define I2C_BUSY                BIT1
+#define I2C_MSL                 BIT0
+// Register CCR
+#define I2C_FS                  BIT15
+#define I2C_DUTY                BIT14
+
+
 //------------------------------------------END I2C-----------------------------------------------
 //--------------------------------------------------------------------------------------------
 
