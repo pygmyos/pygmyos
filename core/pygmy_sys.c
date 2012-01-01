@@ -65,6 +65,9 @@ u8 sysInit( void )
     sysEnableTimerClock( pygmyGlobalData.DelayTimer );
     // The following implements default stream config from the profile
     // If no defaults are defined, configuration must be done manually
+    #ifdef __PYGMYCOMMANDS
+        cmdInit();
+    #endif // __PYGMYCOMMANDS
     #ifdef __PYGMYSTREAMS
         streamInit();
         
@@ -72,27 +75,37 @@ u8 sysInit( void )
         
         #endif
         #ifdef __PYGMYSTREAMCOM1
-            
+            #ifdef __PYGMYCOMMANDS
+                streamSetGet( COM1, cmdGetsCOM1 );
+            #endif // __PYGMYCOMMANDS
             streamSetRXBuffer( COM1, globalCOM1RXBuffer, __PYGMYCOM1BUFFERLEN );
             streamSetPut( COM1, putsUSART1 );
         #endif
         #ifdef __PYGMYSTREAMCOM2
-            
+            #ifdef __PYGMYCOMMANDS
+                streamSetGet( COM2, cmdGetsCOM2 );
+            #endif // __PYGMYCOMMANDS
             streamSetRXBuffer( COM2, globalCOM2RXBuffer, __PYGMYCOM2BUFFERLEN );
             streamSetPut( COM2, putsUSART2 );
         #endif
         #ifdef __PYGMYSTREAMCOM3
-            
+            #ifdef __PYGMYCOMMANDS
+                streamSetGet( COM3, cmdGetsCOM3 );
+            #endif // __PYGMYCOMMANDS
             streamSetRXBuffer( COM3, globalCOM3RXBuffer, __PYGMYCOM3BUFFERLEN );
             streamSetPut( COM3, putsUSART3 );
         #endif
         #ifdef __PYGMYSTREAMCOM4 
-            
+            #ifdef __PYGMYCOMMANDS
+                streamSetGet( COM4, cmdGetsCOM4 );
+            #endif // __PYGMYCOMMANDS
             streamSetRXBuffer( COM4, globalCOM4RXBuffer, __PYGMYCOM4BUFFERLEN );
             streamSetPut( COM4, putsUSART4 );
         #endif
         #ifdef __PYGMYSTREAMCOM5
-            
+            #ifdef __PYGMYCOMMANDS
+                streamSetGet( COM5, cmdGetsCOM5 );
+            #endif // __PYGMYCOMMANDS
             streamSetRXBuffer( COM5, globalCOM5RXBuffer, __PYGMYCOM5BUFFERLEN );
             streamSetPut( COM5, putsUSART5 );
         #endif

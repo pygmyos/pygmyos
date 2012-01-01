@@ -43,6 +43,7 @@
 #define RF_SCK              SPI_SCK
 #define RF_MOSI             SPI_MOSI
 #define RF_MISO             SPI_MISO
+#define MCO                 PA8
 #define T0                  PB6
 #define T1                  PB7
 #define T2                  PB8
@@ -66,11 +67,17 @@
 #define DAC2                PA5
 #define DAC2_INIT           GPIOA->CRL &= ~PIN5_CLEAR; GPIOA->CRL |= PIN5_OUT50_ALTPUSHPULL
 #define COM1_TX             PA9
+#define TX1                 PA9
 #define COM1_RX             PA10
+#define RX1                 PA10
 #define COM2_TX             PA2
+#define TX2                 PA2
 #define COM2_RX             PA3
+#define RX2                 PA3
 #define COM3_TX             PB10
+#define TX3                 PB10
 #define COM3_RX             PB11
+#define RX3                 PB11
 //#define FLASH_CS            PB12
 #define FLASH_SCK           SPI_SCK
 #define FLASH_MISO          SPI_MISO

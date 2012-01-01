@@ -23,14 +23,71 @@
 const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 
+#ifdef __PYGMYNEBULA
+    const PYGMYPAIR PYGMYNEBULAPINS[] = {
+                                        { (u8*)"LED0",  LED0 },
+                                        { (u8*)"LED1",  LED1 },
+                                        { (u8*)"DAC1",  DAC1 },
+                                        { (u8*)"DAC2",  DAC2 },
+                                        { (u8*)"MCO",   MCO },
+                                        { (u8*)"TX1",   TX1 },
+                                        { (u8*)"RX1",   RX1 },
+                                        { (u8*)"TX2",   TX2 },
+                                        { (u8*)"RX2",   RX2 },
+                                        { (u8*)"TA0",   TA0 },
+                                        { (u8*)"TA1",   TA1 },
+                                        { (u8*)"T0",    T0 },
+                                        { (u8*)"T1",    T1 },
+                                        { (u8*)"T2",    T2 },
+                                        { (u8*)"T3",    T3 },
+                                        { (u8*)"A0",    A0 },
+                                        { (u8*)"A1",    A1 },
+                                        { (u8*)"A2",    A2 },
+                                        { (u8*)"A3",    A3 },
+                                        { (u8*)"A4",    A4 },
+                                        { (u8*)"A5",    A5 },
+                                        { (u8*)"A6",    A6 },
+                                        { (u8*)"A7",    A7 }};
+#endif // __PYGMYNEBULA
+
 u8 convertStringToPin( u8 *ucBuffer )
 {
-    u8 *ucParam;
+    // This function is constant string safe
+    u8 i, *ucParam, ucParamBuf[ 16 ], ucPin;
 
-    ucParam = getNextSubString( ucBuffer, WHITESPACE );
-    replaceChars( ucParam, "pP", ' ' );
-    
-    return( convertStringToInt( ucParam ) );
+    for( i = 0; i < 16 && ucBuffer[ i ]; i++ ){
+        ucParamBuf[ i ] = ucBuffer[ i ];
+    } // for
+    ucParamBuf[ i ] = '\0';
+    ucParam = getNextSubString( (u8*)ucParamBuf, WHITESPACE );
+    if( replaceChars( ucParam, "pP", ' ' ) ){
+        if( replaceChars( ucParam, "aA", ' ' ) ){
+            ucPin = 0;
+        } else if( replaceChars( ucParam, "bB", ' ' ) ){
+            ucPin = 16;
+        } else if( replaceChars( ucParam, "cC", ' ' ) ){
+            ucPin = 32;
+        } else if( replaceChars( ucParam, "dD", ' ' ) ){
+            ucPin = 48;
+        } else if( replaceChars( ucParam, "eE", ' ' ) ){
+            ucPin = 64;
+        } else if( replaceChars( ucParam, "fF", ' ' ) ){
+            ucPin = 80;
+        } else{
+            return( 0xFF );
+        } // else
+        ucPin += convertStringToInt( ucParam );
+    } // if
+    #ifdef __PYGMYNEBULA
+        for( i = 0; i < 128; i++ ){
+            if( isStringSame( PYGMYNEBULAPINS[ i ].String, ucParam ) ){
+                ucPin = PYGMYNEBULAPINS[ i ].Value;
+                break;
+            } // if     
+        } // for
+    #endif // __PYGMYNEBULA
+
+    return( ucPin );
 }
 
 u16 bufferToU16( u8 *ucBuffer )
@@ -59,7 +116,7 @@ u32 bufferToU32( u8 *ucBuffer )
 
 s8 isCharInString( u8 ucChar, u8 *ucChars )
 {
-    for( ; *ucChars; ) {
+    for( ; ucChars && *ucChars; ) {
         if( ucChar == *(ucChars++) ){
             return( 1 );
         } // if

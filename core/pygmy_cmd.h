@@ -24,5 +24,36 @@
 
 extern const PYGMYCMD STDCOMMANDS[];
 
+void cmdGetsCOM1( void );
+void cmdGetsCOM2( void );
+void cmdGetsCOM3( void );
+void cmdGetsCOM4( void );
+void cmdGetsCOM5( void );
+void cmdSetActionChars( u8 ucStream, u8 *ucString );
+void cmdInit( void );
 u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
+
+u8 cmdNull( u8 *ucBuffer );
+u8 cmd_reset( u8 *ucBuffer );
+u8 cmd_peek( u8 *ucBuffer );
+u8 cmd_poke( u8 *ucBuffer );
+
+u8 cmd_pinset( u8 *ucBuffer );
+u8 cmd_pinget( u8 *ucBuffer );
+u8 cmd_pinanalog( u8 *ucBuffer );
+u8 cmd_pinpwm( u8 *ucBuffer );
+u8 cmd_pinconfig( u8 *ucBuffer );
+
+u8 cmd_mount( u8 *ucBuffer );
+u8 cmd_format( u8 *ucBuffer );
+u8 cmd_read( u8 *ucBuffer );
+u8 cmd_write( u8 *ucBuffer );
+u8 cmd_ls( u8 *ucBuffer );
+u8 cmd_rm( u8 *ucBuffer );
+u8 cmd_open( u8 *ucBuffer );
+u8 cmd_mv( u8 *ucBuffer );
+
+u8 cmd_rfscan( u8 *ucBuffer );
+u8 cmd_rfopen( u8 *ucBuffer );
+u8 cmd_rfsend( u8 *ucBuffer );
 

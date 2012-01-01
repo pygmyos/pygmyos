@@ -22,6 +22,8 @@
 
 #ifdef __PYGMYSTREAMS
     PYGMYFIFO globalStreams[ MAXCOMPORTS ];
+    u8 globalStreamEcho[ MAXCOMPORTS ];
+    u8 globalSTDIO = STDIO;
 #endif
 #ifdef __PYGMYSTREAMCOM1
     u8 globalCOM1RXBuffer[ __PYGMYCOM1BUFFERLEN ];
@@ -841,10 +843,11 @@ u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C )
 #ifdef __PYGMYSTREAMS
 void streamInit( void )
 {
-    u16 i;
+    u8 i;
     
     for( i = 0; i < MAXCOMPORTS; i++ ){
         streamReset( i );
+        globalStreamEcho[ i ] = 0;
     } // for
     
 }
@@ -868,6 +871,28 @@ u8 streamReset( u8 ucStream )
 
     return( 0 );
 }
+
+u8 streamGetSTDIO( void )
+{
+    return( globalSTDIO );
+}
+
+void streamSetSTDIO( u8 ucStream )
+{
+    globalSTDIO = ucStream;
+    
+    globalStreams[ STDIO ].RXBufferLen = globalStreams[ ucStream ].RXBufferLen;
+    globalStreams[ STDIO ].RXIndex     = globalStreams[ ucStream ].RXIndex;
+    globalStreams[ STDIO ].RXLen       = globalStreams[ ucStream ].RXLen; 
+    globalStreams[ STDIO ].TXBufferLen = globalStreams[ ucStream ].TXBufferLen;
+    globalStreams[ STDIO ].TXIndex     = globalStreams[ ucStream ].TXIndex;
+    globalStreams[ STDIO ].TXLen       = globalStreams[ ucStream ].TXLen;
+    globalStreams[ STDIO ].Put         = globalStreams[ ucStream ].Put;
+    globalStreams[ STDIO ].Get         = globalStreams[ ucStream ].Get;
+    globalStreams[ STDIO ].RXBuffer    = globalStreams[ ucStream ].RXBuffer;
+    globalStreams[ STDIO ].TXBuffer    = globalStreams[ ucStream ].TXBuffer;
+    
+}   
 
 void streamResetRX( u8 ucStream )
 {
@@ -930,8 +955,26 @@ u8 streamPutChar( u8 ucStream, u8 ucChar )
     return( 0 );
 }
 
+void streamFIFOToString( u8 ucStream, u8 *ucBuffer )
+{
+    for( ; !streamIsEmpty( ucStream ); ){
+        *(ucBuffer++) = streamGetChar( ucStream );
+    } // for
+    *ucBuffer = '\0'; // NULL Terminate
+}
+
+u8 streamIsEmpty( u8 ucStream )
+{
+    if( globalStreams[ ucStream ].RXLen ){
+        return( 0 ); // Still data in buffer
+    } // if
+    
+    return( 1 ); // Buffer empty
+}
+
 u8 streamPopChar( u8 ucStream )
 {
+    // Function returns last char received and decrements length
     u16 i;
 
     if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen ){
@@ -945,6 +988,7 @@ u8 streamPopChar( u8 ucStream )
 
 u8 streamPeekChar( u8 ucStream )
 {
+    // Function returns value of last char without affecting FIFO
     u16 i;
 
     if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen ){
@@ -957,6 +1001,7 @@ u8 streamPeekChar( u8 ucStream )
 
 void streamPushChar( u8 ucStream, u8 ucChar )
 {
+    // Function appends char to FIFO and increments length
     u16 i;
 
     if( ucStream < MAXCOMPORTS && globalStreams[ ucStream ].RXLen < globalStreams[ ucStream ].RXBufferLen){
@@ -1009,13 +1054,30 @@ u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
     
     return( 0 );
 }
+
+u8 streamGetEcho( u8 ucStream )
+{
+    return( globalStreamEcho[ ucStream ] );
+}
+
+void streamSetEcho( u8 ucStream, u8 ucEcho )
+{
+    globalStreamEcho[ ucStream ] = ucEcho;
+}
+
 #endif
 
 #ifdef __PYGMYSTREAMCOM1
 void USART1_IRQHandler( void )
 {
+    u8 ucChar;
+    
     if( USART1->SR & USART_RXNE){
-        streamPushChar( COM1, USART1->DR ); 
+        ucChar = USART1->DR;
+        streamPushChar( COM1, ucChar ); 
+        if( globalStreamEcho[ COM1 ] ){
+            USART1->DR = ucChar
+        } // if
         if( globalStreams[ COM1 ].Get ){
             globalStreams[ COM1 ].Get();
         } // if
@@ -1031,8 +1093,14 @@ void USART1_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM2
 void USART2_IRQHandler( void )
 {
+    u8 ucChar;
+
     if( USART2->SR & USART_RXNE){
-        streamPushChar( COM2, USART2->DR ); 
+        ucChar = USART2->DR;
+        streamPushChar( COM2, ucChar ); 
+        if( globalStreamEcho[ COM2 ] ){
+            USART2->DR = ucChar;
+        } // if
         if( globalStreams[ COM2 ].Get ){
             globalStreams[ COM2 ].Get();
         } // if
@@ -1047,23 +1115,20 @@ void USART2_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM3
 void USART3_IRQHandler( void )
 {
+    u8 ucChar;
+
     if( USART3->SR & USART_RXNE){
-        streamPushChar( COM3, USART3->DR ); 
+        ucChar = USART3->DR;
+        streamPushChar( COM3, ucChar ); 
+        if( globalStreamEcho[ COM3 ] ){
+            USART3->DR = ucChar;
+        } // if
         if( globalStreams[ COM3 ].Get ){
             globalStreams[ COM3 ].Get();
         } // if
     } // if
     if( USART3->SR & USART_TXE ){
        streamTXChar( COM3, USART3 );
-	   /*if( pygmyGlobalData.Stream[ COM3 ].TXLen ){
-			--pygmyGlobalData.Stream[ COM3 ].TXLen;  
-			USART3->DR = pygmyGlobalData.Stream[ COM3 ].TXBuffer[ pygmyGlobalData.Stream[ COM3 ].TXIndex ]; 
-			pygmyGlobalData.Stream[ COM3 ].TXIndex = ( pygmyGlobalData.Stream[ COM3 ].TXIndex + 1 ) % 
-				pygmyGlobalData.Stream[ COM3 ].TXBufferLen;
-		} else {
-			USART3->CR1 &= ~USART_TXEIE;
-		} // else
-        */
     } // if
     USART3->SR = 0;
 }
@@ -1072,8 +1137,14 @@ void USART3_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM4
 void USART4_IRQHandler( void )
 {
+    u8 ucChar;
+
     if( USART4->SR & USART_RXNE){
-        streamPushChar( COM4, USART4->DR ); 
+        ucChar = USART4->DR;
+        streamPushChar( COM4, ucChar ); 
+        if( globalStreamEcho[ COM4 ] ){
+            USART4->DR = ucChar;
+        } // if
         if( globalStreams[ COM4 ].Get ){
             globalStreams[ COM4 ].Get();
         } // if
@@ -1088,8 +1159,14 @@ void USART4_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM5
 void USART5_IRQHandler( void )
 {
+    u8 ucChar;
+
     if( USART5->SR & USART_RXNE){
-        streamPushChar( COM5, USART5->DR ); 
+        ucChar = USART5->DR;
+        streamPushChar( COM5, ucChar ); 
+        if( globalStreamEcho[ COM5 ] ){
+            USART5->DR = ucChar;
+        } // if
         if( globalStreams[ COM5 ].Get ){
             globalStreams[ COM5 ].Get();
         } // if

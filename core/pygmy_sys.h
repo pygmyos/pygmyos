@@ -285,7 +285,22 @@ enum {  PYGMY_TIMER0,   PYGMY_TIMER1,   PYGMY_TIMER2,   PYGMY_TIMER3,   PYGMY_TI
         PYGMY_TIMER6,   PYGMY_TIMER7,   PYGMY_TIMER8,   PYGMY_TIMER9,   PYGMY_TIMER10,  PYGMY_TIMER11, 
         PYGMY_TIMER12,  PYGMY_TIMER13,  PYGMY_TIMER14,  PYGMY_TIMER15,  PYGMY_TIMER16,  PYGMY_TIMER17
         };
+  
+typedef struct {
+                u8 *String;
+                u8 Value;
+                } PYGMYPAIR;
             
+typedef struct {
+                u8 *String;
+                u16 Value;
+                } PYGMY16PAIR;
+            
+typedef struct {
+                u8 *String;
+                u32 Value;
+                } PYGMY32PAIR;
+    
 typedef struct {
                 u32 MainClock;
                 u32 XTAL;

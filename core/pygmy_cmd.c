@@ -20,7 +20,9 @@
 
 #include "pygmy_profile.h"
 
-const PYGMYCMD STDCOMMANDS[] = { 
+u8* globalCMDActionChars[ MAXCOMPORTS ];
+
+const PYGMYCMD PYGMYSTDCOMMANDS[] = { 
                                     {(u8*)"reset",      cmd_reset},
                                     {(u8*)"peek",       cmd_peek},
                                     {(u8*)"poke",       cmd_poke},
@@ -52,6 +54,114 @@ const PYGMYCMD STDCOMMANDS[] = {
 
 //--------------------------------------------------------------------------------------------
 //------------------------------------Pygmy CMD Interface-------------------------------------
+#ifdef __PYGMYSTREAMCOM1
+void cmdGetsCOM1( void )
+{
+    PYGMYFIFO pygmySTDIO;
+    //u16 i;
+    u8 ucChar, ucBuffer[ __PYGMYCOM1BUFFERLEN ];    
+    
+    ucChar = streamPeekChar( COM1 );
+    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM1 ] ) ){ 
+        streamGetSTDIO( &pygmySTDIO );
+        streamFIFOToString( COM1, ucBuffer );
+        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
+        streamSetSTDIO( COM1 );
+    } // if
+}
+#endif // __PYGMYSTREAMCOM1
+
+#ifdef __PYGMYSTREAMCOM2
+void cmdGetsCOM2( void )
+{
+    PYGMYFIFO pygmySTDIO;
+    //u16 i;
+    u8 ucChar, ucBuffer[ __PYGMYCOM2BUFFERLEN ];
+
+    ucChar = streamPeekChar( COM2 );
+    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM2 ] ) ){ 
+        streamGetSTDIO( &pygmySTDIO );
+        streamFIFOToString( COM2, ucBuffer );
+        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
+        streamSetSTDIO( COM2 );
+    } // if
+}
+#endif // __PYGMYSTREAMCOM2
+
+#ifdef __PYGMYSTREAMCOM3
+void cmdGetsCOM3( void )
+{
+    //u16 i;
+    u8 pygmySTDIO, ucChar, ucBuffer[ __PYGMYCOM3BUFFERLEN ];
+
+    ucChar = streamPeekChar( COM3 );
+    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM3 ] ) ){ 
+        pygmySTDIO = streamGetSTDIO( );
+        streamSetSTDIO( COM3 );
+        streamFIFOToString( COM3, ucBuffer );
+        if( !cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS ) ){
+            print( COM3, "\rerror\r> " );
+        } else{
+            print( COM3, "\r> " );
+        } // else
+        streamSetSTDIO( pygmySTDIO );
+    } 
+}
+#endif // __P// ifYGMYSTREAMCOM3
+
+#ifdef __PYGMYSTREAMCOM4
+void cmdGetsCOM4( void )
+{
+    PYGMYFIFO pygmySTDIO;
+    //u16 i;
+    u8 ucChar, ucBuffer[ __PYGMYCOM4BUFFERLEN ];
+    
+    ucChar = streamPeekChar( COM4 );
+    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM4 ] ) ){
+        streamGetSTDIO( &pygmySTDIO );
+        streamFIFOToString( COM4, ucBuffer );
+        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
+        streamSetSTDIO( COM4 );
+    } // if
+}
+#endif // __ PYGMYSTREAMCOM4
+
+#ifdef __PYGMYSTREAMCOM5
+void cmdGetsCOM5( void )
+{
+    PYGMYFIFO pygmySTDIO;
+    //u16 i;
+    u8 ucBuffer[ __PYGMYCOM5BUFFERLEN ];
+
+    ucChar = streamPeekChar( COM5 );
+    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM5 ] ) ){ 
+        streamGetSTDIO( &pygmySTDIO );
+        streamFIFOToString( COM5, ucBuffer );
+        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
+        streamSetSTDIO( COM5 ); 
+    } // if
+}
+#endif // __PYGMYSTREAMCOM5
+
+void cmdSetActionChars( u8 ucStream, u8 *ucString )
+{
+    // Warning! Chars passed must be in a NULL terminated string!
+
+    globalCMDActionChars[ ucStream ] = ucString;
+}
+
+void cmdInit( void )
+{
+    u16 i;
+
+    #ifndef __PYGMYCMDMAXLISTS
+        #define __PYGMYCMDMAXLISTS 1
+    #endif // __PYGMYCMDMAXLISTS
+    
+    for( i = 0; i < MAXCOMPORTS; i++ ){
+        globalCMDActionChars[ i ] = NULL;
+    } // for
+}
 
 u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 {
@@ -83,6 +193,11 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+u8 cmdNull( u8 *ucBuffer )
+{
+    return( 0 ); // No command, return error
+}
+
 u8 cmd_reset( u8 *ucBuffer )
 {
     PYGMY_RESET;
@@ -93,11 +208,13 @@ u8 cmd_reset( u8 *ucBuffer )
 u8 cmd_peek( u8 *ucBuffer )
 {
 
+    return( 0 );
 }
 
 u8 cmd_poke( u8 *ucBuffer )
 {
 
+    return( 0 );
 }
 
 //------------------------------------End Standard Commands-----------------------------------
@@ -125,9 +242,9 @@ u8 cmd_pinset( u8 *ucBuffer )
 
 u8 cmd_pinget( u8 *ucBuffer )
 {
-    print( STDIO, "\r%d", pinGet( convertStringToPin( ucBuffer ) );
+    print( STDIO, "\r%d", pinGet( convertStringToPin( ucBuffer ) ) );
 
-    return(  );
+    return( 1 );
 }
 
 u8 cmd_pinanalog( u8 *ucBuffer )
@@ -135,7 +252,7 @@ u8 cmd_pinanalog( u8 *ucBuffer )
     if( !adcGetStatus( ) ){
         adcSingleSampleInit();
     } // if
-    print( STDIO, "\r%d", adcSingleSample( convertStringToPin( getNextSubString( ucBuffer, "WHITESPACE" ) ) );
+    print( STDIO, "\r%d", adcSingleSample( convertStringToPin( getNextSubString( ucBuffer, WHITESPACE ) ) ) );
 
     return( 1 );
 }
@@ -158,7 +275,7 @@ u8 cmd_pinconfig( u8 *ucBuffer )
 
     ucPin = convertStringToPin( ucBuffer );
     ucParam = getNextSubString( NULL, WHITESPACE );
-    if( isStringSame( ucParam, "IN" ) || isTringSame( ucParam, "in" ) ){
+    if( isStringSame( ucParam, "IN" ) || isStringSame( ucParam, "in" ) ){
         ucMode = IN;
     } else if( isStringSame( ucParam, "OUT" ) || isStringSame( ucParam, "out" ) ){
         ucMode = OUT;
@@ -166,7 +283,7 @@ u8 cmd_pinconfig( u8 *ucBuffer )
         ucMode = ANALOG;
     } else if( isStringSame( ucParam, "PULLUP" ) || isStringSame( ucParam, "pullup" ) ){
         ucMode = PULLUP;
-    } else if( stringIsSame( ucParam, "PULLDOWN" ) || isStringSame( ucParam, "pulldown" ) ){
+    } else if( isStringSame( ucParam, "PULLDOWN" ) || isStringSame( ucParam, "pulldown" ) ){
         ucMode = PULLDOWN;
     } else{
         return( 0 );
@@ -183,7 +300,8 @@ u8 cmd_pinconfig( u8 *ucBuffer )
 //--------------------------------------------------------------------------------------------
 u8 cmd_mount( u8 *ucBuffer )
 {
-
+    fileMountRoot();
+    
     return( 0 );
 }
 
@@ -192,7 +310,7 @@ u8 cmd_format( u8 *ucBuffer )
     u8 *ucParam;
     
     ucParam = getNextSubString( ucBuffer, WHITESPACE );
-    format( ucParam );
+    fileFormat( ucParam );
 
     return( 1 );
 }
@@ -203,9 +321,9 @@ u8 cmd_read( u8 *ucBuffer )
     u16 i;
     u8 *ucParam, ucChar;
     
-    ucParam = getNextSubString( ucParams, WHITESPACE|NEWLINE );
-    if( ucParam && fileOpen( &pygmyFile, ucSubString, READ ) ){
-        for( i = 0; !(pygmyFile->Attributes & EOF ); i++ ){
+    ucParam = getNextSubString( ucParam, WHITESPACE|NEWLINE );
+    if( ucParam && fileOpen( &pygmyFile, ucParam, READ ) ){
+        for( i = 0; !(pygmyFile.Attributes & EOF ); i++ ){
             ucChar = fileGetChar( &pygmyFile );
             if( !(pygmyFile.Attributes & EOF ) ){
                 if( ucChar == '\r' ){
@@ -240,17 +358,17 @@ u8 cmd_ls( u8 *ucBuffer )
     u8 ucName[ 16 ];
 
     for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
-        uiID = getFileName( i, ucName );
+        uiID = fileGetName( i, ucName );
         if( uiID ){
             print( STDIO, "\r%s", ucName ); 
-            uiLen = 16 - stringLength( ucName );
+            uiLen = 16 - len( ucName );
             for( ii = 0; ii < uiLen; ii++ ){
                 print( STDIO, " " );
             } // for
-            print( STDIO, "%d", getFileLength( uiID ) );
+            print( STDIO, "%d", fileGetLength( uiID ) );
         } // if
     } // for
-    print( STDIO, "\rFree:           %d\r", getFreeSpace() );
+    print( STDIO, "\rFree:           %d\r", fileGetFreeSpace() );
   
     return( 1 );
 }
@@ -270,11 +388,11 @@ u8 cmd_open( u8 *ucBuffer )
     if( ucParam2[ 0 ] == '-' ){
         ++ucParam2;
     } // if
-    if( isCharInString( ucParam2, "rR" ) ){
+    if( isCharInString( *ucParam2, "rR" ) ){
         ucMode = READ;
-    } else if( isCharInString( ucParam2, "aA" ) ){
+    } else if( isCharInString( *ucParam2, "aA" ) ){
         ucMode = WRITE;
-    } else if( isCharInString( ucParam2, "wW" ) ){
+    } else if( isCharInString( *ucParam2, "wW" ) ){
         ucMode = APPEND;
     } // else if
     pygmyFile = ( PYGMYFILE *)sysGetFile();
@@ -284,7 +402,7 @@ u8 cmd_open( u8 *ucBuffer )
 
 u8 cmd_mv( u8 *ucBuffer )
 {
-    u8 ucParam1, ucParam2;
+    u8 *ucParam1, *ucParam2;
 
     ucParam1 = getNextSubString( ucBuffer, WHITESPACE );
     ucParam2 = getNextSubString( NULL, WHITESPACE );
