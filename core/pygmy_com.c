@@ -847,7 +847,6 @@ void streamInit( void )
     
     for( i = 0; i < MAXCOMPORTS; i++ ){
         streamReset( i );
-        globalStreamEcho[ i ] = 0;
     } // for
     
 }
@@ -855,17 +854,18 @@ void streamInit( void )
 u8 streamReset( u8 ucStream )
 {
     if( ucStream < MAXCOMPORTS ){
-        globalStreams[ ucStream ].RXBufferLen  = 0;
-        globalStreams[ ucStream ].RXIndex      = 0;
-        globalStreams[ ucStream ].RXLen        = 0; 
-        globalStreams[ ucStream ].TXBufferLen  = 0;
-        globalStreams[ ucStream ].TXIndex      = 0;
-        globalStreams[ ucStream ].TXLen        = 0;
-        globalStreams[ ucStream ].Put          = (void *)TaskException_Handler;
-        globalStreams[ ucStream ].Get          = (void *)TaskException_Handler;
-        globalStreams[ ucStream ].RXBuffer     = NULL;
-        globalStreams[ ucStream ].TXBuffer     = NULL;
-        
+        globalStreams[ ucStream ].RXBufferLen   = 0;
+        globalStreams[ ucStream ].RXIndex       = 0;
+        globalStreams[ ucStream ].RXLen         = 0; 
+        globalStreams[ ucStream ].TXBufferLen   = 0;
+        globalStreams[ ucStream ].TXIndex       = 0;
+        globalStreams[ ucStream ].TXLen         = 0;
+        globalStreams[ ucStream ].Put           = (void *)TaskException_Handler;
+        globalStreams[ ucStream ].Get           = (void *)TaskException_Handler;
+        globalStreams[ ucStream ].RXBuffer      = NULL;
+        globalStreams[ ucStream ].TXBuffer      = NULL;
+        globalStreams[ ucStream ].CR            = 0;
+        globalStreams[ ucStream ].ActionChars   = "\r";
         return( 1 );
     } // if
 
@@ -881,17 +881,18 @@ void streamSetSTDIO( u8 ucStream )
 {
     globalSTDIO = ucStream;
     
-    globalStreams[ STDIO ].RXBufferLen = globalStreams[ ucStream ].RXBufferLen;
-    globalStreams[ STDIO ].RXIndex     = globalStreams[ ucStream ].RXIndex;
-    globalStreams[ STDIO ].RXLen       = globalStreams[ ucStream ].RXLen; 
-    globalStreams[ STDIO ].TXBufferLen = globalStreams[ ucStream ].TXBufferLen;
-    globalStreams[ STDIO ].TXIndex     = globalStreams[ ucStream ].TXIndex;
-    globalStreams[ STDIO ].TXLen       = globalStreams[ ucStream ].TXLen;
-    globalStreams[ STDIO ].Put         = globalStreams[ ucStream ].Put;
-    globalStreams[ STDIO ].Get         = globalStreams[ ucStream ].Get;
-    globalStreams[ STDIO ].RXBuffer    = globalStreams[ ucStream ].RXBuffer;
-    globalStreams[ STDIO ].TXBuffer    = globalStreams[ ucStream ].TXBuffer;
-    
+    globalStreams[ STDIO ].RXBufferLen  = globalStreams[ ucStream ].RXBufferLen;
+    globalStreams[ STDIO ].RXIndex      = globalStreams[ ucStream ].RXIndex;
+    globalStreams[ STDIO ].RXLen        = globalStreams[ ucStream ].RXLen; 
+    globalStreams[ STDIO ].TXBufferLen  = globalStreams[ ucStream ].TXBufferLen;
+    globalStreams[ STDIO ].TXIndex      = globalStreams[ ucStream ].TXIndex;
+    globalStreams[ STDIO ].TXLen        = globalStreams[ ucStream ].TXLen;
+    globalStreams[ STDIO ].Put          = globalStreams[ ucStream ].Put;
+    globalStreams[ STDIO ].Get          = globalStreams[ ucStream ].Get;
+    globalStreams[ STDIO ].RXBuffer     = globalStreams[ ucStream ].RXBuffer;
+    globalStreams[ STDIO ].TXBuffer     = globalStreams[ ucStream ].TXBuffer;
+    globalStreams[ STDIO ].CR           = globalStreams[ ucStream ].CR;
+    globalStreams[ STDIO ].ActionChars  = globalStreams[ ucStream ].ActionChars;
 }   
 
 void streamResetRX( u8 ucStream )
@@ -1055,14 +1056,36 @@ u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
     return( 0 );
 }
 
-u8 streamGetEcho( u8 ucStream )
+void streamSetActionChars( u8 ucStream, u8 *ucString )
 {
-    return( globalStreamEcho[ ucStream ] );
+    // Warning! ucString must be NULL terminated
+    globalStreams[ ucStream ].ActionChars = ucString;
 }
 
-void streamSetEcho( u8 ucStream, u8 ucEcho )
+u8 streamGetEcho( u8 ucStream )
 {
-    globalStreamEcho[ ucStream ] = ucEcho;
+    return( globalStreams[ ucStream ].CR & PYGMY_STREAMS_ECHO );
+}
+
+void streamEnableEcho( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR |= PYGMY_STREAMS_ECHO;
+    
+}
+
+void streamDisableEcho( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR &= ~PYGMY_STREAMS_ECHO;
+}
+
+void streamEnableActionChars( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR |= PYGMY_STREAMS_ACTIONCHARS;
+}
+
+void streamDisableActionChars( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR &= ~PYGMY_STREAMS_ACTIONCHARS;
 }
 
 #endif
@@ -1070,21 +1093,28 @@ void streamSetEcho( u8 ucStream, u8 ucEcho )
 #ifdef __PYGMYSTREAMCOM1
 void USART1_IRQHandler( void )
 {
-    u8 ucChar;
-    
+    u8 ucChar, ucAction;
+
     if( USART1->SR & USART_RXNE){
         ucChar = USART1->DR;
-        streamPushChar( COM1, ucChar ); 
-        if( globalStreamEcho[ COM1 ] ){
-            USART1->DR = ucChar
-        } // if
+        ucAction = isCharInString( ucChar, globalStreams[ COM1 ].ActionChars );
+        if( ( globalStreams[ COM1 ].CR & PYGMY_STREAMS_ECHO ) && !ucAction ){
+            USART1->DR = ucChar;
+        } //
+        if( ( globalStreams[ COM1 ].CR & PYGMY_STREAMS_BACKSPACE ) && ucChar == '\b' ){
+            streamPopChar( COM1 );
+        } else{
+            streamPushChar( COM1, ucChar );
+        } // else
         if( globalStreams[ COM1 ].Get ){
-            globalStreams[ COM1 ].Get();
+            if( !( globalStreams[ COM1 ].CR & PYGMY_STREAMS_ACTIONCHARS ) || ucAction ){
+                globalStreams[ COM1 ].Get();
+            } // if
         } // if
+        
     } // if
     if( USART1->SR & USART_TXE ){
-        streamTXChar( COM1, USART1 );
-		
+       streamTXChar( COM1, USART1 );
     } // if
     USART1->SR = 0;
 }
@@ -1093,20 +1123,28 @@ void USART1_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM2
 void USART2_IRQHandler( void )
 {
-    u8 ucChar;
+    u8 ucChar, ucAction;
 
     if( USART2->SR & USART_RXNE){
         ucChar = USART2->DR;
-        streamPushChar( COM2, ucChar ); 
-        if( globalStreamEcho[ COM2 ] ){
+        ucAction = isCharInString( ucChar, globalStreams[ COM2 ].ActionChars );
+        if( ( globalStreams[ COM2 ].CR & PYGMY_STREAMS_ECHO ) && !ucAction ){
             USART2->DR = ucChar;
-        } // if
+        } //
+        if( ( globalStreams[ COM2 ].CR & PYGMY_STREAMS_BACKSPACE ) && ucChar == '\b' ){
+            streamPopChar( COM2 );
+        } else{
+            streamPushChar( COM2, ucChar );
+        } // else
         if( globalStreams[ COM2 ].Get ){
-            globalStreams[ COM2 ].Get();
+            if( !( globalStreams[ COM2 ].CR & PYGMY_STREAMS_ACTIONCHARS ) || ucAction ){
+                globalStreams[ COM2 ].Get();
+            } // if
         } // if
+        
     } // if
     if( USART2->SR & USART_TXE ){
-        streamTXChar( COM2, USART2 );
+       streamTXChar( COM2, USART2 );
     } // if
     USART2->SR = 0;
 }
@@ -1115,17 +1153,25 @@ void USART2_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM3
 void USART3_IRQHandler( void )
 {
-    u8 ucChar;
+    u8 ucChar, ucAction;
 
     if( USART3->SR & USART_RXNE){
         ucChar = USART3->DR;
-        streamPushChar( COM3, ucChar ); 
-        if( globalStreamEcho[ COM3 ] ){
+        ucAction = isCharInString( ucChar, globalStreams[ COM3 ].ActionChars );
+        if( ( globalStreams[ COM3 ].CR & PYGMY_STREAMS_ECHO ) && !ucAction ){
             USART3->DR = ucChar;
-        } // if
+        } //
+        if( ( globalStreams[ COM3 ].CR & PYGMY_STREAMS_BACKSPACE ) && ucChar == '\b' ){
+            streamPopChar( COM3 );
+        } else{
+            streamPushChar( COM3, ucChar );
+        } // else
         if( globalStreams[ COM3 ].Get ){
-            globalStreams[ COM3 ].Get();
+            if( !( globalStreams[ COM3 ].CR & PYGMY_STREAMS_ACTIONCHARS ) || ucAction ){
+                globalStreams[ COM3 ].Get();
+            } // if
         } // if
+        
     } // if
     if( USART3->SR & USART_TXE ){
        streamTXChar( COM3, USART3 );
@@ -1137,17 +1183,25 @@ void USART3_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM4
 void USART4_IRQHandler( void )
 {
-    u8 ucChar;
+    u8 ucChar, ucAction;
 
     if( USART4->SR & USART_RXNE){
         ucChar = USART4->DR;
-        streamPushChar( COM4, ucChar ); 
-        if( globalStreamEcho[ COM4 ] ){
+        ucAction = isCharInString( ucChar, globalStreams[ COM4 ].ActionChars );
+        if( ( globalStreams[ COM4 ].CR & PYGMY_STREAMS_ECHO ) && !ucAction ){
             USART4->DR = ucChar;
-        } // if
+        } //
+        if( ( globalStreams[ COM4 ].CR & PYGMY_STREAMS_BACKSPACE ) && ucChar == '\b' ){
+            streamPopChar( COM4 );
+        } else{
+            streamPushChar( COM4, ucChar );
+        } // else
         if( globalStreams[ COM4 ].Get ){
-            globalStreams[ COM4 ].Get();
+            if( !( globalStreams[ COM4 ].CR & PYGMY_STREAMS_ACTIONCHARS ) || ucAction ){
+                globalStreams[ COM4 ].Get();
+            } // if
         } // if
+        
     } // if
     if( USART4->SR & USART_TXE ){
        streamTXChar( COM4, USART4 );
@@ -1159,17 +1213,25 @@ void USART4_IRQHandler( void )
 #ifdef __PYGMYSTREAMCOM5
 void USART5_IRQHandler( void )
 {
-    u8 ucChar;
+    u8 ucChar, ucAction;
 
     if( USART5->SR & USART_RXNE){
         ucChar = USART5->DR;
-        streamPushChar( COM5, ucChar ); 
-        if( globalStreamEcho[ COM5 ] ){
+        ucAction = isCharInString( ucChar, globalStreams[ COM5 ].ActionChars );
+        if( ( globalStreams[ COM5 ].CR & PYGMY_STREAMS_ECHO ) && !ucAction ){
             USART5->DR = ucChar;
-        } // if
+        } //
+        if( ( globalStreams[ COM5 ].CR & PYGMY_STREAMS_BACKSPACE ) && ucChar == '\b' ){
+            streamPopChar( COM5 );
+        } else{
+            streamPushChar( COM5, ucChar );
+        } // else
         if( globalStreams[ COM5 ].Get ){
-            globalStreams[ COM5 ].Get();
+            if( !( globalStreams[ COM5 ].CR & PYGMY_STREAMS_ACTIONCHARS ) || ucAction ){
+                globalStreams[ COM5 ].Get();
+            } // if
         } // if
+        
     } // if
     if( USART5->SR & USART_TXE ){
        streamTXChar( COM5, USART5 );

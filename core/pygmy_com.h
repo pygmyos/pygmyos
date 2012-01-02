@@ -351,6 +351,10 @@ typedef struct
 //-----------------------------------Pygmy OS Comports----------------------------------------
 #define DATA        1
 #define COMMAND     0
+#define PYGMY_STREAMS_ECHO          BIT1
+#define PYGMY_STREAMS_BACKSPACE     BIT2
+#define PYGMY_STREAMS_ACTIONCHARS   BIT3
+#define PYGMY_STREAMS_CR            BIT4
 
 typedef struct {
                 //u8 Status;
@@ -364,6 +368,8 @@ typedef struct {
                 PYGMYVOIDPTR Get;
                 u8 *RXBuffer;
                 u8 *TXBuffer;
+                u8 *ActionChars;
+                u8 CR;
                 } PYGMYFIFO;    
 
 enum {
@@ -556,6 +562,7 @@ u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C );
     
 void streamInit( void );
 u8 streamReset( u8 ucStream );
+void streamSetActionChars( u8 ucStream, u8 *ucString );
 u8 streamGetSTDIO( void );
 void streamSetSTDIO( u8 ucStream );
 void streamResetRX( u8 ucStream );
@@ -573,4 +580,7 @@ u8 streamSetGet( u8 ucStream, void *ptrFunc );
 u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 u8 streamGetEcho( u8 ucStream );
-void streamSetEcho( u8 ucStream, u8 ucEcho );
+void streamEnableEcho( u8 ucStream );
+void streamDisableEcho( u8 ucStream );
+void streamEnableActionChars( u8 ucStream );
+void streamDisableActionChars( u8 ucStream );

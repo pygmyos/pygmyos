@@ -37,6 +37,9 @@ u8 cmdNull( u8 *ucBuffer );
 u8 cmd_reset( u8 *ucBuffer );
 u8 cmd_peek( u8 *ucBuffer );
 u8 cmd_poke( u8 *ucBuffer );
+u8 cmd_ps( u8 *ucBuffer );
+u8 cmd_kill( u8 *ucBuffer );
+u8 cmd_time( u8 *ucBuffer );
 
 u8 cmd_pinset( u8 *ucBuffer );
 u8 cmd_pinget( u8 *ucBuffer );

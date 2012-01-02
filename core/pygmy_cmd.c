@@ -20,12 +20,14 @@
 
 #include "pygmy_profile.h"
 
-u8* globalCMDActionChars[ MAXCOMPORTS ];
+u8 *globalCMDPrompt, *globalCMDError, *globalCMDUnsupported;
 
 const PYGMYCMD PYGMYSTDCOMMANDS[] = { 
                                     {(u8*)"reset",      cmd_reset},
                                     {(u8*)"peek",       cmd_peek},
                                     {(u8*)"poke",       cmd_poke},
+                                    {(u8*)"ps",         cmd_ps},
+                                    {(u8*)"kill",       cmd_kill},
                                     //{(u8*)"recv",       cmd_recv}, // XModem
                                     //{(u8*)"send",       cmd_send}, // XModem
                                     
@@ -57,98 +59,67 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
 #ifdef __PYGMYSTREAMCOM1
 void cmdGetsCOM1( void )
 {
-    PYGMYFIFO pygmySTDIO;
-    //u16 i;
-    u8 ucChar, ucBuffer[ __PYGMYCOM1BUFFERLEN ];    
-    
-    ucChar = streamPeekChar( COM1 );
-    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM1 ] ) ){ 
-        streamGetSTDIO( &pygmySTDIO );
-        streamFIFOToString( COM1, ucBuffer );
-        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
-        streamSetSTDIO( COM1 );
-    } // if
+    u8 pygmySTDIO, ucBuffer[ __PYGMYCOM1BUFFERLEN ];
+
+    pygmySTDIO = streamGetSTDIO( );
+    streamSetSTDIO( COM1 );
+    streamFIFOToString( COM1, ucBuffer );
+    cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS );
+    streamSetSTDIO( pygmySTDIO ); 
 }
 #endif // __PYGMYSTREAMCOM1
 
 #ifdef __PYGMYSTREAMCOM2
 void cmdGetsCOM2( void )
 {
-    PYGMYFIFO pygmySTDIO;
-    //u16 i;
-    u8 ucChar, ucBuffer[ __PYGMYCOM2BUFFERLEN ];
+    u8 pygmySTDIO, ucBuffer[ __PYGMYCOM2BUFFERLEN ];
 
-    ucChar = streamPeekChar( COM2 );
-    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM2 ] ) ){ 
-        streamGetSTDIO( &pygmySTDIO );
-        streamFIFOToString( COM2, ucBuffer );
-        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
-        streamSetSTDIO( COM2 );
-    } // if
+    pygmySTDIO = streamGetSTDIO( );
+    streamSetSTDIO( COM2 );
+    streamFIFOToString( COM2, ucBuffer );
+    cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS );
+    streamSetSTDIO( pygmySTDIO ); 
 }
 #endif // __PYGMYSTREAMCOM2
 
 #ifdef __PYGMYSTREAMCOM3
 void cmdGetsCOM3( void )
 {
-    //u16 i;
-    u8 pygmySTDIO, ucChar, ucBuffer[ __PYGMYCOM3BUFFERLEN ];
+    u8 pygmySTDIO, ucBuffer[ __PYGMYCOM3BUFFERLEN ];
 
-    ucChar = streamPeekChar( COM3 );
-    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM3 ] ) ){ 
-        pygmySTDIO = streamGetSTDIO( );
-        streamSetSTDIO( COM3 );
-        streamFIFOToString( COM3, ucBuffer );
-        if( !cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS ) ){
-            print( COM3, "\rerror\r> " );
-        } else{
-            print( COM3, "\r> " );
-        } // else
-        streamSetSTDIO( pygmySTDIO );
-    } 
+    pygmySTDIO = streamGetSTDIO( );
+    streamSetSTDIO( COM3 );
+    streamFIFOToString( COM3, ucBuffer );
+    cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS );
+    streamSetSTDIO( pygmySTDIO ); 
 }
-#endif // __P// ifYGMYSTREAMCOM3
+#endif // __PYGMYSTREAMCOM3
 
 #ifdef __PYGMYSTREAMCOM4
 void cmdGetsCOM4( void )
 {
-    PYGMYFIFO pygmySTDIO;
-    //u16 i;
-    u8 ucChar, ucBuffer[ __PYGMYCOM4BUFFERLEN ];
-    
-    ucChar = streamPeekChar( COM4 );
-    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM4 ] ) ){
-        streamGetSTDIO( &pygmySTDIO );
-        streamFIFOToString( COM4, ucBuffer );
-        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
-        streamSetSTDIO( COM4 );
-    } // if
+    u8 pygmySTDIO, ucBuffer[ __PYGMYCOM4BUFFERLEN ];
+
+    pygmySTDIO = streamGetSTDIO( );
+    streamSetSTDIO( COM4 );
+    streamFIFOToString( COM4, ucBuffer );
+    cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS );
+    streamSetSTDIO( pygmySTDIO ); 
 }
 #endif // __ PYGMYSTREAMCOM4
 
 #ifdef __PYGMYSTREAMCOM5
 void cmdGetsCOM5( void )
 {
-    PYGMYFIFO pygmySTDIO;
-    //u16 i;
-    u8 ucBuffer[ __PYGMYCOM5BUFFERLEN ];
+    u8 pygmySTDIO, ucBuffer[ __PYGMYCOM5BUFFERLEN ];
 
-    ucChar = streamPeekChar( COM5 );
-    if( ucChar == '\r' || isCharInString( ucChar, globalCMDActionChars[ COM5 ] ) ){ 
-        streamGetSTDIO( &pygmySTDIO );
-        streamFIFOToString( COM5, ucBuffer );
-        cmdExecute( ucBuffer, PYGMYSTDCOMMANDS );
-        streamSetSTDIO( COM5 ); 
-    } // if
+    pygmySTDIO = streamGetSTDIO( );
+    streamSetSTDIO( COM5 );
+    streamFIFOToString( COM5, ucBuffer );
+    cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS );
+    streamSetSTDIO( pygmySTDIO ); 
 }
 #endif // __PYGMYSTREAMCOM5
-
-void cmdSetActionChars( u8 ucStream, u8 *ucString )
-{
-    // Warning! Chars passed must be in a NULL terminated string!
-
-    globalCMDActionChars[ ucStream ] = ucString;
-}
 
 void cmdInit( void )
 {
@@ -158,9 +129,10 @@ void cmdInit( void )
         #define __PYGMYCMDMAXLISTS 1
     #endif // __PYGMYCMDMAXLISTS
     
-    for( i = 0; i < MAXCOMPORTS; i++ ){
-        globalCMDActionChars[ i ] = NULL;
-    } // for
+    globalCMDPrompt = "\r> ";
+    globalCMDError = "\rerror\r> ";
+    globalCMDUnsupported = "\runsupported\r> ";
+    print( STDIO, globalCMDPrompt );
 }
 
 u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
@@ -170,18 +142,22 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
     
     ucCommand = getNextSubString( ucBuffer, WHITESPACE|PUNCT );
     if( !ucCommand ){
+        print( STDIO, globalCMDPrompt );
         return( 0 );
     } // if
         
     for( ii = 0; 1; ii++ ){
         if( isStringSame( NULL, pygmyCmds[ ii ].Name ) ){
+            print( STDIO, globalCMDUnsupported);
             return( 0 );
         } // if
         if( isStringSame( ucCommand, pygmyCmds[ ii ].Name ) ){
             // Parameters should not be passed here, they are passed using getNextSubString
             if( pygmyCmds[ ii ].Call( (u8*)"" ) ){
+                print( STDIO, globalCMDPrompt );
                 return( 1 );
             }else{
+                print( STDIO, globalCMDError );
                 return( 0 );
             } // else
         } // if
@@ -212,6 +188,24 @@ u8 cmd_peek( u8 *ucBuffer )
 }
 
 u8 cmd_poke( u8 *ucBuffer )
+{
+
+    return( 0 );
+}
+
+u8 cmd_ps( u8 *ucBuffer )
+{
+    
+    return( 0 );
+}
+
+u8 cmd_kill( u8 *ucBuffer )
+{
+
+    return( 0 );
+}
+
+u8 cmd_time( u8 *ucBuffer )
 {
 
     return( 0 );
@@ -417,17 +411,34 @@ u8 cmd_mv( u8 *ucBuffer )
 //--------------------------------------------------------------------------------------------
 u8 cmd_rfscan( u8 *ucBuffer )
 {
-
+    
+    return( 0 );
 }
 
 u8 cmd_rfopen( u8 *ucBuffer )
 {
+    u32 ulID;
 
+    ulID = rfGetID();
+    if( ulID == 0x41B40AA8 ){
+        rfOpenSocket( 0x1FC60435, RF_COMLINK );
+    } else {
+        rfOpenSocket( 0x41B40AA8, RF_COMLINK );
+    } // else
+    
+    return( 1 );
 }
 
 u8 cmd_rfsend( u8 *ucBuffer )
 {
+    u8 *ucParam;
+    
+    ucParam = getNextSubString( ucBuffer, NEWLINE );
+    if( ucParam ){
+        rfPutString( ucParam );
+    } // if
 
+    return( 1 );
 }
 
 //------------------------------------End Basic RFCommands------------------------------------

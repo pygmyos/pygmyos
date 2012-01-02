@@ -65,9 +65,7 @@ u8 sysInit( void )
     sysEnableTimerClock( pygmyGlobalData.DelayTimer );
     // The following implements default stream config from the profile
     // If no defaults are defined, configuration must be done manually
-    #ifdef __PYGMYCOMMANDS
-        cmdInit();
-    #endif // __PYGMYCOMMANDS
+    
     #ifdef __PYGMYSTREAMS
         streamInit();
         
@@ -118,7 +116,14 @@ u8 sysInit( void )
             
             streamSetPut( LCD, putsLCD );
         #endif
+        #ifdef __PYGMYNEBULA
+            streamSetSTDIO( COM3 );
+        #endif
+        #ifdef __PYGMYCOMMANDS
+            cmdInit();
+        #endif // __PYGMYCOMMANDS
     #endif
+    
     #ifdef __PYGMYFILES
         fileMountRoot();
     #endif
