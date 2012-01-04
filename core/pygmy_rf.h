@@ -179,10 +179,11 @@
 
 #define RF_MAXSOCKETS       32
 
-#define RF_OPEN             BIT7    // 1 = Open Socket
-#define RF_CLOSE            BIT6    // 1 = Close Socket
-#define RF_RXTX             BIT5    // 1 = TX, 0 = RX
-#define RF_ACK              BIT4    // 1 = ACK, 0 = NACK
+#define RF_OPEN             1    
+#define RF_CLOSE            2    
+#define RF_NEXT             3    
+#define RF_LAST             4   
+#define RF_SCAN             5   
 
 #define RF_BLANK            0       // 
 #define RF_COMLINK          1       // Com Link
@@ -196,11 +197,25 @@ typedef struct {
                 u32 DestID;
                 u8 SocketType;
                 u8 PacketCount;
+                u8 CR;
                 } PYGMYRFSOCKET;
 
+typedef struct {
+                u32 DestID;
+                u32 SrcID;
+                u16 CRC;
+                u8 Command;
+                u8 Len;
+                u8 Chunk;
+                u8 Type;
+                u8 Payload[ 25 ];
+                } PYGMYRFPACKET;
+                
  
 void rfRX( void );
-            
+
+u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket );        
+void rfSendPacket( PYGMYRFPACKET *pygmyPacket );            
 u8 rfGetSocket( u32 uiID );
 void rfInitSockets( void );
             

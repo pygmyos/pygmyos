@@ -92,14 +92,12 @@ u8 convertStringToPin( u8 *ucBuffer )
 
 u16 bufferToU16( u8 *ucBuffer )
 {
-    u16 ii;
-    u8 i;
+    u16 i;
 
-    for ( i = 0, ii = *(ucBuffer++); i < 3; i++ ){
-        ii = ( ii << 8 ) | *(ucBuffer++);
-    } // if
+    i = (u16)( *(ucBuffer++)) << 8;
+    i |= (u16)(*ucBuffer);
 
-    return( ii );
+    return( i );
 }
 
 u32 bufferToU32( u8 *ucBuffer )

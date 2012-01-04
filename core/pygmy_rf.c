@@ -57,32 +57,128 @@ void rfGetRXPayload( u8 *ucBuffer )
         } // if
         ucBuffer[ i ] = '\0';
         RF_CS_HIGH;
-        print( COM3, ucBuffer );
+        //print( COM3, ucBuffer );
         rfProcessPacket( ucBuffer, ucLen );
     } // while
     rfClearStatus();
 }
 
-void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
-{    
+void rfSendPacket( PYGMYRFPACKET *pygmyPacket )
+{
+    u8 i, ucIndex, ucBuffer[ 32 ];
+
+    ucIndex = 0;
+    ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->DestID >> 24 );
+    ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->DestID >> 16 );
+    ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->DestID >> 8 );
+    ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->DestID ); 
+    ucBuffer[ ucIndex++ ] = (u8) ( ( pygmyPacket->Command << 5 ) | pygmyPacket->Len );
+    ucBuffer[ ucIndex++ ] = (u8) pygmyPacket->Chunk;
+    if( pygmyPacket->Type == RF_OPEN ){
+        ucBuffer[ ucIndex++ ] = (u8) pygmyPacket->Type;
+        ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->SrcID >> 24 );
+        ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->SrcID >> 16 );
+        ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->SrcID >> 8 );
+        ucBuffer[ ucIndex++ ] = (u8)( pygmyPacket->SrcID );
+        
+    } else{
+        for( i = 0; i < pygmyPacket->Len; i++ ){
+            ucBuffer[ ucIndex++ ] = (u8)pygmyPacket->Payload[ i ];
+        } // for
+    } // else
+    
+    print( COM3, "\rucIndex: %d", ucIndex );
+    pygmyPacket->CRC = sysCRC16( ucBuffer, ucIndex );
+    ucBuffer[ ucIndex++ ] = (u8)(pygmyPacket->CRC >> 8);
+    ucBuffer[ ucIndex++ ] = (u8)pygmyPacket->CRC;
+    print( COM3, "\rSending:" );
+    for( i = 0; i < ucIndex; i++ ){
+        print( COM3, " ( %X )", ucBuffer[ i ] );
+    } // for
+    rfPutTXBuffer( ucIndex, ucBuffer );
+}
+
+u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket )
+{
     // Unified Socket
+    // CMDS[ CCC LLLLL ] MSB bits are command, LSB are Payload Len
+    // RF_OPEN
+    // RF_CLOSE
+    // RF_NEXT
+    // RF_LAST
+    // RF_SCAN
+    //
+    // RF_FILE
+    // RF_AVSTREAM
+    // RF_COMLINK
+    // RF_CONTROL
     // IDs = ( PDIASUM & 0xFFFFFF00 ) 
     // [ DESTID 3B PORT 1B ][ CMD 1B ][ CHUNK 1B ][ PAYLOAD 1-24B ][ CRC 2B ]
 
     // New Socket
-        // [ DESTID 0xFF ][ RF_OPEN | RF_FILE ][ 0x00 ][ SRCID 0xFF ][ FILENAME 1-12B 0x00 ][ LEN ][ CRC ]
-        // [ DESTID 0xFF ][ RF_OPEN | RF_AV ][ 0x00 ][ SRCID 0xFF ][ CRC ]
-        // [ DESTID 0xFF ][ RF_OPEN | RF_COMLINK ][ 0x00 ][ CRC ]
+        // [ DESTID 0xFF 4B ][ RF_OPEN 1B ][ 0x00 1B ][ RF_FILE 1B ][ SRCID 0xFF 4B ][ FILELEN 2B ][ FILENAME 0x00 1-12B ][ CRC 2B ]
+        // [ DESTID 0xFF 4B ][ RF_OPEN 1B ][ 0x00 1B ][ RF_AVSTREAM 1B ][ SRCID 0xFF 4B ][ CRC 2B ]
+        // [ DESTID 0xFF 4B ][ RF_OPEN 1B ][ 0x00 1B ][ RF_COMLINK 1B ][ SRCID 0xFF 4B ][ CRC 2B ]
+        // [ DESTID 0xFF 4B ][ RF_OPEN 1B ][ 0x00 1B ][ RF_CONTROL 1B ][ SRCID 0xFF 4B ][ CRC 2B ]
     // Close Socket
-        // [ DESTID PORT ][ RF_CLOSE ][ 0x00 ][ CRC ]
+        // [ DESTID PORT 4B ][ RF_CLOSE 1B ][ 0x00 1B ][ CRC 2B ]
     // New Socket Response
-        // [ DESTID PORT ][ RF_OPEN | RF_ACK ][ 0x00 ][ CRC ]
-    // Ack/Nack Packet
-        // [ DESTID PORT ][ RF_ACK/RF_NACK ][ 0x00 ][ CRC ]
+        // [ DESTID PORT 4B ][ RF_OPEN 1B ][ 0x00 1B ][ CRC 2B ]
+    // New Socket Response or Ack/Nack Packet
+        // [ DESTID PORT 4B ][ RF_NEXT/RF_LAST 1B ][ 0x00 1B ][ CRC 2B ]
+    u8 i;
     
-    u32 ulID, ulDestID;
-    u8 i, ucCMD, ucType, ucPort, ucChunk;
+    // Load common sections
+    pygmyPacket->DestID     = bufferToU32( ucBuffer );
+    print( COM3, "\rDestID: %X", pygmyPacket->DestID );
+    pygmyPacket->Command    = ( ( *( ucBuffer + 4 ) ) & 0xE0 ) >> 5;
+    print( COM3, "\rCommand: %d", pygmyPacket->Command );
+    pygmyPacket->Len        = ( *(ucBuffer + 4 ) & 0x1F );
+    print( COM3, "\rPayload Len: %d", pygmyPacket->Len );
+    pygmyPacket->Chunk      = *( ucBuffer + 5 );
+    print( COM3, "\rChunk: %d", pygmyPacket->Chunk );
+    pygmyPacket->CRC        = bufferToU16( ( ucBuffer + 6 + pygmyPacket->Len ) );
+   
+    if( sysCRC16( ucBuffer, pygmyPacket->Len + 6 ) != pygmyPacket->CRC ){
+        print( COM3, "\rCRC %X does not match %X", pygmyPacket->CRC, sysCRC16( ucBuffer, pygmyPacket->Len + 6 ) ); 
+        return( 0 );
+    } // else
+    for( i = 0; i < pygmyPacket->Len; i++ ){
+        pygmyPacket->Payload[ i ] = ucBuffer[ 6 + i ]; 
+    } // for
+    if( pygmyPacket->Command == RF_OPEN ){
+        pygmyPacket->Type       = pygmyPacket->Payload[ 0 ];
+        print( COM3, "\rType: %d", pygmyPacket->Type );
+        pygmyPacket->SrcID = bufferToU32( ( pygmyPacket->Payload + 1 ) );
+        print( COM3, "\rSRCID: %X", pygmyPacket->SrcID );
+        if( pygmyPacket->Type == RF_FILE ){
+            for( i = 0; i < 13; i++ ){
+                pygmyPacket->Payload[ i ] = pygmyPacket->Payload[ 5 + i ];
+                if( pygmyPacket->Payload[ i ] == '\0' ){
+                    break; // Check for NULL String Terminator
+                } // if 
+            } // for
+            print( COM3, "\rFilename: %s", pygmyPacket->Payload );
+        } // if
+    } // if
+
+}
+
+void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
+{    
+    PYGMYRFPACKET pygmyPacket;
+
+    rfLoadPacket( ucBuffer, &pygmyPacket );
+    
+    if( pygmyPacket->Command == RF_OPEN ){
+        pymgyPacket
+    } else{
+    
+    } // else
+    /*u32 ulID, ulDestID;
+    u8 i, ucCMD, ucType, ucPort, ucChunk, ucSocket;
  
+    print( COM3, "\rProcessing Packet..." );
     if( sysCRC8( 31, ucBuffer ) != ucBuffer[ 31 ] ){
         print( COM3, "\rCRC Fail" );
         return;
@@ -100,15 +196,19 @@ void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
         
     if( ucCMD & RF_OPEN ){
         
-        rfOpenSocket( ulDestID & 0xFFFFFF00, ucType );
-        print( COM3, "\rSocket Opened, ID: %8X", ulDestID & 0xFFFFFF00 );
+        ucSocket = rfOpenSocket( ulDestID & 0xFFFFFF00, ucType );
+        if( ucSocket == 0xFF ){
+            print( COM3, "\rSocket Fail" );
+        } else{
+            print( COM3, "\rSocket %d Opened, ID: %8X", ucSocket, ulDestID & 0xFFFFFF00 );
+        } // else
     } else if( ucCMD & RF_CLOSE ){
         print( COM3, "\rSocket Closed" );
     } else if( ucCMD & RF_RXTX ){
         print( COM3, "\rRXTX" );
     } else if( ucCMD & RF_ACK ){
         print( COM3, "\rACK" );
-    } // else if
+    } // else if*/
 }
 
 u8 rfOpenSocket( u32 ulDest, u8 ucType )
@@ -130,7 +230,24 @@ u8 rfOpenSocket( u32 ulDest, u8 ucType )
 
 void rfSendOpenSocket( u32 ulDest, u8 ucType  )
 {
-    u16 uiCRC;
+    PYGMYRFPACKET pygmyPacket;
+    
+    pygmyPacket.DestID = ulDest;
+    pygmyPacket.Type = ucType;
+    pygmyPacket.SrcID = pygmyGlobalRFID;
+    pygmyPacket.Len = 5;
+    pygmyPacket.Command = RF_OPEN;
+    /*if( ucType == RF_File ){
+    
+    } else if( ucType == RF_AVSTREAM ){
+    
+    } else if( ucType == RF_COMLINK ){
+        
+    } */
+    
+    rfSendPacket( &pygmyPacket );
+    
+    /*u16 uiCRC;
     u8 ucBuffer[ 32 ];
 
     //ucBuffer = globalRFTXPayload;
@@ -149,6 +266,7 @@ void rfSendOpenSocket( u32 ulDest, u8 ucType  )
         ucBuffer[ 6 ] = (u8)uiCRC >> 8;
         ucBuffer[ 7 ] = (u8)uiCRC;
     } // else if
+    rfPutTXBuffer( 8, ucBuffer );*/
 }
 
 void rfCloseSocket( u8 ucSocket )
@@ -289,6 +407,11 @@ void rfPutString( u8 *ucBuffer )
     //rfFlushTX();
     rfClearStatus();
     rfSetRX();
+}
+
+void rfSocketPutString( u8 ucSocket, u8 *ucString )
+{
+
 }
 
 void rfPutTXBuffer( u16 uiLen, u8 *ucBuffer )

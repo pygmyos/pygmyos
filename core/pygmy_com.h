@@ -584,3 +584,5 @@ void streamEnableEcho( u8 ucStream );
 void streamDisableEcho( u8 ucStream );
 void streamEnableActionChars( u8 ucStream );
 void streamDisableActionChars( u8 ucStream );
+void streamEnableBackspace( u8 ucStream );
+void streamDisableBackspace( u8 ucStream );

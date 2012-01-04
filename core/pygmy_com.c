@@ -1088,6 +1088,16 @@ void streamDisableActionChars( u8 ucStream )
     globalStreams[ ucStream ].CR &= ~PYGMY_STREAMS_ACTIONCHARS;
 }
 
+void streamEnableBackspace( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR |= PYGMY_STREAMS_BACKSPACE;
+}
+
+void streamDisableBackspace( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR &= ~PYGMY_STREAMS_BACKSPACE;
+}
+
 #endif
 
 #ifdef __PYGMYSTREAMCOM1
