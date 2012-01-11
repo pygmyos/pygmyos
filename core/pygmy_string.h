@@ -29,8 +29,10 @@
 #define QUOTES             BIT4
 #define COMMA              BIT5
 
+extern const PYGMYPAIR PYGMYNEBULAPINS[];
 //extern const u8 PYGMYBASE64CHARS[];
 //extern const u8 PYGMYHEXCHARS[];
+u8 *convertPinToString( u8 ucPin );
 u8 convertStringToPin( u8 *ucBuffer );
 u16 bufferToU16( u8 *ucBuffer );
 u32 bufferToU32( u8 *ucBuffer );

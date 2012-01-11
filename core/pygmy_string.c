@@ -24,6 +24,7 @@ const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 
 #ifdef __PYGMYNEBULA
+    #define PYGMYMAXPINS  23
     const PYGMYPAIR PYGMYNEBULAPINS[] = {
                                         { (u8*)"LED0",  LED0 },
                                         { (u8*)"LED1",  LED1 },
@@ -47,9 +48,22 @@ const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C'
                                         { (u8*)"A4",    A4 },
                                         { (u8*)"A5",    A5 },
                                         { (u8*)"A6",    A6 },
-                                        { (u8*)"A7",    A7 }};
+                                        { (u8*)"A7",    A7 } };
 #endif // __PYGMYNEBULA
 
+u8 *convertPinToString( u8 ucPin )
+{
+    u8 i;
+
+    for( i = 0; i < PYGMYMAXPINS; i++ ){
+        if( ucPin == PYGMYNEBULAPINS[ i ].Value ){
+            return( PYGMYNEBULAPINS[ i ].String );
+        } // if
+    } // for
+
+    return( NULL );
+}
+                                    
 u8 convertStringToPin( u8 *ucBuffer )
 {
     // This function is constant string safe

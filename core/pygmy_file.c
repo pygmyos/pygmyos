@@ -238,6 +238,43 @@ u8 fileIsValidName( u8 *ucName )
     return( 1 );
 }
 
+u8 fileCopy( u8 *ucCurrentName, u8 *ucName )
+{
+    PYGMYFILE pygmyFile1, pygmyFile2;
+    u32 ulFileEntry;
+    u16 uiFileID;
+    u8 ucAttrib;
+
+    if( !fileIsValidName( ucName ) || !fileIsValidName( ucCurrentName ) ){
+        return( 0 );
+    } // if
+    ulFileEntry = fileSeekName( ucCurrentName );
+    if( !ulFileEntry || fileSeekName( ucName ) ){
+        return( 0 );
+    } // if
+
+    ulFileEntry = pygmyRootVolume.ActiveFiles + ( ulFileEntry * 16); // Each file Entry exactly 16 bytes
+    ucAttrib = flashReadByte( ulFileEntry + 13 );
+    uiFileID = flashReadWord( ulFileEntry + 14 );
+    
+    ulFileEntry = fileGetFreeFileEntry( );
+    if( !ulFileEntry ){
+        return( 0 ); // This can only happen in the case of memory failure
+    } // if
+
+    ulFileEntry = pygmyRootVolume.ActiveFiles + ( ulFileEntry * 16); // Each file Entry exactly 16 bytes
+    flashWriteBuffer( ulFileEntry, len( ucName )+1, ucName );
+    flashWriteByte( ulFileEntry+13, ucAttrib );
+    // Next we write the ID, this starts as the physical offset of the entry
+    // This tag cannot be used to identify the entry location since the tag will follow the
+    // file through name changes, etc. If ID changes, all associated FAT Entries are lost
+    flashWriteWord( ulFileEntry+14, uiFileID );
+    
+    //Next Copy data
+
+    return( 1 );
+}
+
 u8 fileRename( u8 *ucCurrentName, u8 *ucName )
 {
     u32 ulFileEntry;
@@ -901,12 +938,6 @@ u8 fileMountRoot( void )//Volume( void )//PYGMYFILEVOLUME *pygmyFileVolume )
 {
     u32 ulTableOffset;
     
-    #ifndef __PYGMY_BOOT
-        spiConfig( &pygmyFlashSPI, FLASH_CS, FLASH_SCK, FLASH_MISO, FLASH_MOSI );
-    #endif
-    #ifdef __PYGMY_BOOT
-        FLASH_CS_INIT; // To be defined in profile
-    #endif
     flashWriteEnable( );
     // Note that the Files_A and Files_B values are static and will not change, both Files A/B will be same in both tables 
     pygmyRootVolume.Files_A = 0;//Pygmy_FLASH_ReadLong( PYGMY_FILE_VOLUME_FIELD_FILES_A );
@@ -947,17 +978,15 @@ u32 fileFormat( u8 *ucName )
     u8 ucAttribs;
 
     #ifndef __PYGMY_BOOT
-        spiConfig( &pygmyFlashSPI, FLASH_CS, FLASH_SCK, FLASH_MISO, FLASH_MOSI );
         // Verify name isn't too long 
         if( ucName[ 0 ] && !fileIsValidName( ucName ) ){ 
             return( 0 );
         } // if
     #endif
-    #ifdef __PYGMY_BOOT
-        FLASH_CS_INIT; // To be defined in profile
-    #endif
     // Start by erasing chip
-    //print( COM3, "\rReading Capacity: ");
+    
+    flashWriteEnable( );
+    flashChipErase( );
     ulCapacity = flashReadID( );
     uiSecPerFAT = 1;
     ucAttribs = 0;
@@ -985,8 +1014,6 @@ u32 fileFormat( u8 *ucName )
         //ucAttribs = READ|WRITE|MEDIAFLASH;
     } // else if
     
-    flashWriteEnable( );
-    flashChipErase( );
     #ifndef __PYGMY_BOOT
         // Next write optional volume name, if needed
         if( ucName[ 0 ] ){ // As long as first char of name field is non-null, name is optional
@@ -1021,15 +1048,15 @@ void spiWriteByte( PYGMYSPIPORT *pymgyPort, u8 ucByte )
     // Clocks out 8 bits
 	u16 i;
 	
-	SPI_SCK_LOW;		                    // Clock starts low, low-high-low clocks data in or out
+	FLASH_SCK_LOW;		                    // Clock starts low, low-high-low clocks data in or out
 	for( i = 0; i < 8; i++ ){ 		        // Clock out Write CMD
 		if( ucByte & ( BIT7 >> i ) ){       // SRAM clocks MSB first, test each bit in sequence from 7 to 0 		
-            SPI_MOSI_HIGH;                  // SlaveInMasterOut high if bit set
+            FLASH_MOSI_HIGH;                  // SlaveInMasterOut high if bit set
 		} else{                             //
-            SPI_MOSI_LOW;                   // SlaveInMasterOut low if bit clear
+            FLASH_MOSI_LOW;                   // SlaveInMasterOut low if bit clear
         } // else                           //
-		SPI_SCK_HIGH;				        // clock must start low, transition high
-		SPI_SCK_LOW;			            // Low transition finishes clock sequence
+		FLASH_SCK_HIGH;				        // clock must start low, transition high
+		FLASH_SCK_LOW;			            // Low transition finishes clock sequence
     } // for
 } 
 
@@ -1038,15 +1065,15 @@ void spiWriteWord( PYGMYSPIPORT *pymgyPort,  u16 uiWord )
     // Clocks out 16 bits
 	u16 i;
 	
-	SPI_SCK_LOW;					        // Clock starts low, low-high-low clocks data in or out
+	FLASH_SCK_LOW;					        // Clock starts low, low-high-low clocks data in or out
 	for( i = 0; i < 16; i++ ){ 			    // 
 		if( uiWord & ( 0x8000 >> i ) ){	    // 
-            SPI_MOSI_HIGH;                  // SlaveInMasterOut high if bit set
+            FLASH_MOSI_HIGH;                  // SlaveInMasterOut high if bit set
 		} else{ 		                    //
-            SPI_MOSI_LOW;                   // SlaveInMasterOut low if bit clear
+            FLASH_MOSI_LOW;                   // SlaveInMasterOut low if bit clear
         } // else                           // 
-		SPI_SCK_HIGH;				        // clock must start low, transition high
-		SPI_SCK_LOW;				        // Low transition finishes clock sequence
+		FLASH_SCK_HIGH;				        // clock must start low, transition high
+		FLASH_SCK_LOW;				        // Low transition finishes clock sequence
     } // for
 } 
 
@@ -1055,15 +1082,15 @@ void spiWriteLong( PYGMYSPIPORT *pymgyPort, u32 ulLong )
     // Clocks out 32 bits
 	u16 i;
 	
-	SPI_SCK_LOW;					        // Clock starts low, low-high-low clocks data in or out
+	FLASH_SCK_LOW;					        // Clock starts low, low-high-low clocks data in or out
 	for( i = 0; i < 32; i++ ){ 			    // 
 		if( ulLong & ( 0x80000000 >> i ) ){	// 
-            SPI_MOSI_HIGH;                  // SlaveInMasterOut high if bit set
+            FLASH_MOSI_HIGH;                  // SlaveInMasterOut high if bit set
 		} else{ 		                    //        
-            SPI_MOSI_LOW;                   // SlaveInMasterOut low if bit clear
+            FLASH_MOSI_LOW;                   // SlaveInMasterOut low if bit clear
         } // else                           //     
-		SPI_SCK_HIGH;				        // clock must start low, transition high
-		SPI_SCK_LOW;				        // Low transition finishes clock sequence
+		FLASH_SCK_HIGH;				        // clock must start low, transition high
+		FLASH_SCK_LOW;				        // Low transition finishes clock sequence
     } // for
 } 
 
@@ -1073,13 +1100,13 @@ u8 spiReadByte( PYGMYSPIPORT *pymgyPort )
     u16 i;
 	u8 ucByte;
 	
-    SPI_SCK_LOW;                            // Clock starts low, low-high-low clocks data in or out
+    FLASH_SCK_LOW;                            // Clock starts low, low-high-low clocks data in or out
 	for( i = 0, ucByte = 0; i < 8; i++ ){   // 
-		SPI_SCK_HIGH;				        // clock must start low, transition high 			
-        if( SPI_MISO_STATE ){               // Test port input for high and set bit in ucByte
+		FLASH_SCK_HIGH;				        // clock must start low, transition high 			
+        if( FLASH_MISO_STATE ){               // Test port input for high and set bit in ucByte
 			ucByte |= ( BIT7 >> i );        //
         } // if                             //
-		SPI_SCK_LOW;				        // Low transition finishes clock sequence
+		FLASH_SCK_LOW;				        // Low transition finishes clock sequence
     } // for
 	
 	return( ucByte );
@@ -1253,6 +1280,16 @@ void flashWriteByte( u32 ulAddress, u8 ucByte )
 
 void flashWriteEnable( void )
 {
+    // Must be called before any write operations to FLASH
+    #ifndef __PYGMY_BOOT
+        spiConfig( &pygmyFlashSPI, FLASH_CS, FLASH_SCK, FLASH_MISO, FLASH_MOSI );
+    #endif
+    #ifdef __PYGMY_BOOT
+        FLASH_CS_INIT; // To be defined in profile
+        FLASH_SCK_INIT;
+        FLASH_MISO_INIT;
+        FLASH_MOSI_INIT; 
+    #endif
     FLASH_CS_LOW;
     spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN ); // WREN must be written before status register may be modified
     FLASH_CS_HIGH;

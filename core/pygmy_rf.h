@@ -183,7 +183,12 @@
 #define RF_CLOSE            2    
 #define RF_NEXT             3    
 #define RF_LAST             4   
-#define RF_SCAN             5   
+#define RF_SCAN             5 
+
+#define RF_CR_OPEN          BIT0 // Set = OPEN, cleared = CLOSED
+#define RF_CR_SCAN          BIT1 // Set = Scanning mode active
+#define RF_CR_NEXT          BIT2 // Set = NEXT, cleared = LAST
+#define RF_CR_PENDING       BIT3 // Set = Open Pending, cleared = OPEN complete
 
 #define RF_BLANK            0       // 
 #define RF_COMLINK          1       // Com Link
@@ -195,14 +200,14 @@ typedef struct {
                 u32 StartTime;
                 u32 LastActive;
                 u32 DestID;
-                u8 SocketType;
-                u8 PacketCount;
+                u8 Type;
+                u8 Chunk;
                 u8 CR;
                 } PYGMYRFSOCKET;
 
 typedef struct {
-                u32 DestID;
-                u32 SrcID;
+                u32 DestID; // socket is LSB nibble
+                u32 SrcID; // socket is LSB nibble
                 u16 CRC;
                 u8 Command;
                 u8 Len;
@@ -213,20 +218,27 @@ typedef struct {
                 
  
 void rfRX( void );
-
+u32 rfGetID( void );  
+            
+void rfProcessPacket( u8 *ucBuffer, u8 ucLen );
 u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket );        
 void rfSendPacket( PYGMYRFPACKET *pygmyPacket );            
-u8 rfGetSocket( u32 uiID );
-void rfInitSockets( void );
+//u8 rfGetSocket( u32 uiID );
             
-u8 rfReceiveFile( u8 *ucParams );
-u8 rfSendFile( u8 *ucParams );
-
-u32 rfGetID( void );
-void rfProcessPacket( u8 *ucBuffer, u8 ucLen );
+u8 rfFindSocket( u32 ulDest );
+void rfInitSockets( void );
+void rfCloseSocket( u8 ucSocket );
+void rfListSockets( void );
 u8 rfOpenSocket( u32 ulDest, u8 ucType );
 void rfSendOpenSocket( u32 ulDest, u8 ucType );
-void rfCloseSocket( u8 ucSocket );
+void rfSendOpenCommand( u8 ucSocket );
+void rfSendCloseCommand( u8 ucSocket );
+void rfSendNextCommand( u8 ucSocket );
+void rfSendLastCommand( u8 ucSocket );
+            
+u8 rfReceiveFile( u8 *ucParams );        
+u8 rfSendFile( u8 *ucParams );
+
 void rfFlushTX( void );
 void rfFlushRX( void );
 u8 rfGetSignalQuality( void );

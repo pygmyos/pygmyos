@@ -2049,7 +2049,9 @@ u8 pinRemoveSoftPWM( u8 ucPin );
 u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle );
 u8 pinPulseHigh( u8 ucPin, u32 ulDeadTime, u32 ulPulse );
 u8 pinPulseLow( u8 ucPin, u32 ulDeadTime, u32 ulPulse );            
-            
+    
+u16 pinGetIRQPR( void );
+u8 pinGetIRQPin( u8 ucPin );            
 void pinConfig( u8 ucPin, u8 ucMode );
 void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode );
 void pinEnablePortClock( u8 ucPin );

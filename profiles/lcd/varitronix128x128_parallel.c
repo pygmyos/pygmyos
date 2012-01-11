@@ -175,13 +175,13 @@ u16 lcdGetHeight( void )
 
 void lcdInit( void )
 {	
-    u8 i;
-
+    SHIELD_INIT; // For Clocks, must be defined, even if no shield used
     LCD_CS_INIT;
     LCD_A0_INIT; 
     LCD_WR_INIT;
     LCD_RD_INIT;
     LCD_BL_INIT;
+    LCD_BL_HIGH;
     LCD_DATA_WR_INIT;
     LCD_RESET_INIT;
    

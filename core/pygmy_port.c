@@ -25,6 +25,8 @@
 // Remaining Timers are used by DMA and software for general timing
 
 PYGMYVOIDPTR globalIRQHandlers[ 16 ];
+u16 globalIRQPR; 
+u8 globalIRQPins[ 16 ];
 const TIMER *PYGMY_TIMERS[] = { NULL,   NULL,   TIM2,   TIM3,   TIM4,   TIM5, 
                                 TIM6,   TIM7,   TIM8,   TIM9,   TIM10,  TIM11, 
                                 TIM12,  TIM13,  TIM14,  TIM15,  TIM16,  TIM17 };
@@ -39,7 +41,17 @@ const u8 PYGMY_TIMERPINS[] = {  PA8,  PA9,  PA10, PA11,     // TIM1
                             
 PYGMYPWM globalPygmyPWM[ PYGMY_PWMCHANNELS ];
 u32 globalPygmyPWMFreq, globalPygmyPWMCR = 0;
-                          
+
+u16 pinGetIRQPR( void )
+{
+    return( globalIRQPR );
+}
+
+u8 pinGetIRQPin( u8 ucPin )
+{
+    return( globalIRQPins[ ucPin ] );
+}
+
 void pinConfig( u8 ucPin, u8 ucMode )
 {
     u32 uiPortMode, uiPortClear;
@@ -84,6 +96,7 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
     uiPort = ucPin / 16;
     uiPin = ucPin % 16;
     globalIRQHandlers[ uiPin ] = pygmyFunc;
+    globalIRQPins[ uiPin ] = ucPin;
     switch( uiPin ){
         case 0:
             interruptEnable( EXTI0_IRQ );
@@ -594,54 +607,74 @@ void TIM1_UP_IRQHandler (void) // TIM16 // TIM11 // TIM9
 void EXTI0_IRQHandler( void ) 
 {
     EXTI->PR |= BIT0;      // Clear pending bits to prevent recursive access
+    globalIRQPR |= BIT0;
     ( globalIRQHandlers[ 0 ] )();
+    globalIRQPR &= ~BIT0;
 }
 
 void EXTI1_IRQHandler( void ) 
 {
     EXTI->PR |= BIT1;      // Clear pending bits to prevent recursive access
+    globalIRQPR |= BIT1;
     ( globalIRQHandlers[ 1 ] )();
+    globalIRQPR &= ~BIT1;
 }
 
 void EXTI2_IRQHandler( void ) 
 {
     EXTI->PR |= BIT2;      // Clear pending bits to prevent recursive access
+    globalIRQPR |= BIT2;
     ( globalIRQHandlers[ 2 ] )();
+    globalIRQPR &= ~BIT2;
 }
 
 void EXTI3_IRQHandler( void ) 
 {
     EXTI->PR |= BIT3;      // Clear pending bits to prevent recursive access
+    globalIRQPR |= BIT3;
     ( globalIRQHandlers[ 3 ] )();
+    globalIRQPR &= ~BIT3;
 }
 
 void EXTI4_IRQHandler( void ) 
 {
     EXTI->PR |= BIT4;      // Clear pending bits to prevent recursive access
+    globalIRQPR |= BIT4;
     ( globalIRQHandlers[ 4 ] )();
+    globalIRQPR &= ~BIT4;
 }
 
 void EXTI9_5_IRQHandler( void ) 
 {
     if( EXTI->PR & BIT5 ){
         EXTI->PR |= BIT5;      // Clear pending bits to prevent recursive access
+        globalIRQPR |= BIT5;
         ( globalIRQHandlers[ 5 ] )();
+        globalIRQPR &= ~BIT5;
     } // if
     if( EXTI->PR & BIT6 ){
-        EXTI->PR |= BIT6;       
+        EXTI->PR |= BIT6;
+        globalIRQPR |= BIT6;
         ( globalIRQHandlers[ 6 ] )();
+        globalIRQPR &= ~BIT6;
     } // if 
     if( EXTI->PR & BIT7 ){
         EXTI->PR |= BIT7;
+        globalIRQPR |= BIT7;
         ( globalIRQHandlers[ 7 ] )();
+        globalIRQPR &= ~BIT7;
     } // if
     if( EXTI->PR & BIT8 ){
         EXTI->PR |= BIT8;
+        globalIRQPR |= BIT8;
         ( globalIRQHandlers[ 8 ] )();
+        globalIRQPR &= ~BIT8;
     } // if
     if( EXTI->PR & BIT9 ){
         EXTI->PR |= BIT9;
+        globalIRQPR |= BIT9;
         ( globalIRQHandlers[ 9 ] )();
+        globalIRQPR &= ~BIT9;
     } // if
     
 }
@@ -650,27 +683,39 @@ void EXTI15_10_IRQHandler( void )
 {
     if( EXTI->PR & BIT10 ){
         EXTI->PR |= BIT10;
+        globalIRQPR |= BIT10;
         ( globalIRQHandlers[ 10 ] )();
+        globalIRQPR &= ~BIT10;
     } // if
     if( EXTI->PR & BIT11 ){
         EXTI->PR |= BIT11;
+        globalIRQPR |= BIT11;
         ( globalIRQHandlers[ 11 ] )();
+        globalIRQPR &= ~BIT11;
     } //if 
     if( EXTI->PR & BIT12 ){
         EXTI->PR |= BIT12;
+        globalIRQPR |= BIT12;
         ( globalIRQHandlers[ 12 ] )();
+        globalIRQPR &= ~BIT12;
     } // if
     if( EXTI->PR & BIT13 ){
         EXTI->PR |= BIT13;
+        globalIRQPR |= BIT13;
         ( globalIRQHandlers[ 13 ] )();
+        globalIRQPR &= ~BIT13;
     } // if
     if( EXTI->PR & BIT14 ){
         EXTI->PR |= BIT14;
+        globalIRQPR |= BIT14;
         ( globalIRQHandlers[ 14 ] )();
+        globalIRQPR &= ~BIT14;
     } // if
     if( EXTI->PR & BIT15 ){
         EXTI->PR |= BIT15;
+        globalIRQPR |= BIT15;
         ( globalIRQHandlers[ 15 ] )();
+        globalIRQPR &= ~BIT15;
     } // else if
 }
 

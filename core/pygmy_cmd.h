@@ -41,6 +41,7 @@ u8 cmd_ps( u8 *ucBuffer );
 u8 cmd_kill( u8 *ucBuffer );
 u8 cmd_time( u8 *ucBuffer );
 
+u8 cmd_pinevent( u8 *ucBuffer );
 u8 cmd_pinset( u8 *ucBuffer );
 u8 cmd_pinget( u8 *ucBuffer );
 u8 cmd_pinanalog( u8 *ucBuffer );
@@ -55,6 +56,7 @@ u8 cmd_ls( u8 *ucBuffer );
 u8 cmd_rm( u8 *ucBuffer );
 u8 cmd_open( u8 *ucBuffer );
 u8 cmd_mv( u8 *ucBuffer );
+u8 cmd_copy( u8 *ucBuffer );
 
 u8 cmd_rfscan( u8 *ucBuffer );
 u8 cmd_rfopen( u8 *ucBuffer );

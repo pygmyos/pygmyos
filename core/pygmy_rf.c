@@ -151,7 +151,7 @@ u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket )
         print( COM3, "\rType: %d", pygmyPacket->Type );
         pygmyPacket->SrcID = bufferToU32( ( pygmyPacket->Payload + 1 ) );
         print( COM3, "\rSRCID: %X", pygmyPacket->SrcID );
-        if( pygmyPacket->Type == RF_FILE ){
+        /*if( pygmyPacket->Type == RF_FILE ){
             for( i = 0; i < 13; i++ ){
                 pygmyPacket->Payload[ i ] = pygmyPacket->Payload[ 5 + i ];
                 if( pygmyPacket->Payload[ i ] == '\0' ){
@@ -160,6 +160,7 @@ u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket )
             } // for
             print( COM3, "\rFilename: %s", pygmyPacket->Payload );
         } // if
+        */
     } // if
 
 }
@@ -169,46 +170,85 @@ void rfProcessPacket( u8 *ucBuffer, u8 ucLen )
     PYGMYRFPACKET pygmyPacket;
 
     rfLoadPacket( ucBuffer, &pygmyPacket );
-    
-    if( pygmyPacket->Command == RF_OPEN ){
-        pymgyPacket
-    } else{
-    
-    } // else
-    /*u32 ulID, ulDestID;
-    u8 i, ucCMD, ucType, ucPort, ucChunk, ucSocket;
- 
-    print( COM3, "\rProcessing Packet..." );
-    if( sysCRC8( 31, ucBuffer ) != ucBuffer[ 31 ] ){
-        print( COM3, "\rCRC Fail" );
-        return;
-    } // if
-    ulID = bufferToU32( ucBuffer );
-    ucPort = (u8)ulID;
-    ucBuffer += 4;
-    if ( ulID & 0xFFFFFF00 != pygmyGlobalRFID ){
-        print( COM3, "\rWrong ID" );
-        return;
-    } // if
-    ucCMD = *(ucBuffer++);
-    ucType = ucCMD & 0x0F;
-    ucChunk = *(ucBuffer++);
-        
-    if( ucCMD & RF_OPEN ){
-        
-        ucSocket = rfOpenSocket( ulDestID & 0xFFFFFF00, ucType );
-        if( ucSocket == 0xFF ){
-            print( COM3, "\rSocket Fail" );
+    if( pygmyPacket.Command == RF_OPEN ){
+        pygmyPacket.Command = RF_NEXT;
+        pygmyPacket.DestID = pygmyPacket.SrcID;
+        pygmyPacket.SrcID = pygmyGlobalRFID;
+        if( rfOpenSocket( pygmyPacket.DestID, pygmyPacket.Type ) == 0xFF ) {
+            print( COM3, "\rSockets Full" );
         } else{
-            print( COM3, "\rSocket %d Opened, ID: %8X", ucSocket, ulDestID & 0xFFFFFF00 );
+            print( COM3, "\rSocket Open" );
+            rfSendPacket( &pygmyPacket );
         } // else
-    } else if( ucCMD & RF_CLOSE ){
-        print( COM3, "\rSocket Closed" );
-    } else if( ucCMD & RF_RXTX ){
-        print( COM3, "\rRXTX" );
-    } else if( ucCMD & RF_ACK ){
-        print( COM3, "\rACK" );
-    } // else if*/
+    } else if( pygmyPacket.Command == RF_CLOSE ){
+        
+    } else if( pygmyPacket.Command == RF_NEXT ){
+        
+    } else if( pygmyPacket.Command == RF_LAST ){
+        
+    } else if( pygmyPacket.Command == RF_SCAN ){
+        
+    } // else if
+    
+}
+
+void rfListSockets( void )
+{
+    u8 i, ucCmd;
+
+    for( i = 0; i < RF_MAXSOCKETS; i++ ){
+        if( !pygmyGlobalRFSockets[ i ].DestID ){
+            continue;
+        } // if
+        print( COM3, "\rDestID\t\tType\tCount\tCR\tStartTime" );
+        print( COM3, "\r%X\t", pygmyGlobalRFSockets[ i ].DestID );
+        ucCmd = pygmyGlobalRFSockets[ i ].Type >> 5;
+        if( ucCmd == RF_CONTROL ){
+            print( COM3, "control" );
+        } else if( ucCmd == RF_COMLINK ){
+            print( COM3, "comlink" );
+        } else if( ucCmd == RF_FILE ){
+            print( COM3, "file" );
+        } else if( ucCmd == RF_AVSTREAM ){
+            print( COM3, "avstream" );
+        } else{
+            print( COM3, "blank" );
+        } // else
+        print( COM3, "\t%d", pygmyGlobalRFSockets[ i ].Chunk );
+        print( COM3, "\t%2X", pygmyGlobalRFSockets[ i ].CR );
+        print( COM3, "\t%t", pygmyGlobalRFSockets[ i ].StartTime);
+    } // for
+}
+
+void rfInitSockets( void )
+{
+    u8 i;
+    
+    for( i = 0; i < RF_MAXSOCKETS; i++ ){
+        rfCloseSocket( i );
+    } // for
+}
+
+void rfCloseSocket( u8 ucSocket )
+{
+    pygmyGlobalRFSockets[ ucSocket ].DestID         = 0;
+    pygmyGlobalRFSockets[ ucSocket ].Type           = 0;
+    pygmyGlobalRFSockets[ ucSocket ].Chunk          = 0;
+    pygmyGlobalRFSockets[ ucSocket ].CR             = 0;
+    pygmyGlobalRFSockets[ ucSocket ].StartTime      = 0;
+}
+
+u8 rfFindSocket( u32 ulDest )
+{
+    u8 i;
+    
+    for( i = 0; i < RF_MAXSOCKETS; i++ ){
+        if( ( pygmyGlobalRFSockets[ i ].DestID & 0xFFFFFF00 ) == ( ulDest & 0xFFFFFF00 ) ){
+            return( i );
+        } // if
+    } // for
+    
+    return( 0xFF );
 }
 
 u8 rfOpenSocket( u32 ulDest, u8 ucType )
@@ -217,33 +257,80 @@ u8 rfOpenSocket( u32 ulDest, u8 ucType )
 
     for( i = 0; i < RF_MAXSOCKETS; i++ ){
         if( !pygmyGlobalRFSockets[ i ].DestID ){
-            pygmyGlobalRFSockets[ i ].DestID = ulDest | i;
-            pygmyGlobalRFSockets[ i ].SocketType = ucType;
-            pygmyGlobalRFSockets[ i ].PacketCount = 0;
-            pygmyGlobalRFSockets[ i ].StartTime = timeGet();
-            rfSendOpenSocket( ulDest, ucType );
+            pygmyGlobalRFSockets[ i ].DestID        = ulDest & 0xFFFFFF00;
+            //pygmyGlobalRFSockets[ i ].SrcID         = pygmyGlobalRFID | i; // i is socket, LSB nibble
+            pygmyGlobalRFSockets[ i ].Type          = ucType;
+            pygmyGlobalRFSockets[ i ].Chunk         = 0;
+            pygmyGlobalRFSockets[ i ].CR            = RF_CR_OPEN|RF_CR_PENDING;
+            pygmyGlobalRFSockets[ i ].StartTime     = timeGet();
+            //rfSendOpenSocket( ulDest, ucType );
             return( i );
         } // if
     } // for
     return( 0xFF );
 }
 
+void rfSendOpenCommand( u8 ucSocket )
+{
+    PYGMYRFPACKET pygmyPacket;
+    
+    pygmyPacket.DestID      = pygmyGlobalRFSockets[ ucSocket ].DestID;
+    pygmyPacket.Type        = pygmyGlobalRFSockets[ ucSocket ].Type;
+    pygmyPacket.SrcID       = pygmyGlobalRFID;
+    pygmyPacket.Len         = 5;
+    pygmyPacket.Command     = RF_OPEN;
+    
+    rfSendPacket( &pygmyPacket );
+}
+
+void rfSendCloseCommand( u8 ucSocket )
+{
+    PYGMYRFPACKET pygmyPacket;
+    
+    pygmyPacket.DestID      = pygmyGlobalRFSockets[ ucSocket ].DestID;
+    pygmyPacket.Type        = pygmyGlobalRFSockets[ ucSocket ].Type;
+    pygmyPacket.SrcID       = pygmyGlobalRFID;
+    pygmyPacket.Len         = 5;
+    pygmyPacket.Command     = RF_CLOSE;
+    
+    rfSendPacket( &pygmyPacket );
+}
+
+void rfSendNextCommand( u8 ucSocket )
+{
+    PYGMYRFPACKET pygmyPacket;
+    
+    pygmyPacket.DestID      = pygmyGlobalRFSockets[ ucSocket ].DestID;
+    pygmyPacket.Type        = pygmyGlobalRFSockets[ ucSocket ].Type;
+    pygmyPacket.SrcID       = pygmyGlobalRFID;
+    pygmyPacket.Len         = 5;
+    pygmyPacket.Command     = RF_NEXT;
+    
+    rfSendPacket( &pygmyPacket );
+}
+
+void rfSendLastCommand( u8 ucSocket )
+{
+    PYGMYRFPACKET pygmyPacket;
+    
+    pygmyPacket.DestID      = pygmyGlobalRFSockets[ ucSocket ].DestID;
+    pygmyPacket.Type        = pygmyGlobalRFSockets[ ucSocket ].Type;
+    pygmyPacket.SrcID       = pygmyGlobalRFID;
+    pygmyPacket.Len         = 5;
+    pygmyPacket.Command     = RF_LAST;
+    
+    rfSendPacket( &pygmyPacket );
+}
+
 void rfSendOpenSocket( u32 ulDest, u8 ucType  )
 {
     PYGMYRFPACKET pygmyPacket;
     
-    pygmyPacket.DestID = ulDest;
-    pygmyPacket.Type = ucType;
-    pygmyPacket.SrcID = pygmyGlobalRFID;
-    pygmyPacket.Len = 5;
-    pygmyPacket.Command = RF_OPEN;
-    /*if( ucType == RF_File ){
-    
-    } else if( ucType == RF_AVSTREAM ){
-    
-    } else if( ucType == RF_COMLINK ){
-        
-    } */
+    pygmyPacket.DestID      = ulDest;
+    pygmyPacket.Type        = ucType;
+    pygmyPacket.SrcID       = pygmyGlobalRFID;
+    pygmyPacket.Len         = 5;
+    pygmyPacket.Command     = RF_OPEN;
     
     rfSendPacket( &pygmyPacket );
     
@@ -268,11 +355,11 @@ void rfSendOpenSocket( u32 ulDest, u8 ucType  )
     } // else if
     rfPutTXBuffer( 8, ucBuffer );*/
 }
-
+/*
 void rfCloseSocket( u8 ucSocket )
 {
     pygmyGlobalRFSockets[ ucSocket ].DestID = 0;
-}
+}*/
 
 void rfRX( void )
 {

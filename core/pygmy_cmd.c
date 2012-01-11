@@ -30,7 +30,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"kill",       cmd_kill},
                                     //{(u8*)"recv",       cmd_recv}, // XModem
                                     //{(u8*)"send",       cmd_send}, // XModem
-                                    
+                                    {(u8*)"pinevent",   cmd_pinevent},
                                     {(u8*)"pinset",     cmd_pinset},
                                     {(u8*)"pinget",     cmd_pinget},
                                     {(u8*)"pinanalog",  cmd_pinanalog},
@@ -195,8 +195,16 @@ u8 cmd_poke( u8 *ucBuffer )
 
 u8 cmd_ps( u8 *ucBuffer )
 {
-    
-    return( 0 );
+    u8 *ucParam;
+
+    ucParam = getNextSubString( ucBuffer, WHITESPACE );
+    if( ucParam ){
+        if( isStringSame( ucParam, "-s" ) || isStringSame( ucParam, "--sockets" ) ){
+            rfListSockets();
+        } // if
+    } // if
+
+    return( 1 );
 }
 
 u8 cmd_kill( u8 *ucBuffer )
@@ -217,13 +225,44 @@ u8 cmd_time( u8 *ucBuffer )
 //---------------------------------------Debug Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
 
+void cmdPinEvent( void )
+{
+    u16 uiPR;
+    u8 i, ucPin;
+
+    uiPR = pinGetIRQPR();
+    for( i = 0; i < 16; i++ ){
+        if( uiPR & ( BIT0 << i ) ){
+            ucPin = pinGetIRQPin( i );
+            if( pinGet( ucPin ) ){
+                print( STDIO, "\r%s HIGH%s", convertPinToString( ucPin ),  globalCMDPrompt );
+            } else{
+                print( STDIO, "\r%s LOW%s", convertPinToString( ucPin ), globalCMDPrompt );
+            } // else
+        } // if
+    } // for
+}
+
+u8 cmd_pinevent( u8 *ucBuffer )
+{
+    u8 ucPin;//, *ucParam;
+
+    ucPin = convertStringToPin( ucBuffer );
+    //ucParam = getNextsubString( NULL, WHITESPACE );
+    
+    pinInterrupt( cmdPinEvent, ucPin, TRIGGER_RISING|TRIGGER_FALLING );
+    
+    return( 1 );
+}
+
 u8 cmd_pinset( u8 *ucBuffer )
 {
     u8 *ucParam, ucPin, ucState;
     
     ucPin = convertStringToPin( ucBuffer );
     ucParam = getNextSubString( NULL, WHITESPACE );
-    if( isStringSame( ucParam, "high" ) || isStringSame( ucParam, "HIGH" ) || isStringSame( ucParam, "1" ) ){
+    if( isStringSame( ucParam, "high" ) || isStringSame( ucParam, "HIGH" ) || isStringSame( ucParam, "1" )
+        || isStringSame( ucParam, "ON" ) || isStringSame( ucParam, "on" ) ){
         ucState = 1;
     } else{
         ucState = 0;
@@ -404,6 +443,16 @@ u8 cmd_mv( u8 *ucBuffer )
     return( fileRename( ucParam1, ucParam2 ) );
 }
 
+u8 cmd_copy( u8 *ucBuffer )
+{
+    u8 *ucParam1, *ucParam2;
+    
+    ucParam1 = getNextSubString( ucBuffer, WHITESPACE );
+    ucParam2 = getNextSubString( NULL, WHITESPACE );
+    
+    
+}
+
 //----------------------------------End Basic File Commands-----------------------------------
 //--------------------------------------------------------------------------------------------
 
@@ -418,14 +467,19 @@ u8 cmd_rfscan( u8 *ucBuffer )
 u8 cmd_rfopen( u8 *ucBuffer )
 {
     u32 ulID;
+    u8 ucSocket;
 
     ulID = rfGetID();
     if( ulID == 0x41B40AA8 ){
-        rfOpenSocket( 0x1FC60435, RF_COMLINK );
+        ucSocket = rfOpenSocket( 0x1FC60435, RF_COMLINK );
     } else {
-        rfOpenSocket( 0x41B40AA8, RF_COMLINK );
+        ucSocket = rfOpenSocket( 0x41B40AA8, RF_COMLINK );
     } // else
-    
+    if( ucSocket == 0xFF ){
+        return( 0 );
+    } // if
+    rfSendOpenCommand( ucSocket );
+
     return( 1 );
 }
 
