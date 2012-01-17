@@ -31,6 +31,7 @@ void cmdGetsCOM4( void );
 void cmdGetsCOM5( void );
 void cmdSetActionChars( u8 ucStream, u8 *ucString );
 void cmdInit( void );
+u8 cmdOpenPort( u8 ucProtocol, u8 ucPin0, u8 ucPin1, u8 ucPin2, u8 ucPin3, u8 ucAddress );
 u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
 
 u8 cmdNull( u8 *ucBuffer );
@@ -57,6 +58,11 @@ u8 cmd_rm( u8 *ucBuffer );
 u8 cmd_open( u8 *ucBuffer );
 u8 cmd_mv( u8 *ucBuffer );
 u8 cmd_copy( u8 *ucBuffer );
+
+u8 cmd_modem( u8 *ucBuffer );
+
+u8 cmd_humidity( u8 *ucBuffer );
+u8 cmd_port( u8 *ucBuffer );
 
 u8 cmd_rfscan( u8 *ucBuffer );
 u8 cmd_rfopen( u8 *ucBuffer );

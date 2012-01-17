@@ -131,7 +131,11 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
     } // switch
     uiMask = ( 0x0001 << uiPin );
     AFIO->EXTICR[ uiPin / 4 ] |= ( uiPort << ( ( uiPin % 4 ) * 4 ) );   // Select Port for EXTI Line applicable to Pin
-    EXTI->IMR |= uiMask;                                                // Enable Interrupt for Pin
+    if( uiMode ){
+        EXTI->IMR |= uiMask;                                            // Enable Interrupt for Pin
+    } else{
+        EXTI->IMR &= ~uiMask;
+    } // else
     if( uiMode & TRIGGER_FALLING ){                                     // Enable Falling Edge Trigger
         EXTI->FTSR |= uiMask;
     } // if

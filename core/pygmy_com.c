@@ -40,7 +40,9 @@
 #ifdef __PYGMYSTREAMCOM5
     u8 globalCOM5RXBuffer[ __PYGMYCOM5BUFFERLEN ];
 #endif
-
+#ifdef __PYGMYSTREAMUSER
+    
+#endif
 void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
 {
     USART_TYPEDEF *ptrUSART;
@@ -51,7 +53,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM1 ){
             PYGMY_RCC_USART1_ENABLE;
             interruptEnable( USART1_IRQ );
-            setInterruptPriority( USART1_IRQ, 1 );
+            interruptSetPriority( USART1_IRQ, 1 );
             ptrUSART = USART1;
             if( ucOptions & RTS ){
                 PA12_ALT;
@@ -66,8 +68,9 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
     #ifdef __PYGMYSTREAMCOM2
         if( ucPort == COM2 ){
             PYGMY_RCC_USART2_ENABLE;
-            setInterruptPriority( USART2_IRQ, 2 );
+            interruptSetPriority( USART2_IRQ, 2 );
             interruptEnable( USART2_IRQ );
+            ptrUSART = USART2;
             if( ucOptions & RTS ){
                 PA1_ALT;
             } // if
@@ -81,8 +84,9 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
     #ifdef __PYGMYSTREAMCOM3
         if( ucPort == COM3 ){
             PYGMY_RCC_USART3_ENABLE;
-            setInterruptPriority( USART3_IRQ, 3 );
+            interruptSetPriority( USART3_IRQ, 3 );
             interruptEnable( USART3_IRQ );
+            ptrUSART = USART3;
             if( ucOptions & RTS ){
                 PB14_ALT;
             } // if
@@ -97,7 +101,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM4 ){
             PYGMY_RCC_USART4_ENABLE;
             interruptEnable( USART4_IRQ );
-            setInterruptPriority( USART4_IRQ, 1 );
+            interruptSetPriority( USART4_IRQ, 1 );
             ptrUSART = USART4;
             PC10_ALT;
             PC11_FLOAT;
@@ -107,7 +111,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM5 ){
             PYGMY_RCC_USART5_ENABLE;
             interruptEnable( USART5_IRQ );
-            setInterruptPriority( USART5_IRQ, 1 );
+            interruptSetPriority( USART5_IRQ, 1 );
             ptrUSART = USART5;
             PC12_ALT;
             PD2_FLOAT;
@@ -117,7 +121,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM6 ){
             PYGMY_RCC_USART6_ENABLE;
             interruptEnable( USART6_IRQ );
-            setInterruptPriority( USART6_IRQ, 1 );
+            interruptSetPriority( USART6_IRQ, 1 );
             ptrUSART = USART6;
             PG10_ALT;
             PG11_FLOAT;
@@ -454,7 +458,7 @@ void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte )
 {
     // Clocks out 8 bits
 	u16 i;
-	
+
 	pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Clock starts low, low-high-low clocks data in or out
 	for( i = 24; i < 32; i++ ){ 		                        // 
 		//if( ucByte & ( BIT7 >> i ) ){                       // 	
@@ -523,6 +527,28 @@ u8 spiReadByte( PYGMYSPIPORT *pygmySPI )
 	return( ucByte );
 }
 
+void spiReadBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen )
+{
+    u16 i; 
+
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    for( i = 0; i < uiLen; i++ ){
+        ucBuffer[ i ] = spiReadByte( pygmySPI );
+    } // for
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+void spiWriteBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen )
+{
+    u16 i; 
+
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    for( i = 0; i < uiLen; i++ ){
+        spiWriteByte( pygmySPI, ucBuffer[ i ] );
+    } // for
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
 void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI )
 {
     pinConfig( ucCS, OUT );
@@ -544,6 +570,8 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI 
     pygmySPI->PinCS     = PYGMY_BITMASKS[ ucCS % 16 ];
     pygmySPI->PinSCK    = PYGMY_BITMASKS[ ucSCK % 16 ];   
     
+    pygmySPI->CR        = 0xFF;
+
     pinSet( ucSCK, LOW );
     pinSet( ucCS, HIGH );
 }
@@ -647,20 +675,25 @@ void I2C3_ER_IRQHandler( void )
 //--------------------------------------I2C Software Interface-------------------------------------
 //-------------------------------------------------------------------------------------------------
 
-void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u16 uiSpeed )
+void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 uiCR )
 {
     pinConfig( ucSCL, PULLUP );
     pinConfig( ucSDA, PULLUP );
     
-    pygmyI2C->SCL = ucSCL;
-    pygmyI2C->SDA = ucSDA;
+    pygmyI2C->SCL       = ucSCL;
+    pygmyI2C->SDA       = ucSDA;
     pygmyI2C->PortSCL   = pinGetPort( ucSCL );
-    pygmyI2C->PortSDA   = pingetPort( ucSDA );
+    pygmyI2C->PortSDA   = pinGetPort( ucSDA );
                         
     pygmyI2C->PinSCL    = PYGMY_BITMASKS[ ucSCL % 16 ];
     pygmyI2C->PinSDA    = PYGMY_BITMASKS[ ucSDA % 16 ];
-    pygmyI2C->Speed = uiSpeed;
-    //pygmyI2C->Status = 0;
+    //pygmyI2C->Speed     = uiSpeed;
+    pygmyI2C->Address   = ucAddress << 1;
+    if( uiCR ){
+        pygmyI2C->CR    = uiCR;
+    } else{
+        pygmyI2C->CR    = I2CSPEEDFAST;
+    } // else
 }
 
 void i2cDelay( PYGMYI2CPORT *pygmyI2C ) 
@@ -790,14 +823,31 @@ u8 i2cReadBit( PYGMYI2CPORT *pygmyI2C )
     return( ucBit );
 }
 
-u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u8 ucAddress, u8 *ucBuffer, u16 uiLen )
+u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen )
 {
     u16 i;
     
     i2cStart( pygmyI2C );
-    i2cWriteByte( pygmyI2C, ucAddress );
+    i2cWriteByte( pygmyI2C, pygmyI2C->Address );
+    if( pygmyI2C->CR & I2CWORDADDRESS ){
+        i2cWriteByte( pygmyI2C, (u8)( (u16)uiAddress >> 8 )); // Write MSB if 16bit addressing
+    } // if
+    i2cWriteByte( pygmyI2C, (u8)uiAddress );
     for( i = 0; i < uiLen; i++ ){
         i2cWriteByte( pygmyI2C, ucBuffer[ i ] );
+    } // for
+    i2cStop( pygmyI2C );
+}
+
+u8 i2cReadBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen )
+{
+    u16 i;
+    
+    i2cWriteBuffer( pygmyI2C, uiAddress, ucBuffer, 0 ); // Len 0 to write address only
+    i2cStart( pygmyI2C );
+    i2cWriteByte( pygmyI2C, pygmyI2C->Address | 1 );
+    for( i = 0; i < uiLen; i++ ){
+        *(ucBuffer++) = i2cReadByte( pygmyI2C );
     } // for
     i2cStop( pygmyI2C );
 }

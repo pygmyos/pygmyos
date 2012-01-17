@@ -240,39 +240,25 @@ u8 fileIsValidName( u8 *ucName )
 
 u8 fileCopy( u8 *ucCurrentName, u8 *ucName )
 {
-    PYGMYFILE pygmyFile1, pygmyFile2;
-    u32 ulFileEntry;
-    u16 uiFileID;
-    u8 ucAttrib;
+    PYGMYFILE pygmyFileTo, pygmyFileFrom;    
+    u8 ucByte;
 
-    if( !fileIsValidName( ucName ) || !fileIsValidName( ucCurrentName ) ){
-        return( 0 );
-    } // if
-    ulFileEntry = fileSeekName( ucCurrentName );
-    if( !ulFileEntry || fileSeekName( ucName ) ){
-        return( 0 );
-    } // if
-
-    ulFileEntry = pygmyRootVolume.ActiveFiles + ( ulFileEntry * 16); // Each file Entry exactly 16 bytes
-    ucAttrib = flashReadByte( ulFileEntry + 13 );
-    uiFileID = flashReadWord( ulFileEntry + 14 );
-    
-    ulFileEntry = fileGetFreeFileEntry( );
-    if( !ulFileEntry ){
-        return( 0 ); // This can only happen in the case of memory failure
+    if( fileIsValidName( ucCurrentName ) && fileIsValidName( ucName ) ){
+        if( !fileOpen( &pygmyFileFrom, ucCurrentName, READ ) || 
+            !fileOpen( &pygmyFileTo, ucName, WRITE ) ){
+            return( 0 );
+        } // if
+        for( ; !(pygmyFileFrom.Attributes & EOF ); ){
+            ucByte = fileGetChar( &pygmyFileFrom );
+            if( !(pygmyFileFrom.Attributes & EOF ) ){
+                filePutChar( &pygmyFileTo, ucByte );
+            } // if
+        } // for
+        fileClose( &pygmyFileTo );
+        return( 1 );
     } // if
 
-    ulFileEntry = pygmyRootVolume.ActiveFiles + ( ulFileEntry * 16); // Each file Entry exactly 16 bytes
-    flashWriteBuffer( ulFileEntry, len( ucName )+1, ucName );
-    flashWriteByte( ulFileEntry+13, ucAttrib );
-    // Next we write the ID, this starts as the physical offset of the entry
-    // This tag cannot be used to identify the entry location since the tag will follow the
-    // file through name changes, etc. If ID changes, all associated FAT Entries are lost
-    flashWriteWord( ulFileEntry+14, uiFileID );
-    
-    //Next Copy data
-
-    return( 1 );
+    return( 0 );
 }
 
 u8 fileRename( u8 *ucCurrentName, u8 *ucName )

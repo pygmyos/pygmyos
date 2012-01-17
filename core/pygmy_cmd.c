@@ -21,6 +21,18 @@
 #include "pygmy_profile.h"
 
 u8 *globalCMDPrompt, *globalCMDError, *globalCMDUnsupported;
+#ifndef __PYGMY_MAXCOMMANDSPIPORTS
+    #define __PYGMY_MAXCOMMANDSPIPORTS  2
+#endif
+#ifndef __PYGMY_MAXCOMMANDI2CPORTS
+    #define __PYGMY_MAXCOMMANDI2CPORTS  2
+#endif
+#ifndef __PYGMY_MAXCOMMANDPORTS
+    #define __PYGMY_MAXCOMMANDPORTS __PYGMY_MAXCOMMANDSPIPORTS + __PYGMY_MAXCOMMANDI2CPORTS
+#endif
+PYGMYSPIPORT globalSPIPorts[ __PYGMY_MAXCOMMANDSPIPORTS ];
+PYGMYI2CPORT globalI2CPorts[ __PYGMY_MAXCOMMANDI2CPORTS ];
+PYGMYPORTINDEX globalCMDPorts[ __PYGMY_MAXCOMMANDPORTS ];
 
 const PYGMYCMD PYGMYSTDCOMMANDS[] = { 
                                     {(u8*)"reset",      cmd_reset},
@@ -30,6 +42,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"kill",       cmd_kill},
                                     //{(u8*)"recv",       cmd_recv}, // XModem
                                     //{(u8*)"send",       cmd_send}, // XModem
+                                    {(u8*)"humidity",   cmd_humidity},
                                     {(u8*)"pinevent",   cmd_pinevent},
                                     {(u8*)"pinset",     cmd_pinset},
                                     {(u8*)"pinget",     cmd_pinget},
@@ -44,7 +57,11 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"open",       cmd_open},
                                     {(u8*)"read",       cmd_read},
                                     {(u8*)"write",      cmd_write},
+                                    {(u8*)"copy",       cmd_copy},
                                     
+                                    {(u8*)"modem",      cmd_modem},
+                                
+                                    {(u8*)"port",       cmd_port},
                                     
                                     {(u8*)"rfopen",     cmd_rfopen},
                                     {(u8*)"rfsend",     cmd_rfsend},
@@ -123,12 +140,21 @@ void cmdGetsCOM5( void )
 
 void cmdInit( void )
 {
-    u16 i;
+    u8 i;
 
     #ifndef __PYGMYCMDMAXLISTS
         #define __PYGMYCMDMAXLISTS 1
     #endif // __PYGMYCMDMAXLISTS
-    
+    for( i = 0; i < __PYGMY_MAXCOMMANDPORTS; i++ ){
+        globalCMDPorts[ i ].SPI = 0xFF;
+        globalCMDPorts[ i ].I2C = 0xFF;
+    } // for
+    for( i = 0; i < __PYGMY_MAXCOMMANDSPIPORTS; i++ ){
+        globalSPIPorts[ i ].CR = 0xFF;
+    } // for
+    for( i = 0; i < __PYGMY_MAXCOMMANDI2CPORTS; i++ ){
+        globalI2CPorts[ i ].CR = 0xFF;
+    } // for
     globalCMDPrompt = "\r> ";
     globalCMDError = "\rerror\r> ";
     globalCMDUnsupported = "\runsupported\r> ";
@@ -169,6 +195,13 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+u8 cmd_modem( u8 *ucBuffer )
+{
+    print( COM2, "%s", getNextSubString( ucBuffer, NEWLINE ) );
+
+    return( 1 );
+}
+
 u8 cmdNull( u8 *ucBuffer )
 {
     return( 0 ); // No command, return error
@@ -219,6 +252,12 @@ u8 cmd_time( u8 *ucBuffer )
     return( 0 );
 }
 
+u8 cmd_pipe( u8 *ucBuffer )
+{
+    
+    return( 0 );
+}
+
 //------------------------------------End Standard Commands-----------------------------------
 //--------------------------------------------------------------------------------------------
 
@@ -245,37 +284,41 @@ void cmdPinEvent( void )
 
 u8 cmd_pinevent( u8 *ucBuffer )
 {
-    u8 ucPin;//, *ucParam;
+    u8 *ucParams[ 2 ], ucLen, ucPin;
 
-    ucPin = convertStringToPin( ucBuffer );
-    //ucParam = getNextsubString( NULL, WHITESPACE );
-    
-    pinInterrupt( cmdPinEvent, ucPin, TRIGGER_RISING|TRIGGER_FALLING );
-    
-    return( 1 );
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    ucPin = convertStringToPin( ucParams[ 0 ] );
+    if( ucLen > 1 && isStringSameIgnoreCase( ucParams[ 1 ], "off" ) ){
+        // if second parameter is included and is "off"
+        pinInterrupt( cmdPinEvent, ucPin, 0 );
+    } else{
+        pinInterrupt( cmdPinEvent, ucPin, TRIGGER_RISING|TRIGGER_FALLING );
+    } // else
+
+    return( TRUE );
 }
 
 u8 cmd_pinset( u8 *ucBuffer )
 {
-    u8 *ucParam, ucPin, ucState;
+    u8 *ucParams[ 2 ], ucPin, ucState;
     
-    ucPin = convertStringToPin( ucBuffer );
-    ucParam = getNextSubString( NULL, WHITESPACE );
-    if( isStringSame( ucParam, "high" ) || isStringSame( ucParam, "HIGH" ) || isStringSame( ucParam, "1" )
-        || isStringSame( ucParam, "ON" ) || isStringSame( ucParam, "on" ) ){
+    getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    ucPin = convertStringToPin( ucParams[ 0 ] );
+    if( isStringSameIgnoreCase( ucParams[ 1 ], "high" ) || isStringSame( ucParams[ 1 ], "1" )
+        || isStringSameIgnoreCase( ucParams[ 1 ], "on" ) || isStringSame( ucParams[ 1 ], "0" ) ){
         ucState = 1;
     } else{
         ucState = 0;
     } // else
     pinSet( ucPin, ucState );
 
-    return( 1 );
+    return( TRUE );
 }
 
 
 u8 cmd_pinget( u8 *ucBuffer )
 {
-    print( STDIO, "\r%d", pinGet( convertStringToPin( ucBuffer ) ) );
+    print( STDIO, "\r%d", pinGet( convertStringToPin( getNextSubString( ucBuffer, WHITESPACE ) ) ) );
 
     return( 1 );
 }
@@ -287,36 +330,37 @@ u8 cmd_pinanalog( u8 *ucBuffer )
     } // if
     print( STDIO, "\r%d", adcSingleSample( convertStringToPin( getNextSubString( ucBuffer, WHITESPACE ) ) ) );
 
-    return( 1 );
+    return( TRUE );
 }
 
 u8 cmd_pinpwm( u8 *ucBuffer )
 {
-    u8 ucPin, ucDutyCycle, ucFreq;
+    u8 *ucParams[ 3 ], ucPin, ucDutyCycle, ucFreq;
 
-    ucPin = convertStringToPin( ucBuffer );
-    ucFreq = convertStringToInt( getNextSubString( NULL, WHITESPACE ) );
-    ucDutyCycle = convertStringToInt( getNextSubString( NULL, WHITESPACE ) );
+    getAllSubStrings( ucBuffer, ucParams, 3, WHITESPACE );
+    ucPin = convertStringToPin( ucParams[ 0 ] );
+    ucFreq = convertStringToInt( ucParams[ 1 ] );
+    ucDutyCycle = convertStringToInt( ucParams[ 2 ] );
     pinPWM( ucPin, ucFreq, ucDutyCycle );
 
-    return( 1 );
+    return( TRUE );
 }
 
 u8 cmd_pinconfig( u8 *ucBuffer )
 {
-    u8 *ucParam, ucPin, ucMode;
+    u8 *ucParams[ 2 ], ucPin, ucMode;
 
-    ucPin = convertStringToPin( ucBuffer );
-    ucParam = getNextSubString( NULL, WHITESPACE );
-    if( isStringSame( ucParam, "IN" ) || isStringSame( ucParam, "in" ) ){
+    getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    ucPin = convertStringToPin( ucParams[ 0 ] );
+    if( isStringSameIgnoreCase( ucParams[ 1 ], "in" ) ){
         ucMode = IN;
-    } else if( isStringSame( ucParam, "OUT" ) || isStringSame( ucParam, "out" ) ){
+    } else if( isStringSameIgnoreCase( ucParams[ 1 ], "out" ) ){
         ucMode = OUT;
-    } else if( isStringSame( ucParam, "ANALOG" ) || isStringSame( ucParam, "analog" ) ){
+    } else if( isStringSameIgnoreCase( ucParams[ 1 ], "analog" ) ){
         ucMode = ANALOG;
-    } else if( isStringSame( ucParam, "PULLUP" ) || isStringSame( ucParam, "pullup" ) ){
+    } else if( isStringSameIgnoreCase( ucParams[ 1 ], "pullup" ) ){
         ucMode = PULLUP;
-    } else if( isStringSame( ucParam, "PULLDOWN" ) || isStringSame( ucParam, "pulldown" ) ){
+    } else if( isStringSameIgnoreCase( ucParams[ 1 ], "pulldown" ) ){
         ucMode = PULLDOWN;
     } else{
         return( 0 );
@@ -445,15 +489,212 @@ u8 cmd_mv( u8 *ucBuffer )
 
 u8 cmd_copy( u8 *ucBuffer )
 {
-    u8 *ucParam1, *ucParam2;
+    u8 *ucParams[ 2 ];
     
-    ucParam1 = getNextSubString( ucBuffer, WHITESPACE );
-    ucParam2 = getNextSubString( NULL, WHITESPACE );
+    getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    fileCopy( ucParams[ 0 ], ucParams[ 1 ] );
     
-    
+    return( TRUE );
 }
 
 //----------------------------------End Basic File Commands-----------------------------------
+//--------------------------------------------------------------------------------------------
+
+//----------------------------------------Port Commands---------------------------------------
+//--------------------------------------------------------------------------------------------
+u8 cmdOpenPort( u8 ucProtocol, u8 ucPin0, u8 ucPin1, u8 ucPin2, u8 ucPin3, u8 ucAddress )
+{
+    u8 i, ii;
+
+    if( ucProtocol ){
+        for( i = 0; i < __PYGMY_MAXCOMMANDPORTS; i++ ){
+            if( globalCMDPorts[ i ].SPI == 0xFF && globalCMDPorts[ i ].I2C == 0xFF ){
+                for( ii = 0; ii < __PYGMY_MAXCOMMANDSPIPORTS; ii++ ){
+                    if( globalSPIPorts[ ii ].CR == 0xFF ){
+                        globalCMDPorts[ i ].SPI = ii;
+                        spiConfig( &globalSPIPorts[ globalCMDPorts[ i ].SPI ] , ucPin0, ucPin1, ucPin2, ucPin3 );
+                        return( i );
+                    } // if
+                } // for
+            } // 
+        } // if  
+    } else{
+        for( i = 0; i < __PYGMY_MAXCOMMANDPORTS; i++ ){
+            if( globalCMDPorts[ i ].SPI == 0xFF && globalCMDPorts[ i ].I2C == 0xFF ){
+                for( ii = 0; ii < __PYGMY_MAXCOMMANDI2CPORTS; ii++ ){
+                    if( globalI2CPorts[ ii ].CR == 0xFF ){
+                        globalCMDPorts[ i ].I2C = ii;
+                        //print( STDIO, "\rOpening i2c on %d %d @ %d", ucPin0, ucPin1, ucAddress );
+                        i2cConfig( &globalI2CPorts[ globalCMDPorts[ i ].I2C ] , ucPin0, ucPin1, ucAddress, 0 );
+                        return( i );
+                    } // if
+                } // for
+            } // 
+        } // if
+        //print( STDIO, "\rPort opened for address %d", ucAddress );
+        //i2cConfig( &globalI2CPort, ucPin0, ucPin1, ucAddress, 0  );
+    } // else
+
+    return( 0xFF );
+}
+
+u8 cmdWritePort( u8 ucCOM, u32 ulAddress, u8 *ucBuffer, u16 uiLen )
+{
+    ucCOM -= __PYGMY_FIRSTUSERCOMPORT;
+    if( globalCMDPorts[ ucCOM ].SPI != 0xFF ){
+        spiWriteBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucBuffer, uiLen );
+        return( 1 );
+    } else if( globalCMDPorts[ ucCOM ].I2C != 0xFF ){
+        i2cWriteBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], (u8)ulAddress, ucBuffer, uiLen );
+        return( 1 );
+    } // else if
+    
+    return( 0 );
+}
+
+u8 cmdReadPort( u8 ucCOM, u32 ulAddress, u8 *ucBuffer, u16 uiLen )
+{
+    ucCOM -= __PYGMY_FIRSTUSERCOMPORT;
+    if( globalCMDPorts[ ucCOM ].SPI != 0xFF ){
+        spiReadBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucBuffer, uiLen );
+        return( 1 );
+    } else if( globalCMDPorts[ ucCOM ].I2C != 0xFF ){
+        i2cReadBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], (u8)ulAddress, ucBuffer, uiLen );
+        return( 1 );
+    } // else if
+    
+    return( 0 );
+}
+
+u8 cmd_port( u8 *ucBuffer )
+{
+    u8 ucData[4], ucAction, ucAddress, ucCOM, ucProtocol, ucPin0, ucPin1, ucPin2, ucPin3, *ucParam;
+    u16 i, uiLen;
+    u8 *ucStrings[ 64 ];
+    
+    uiLen = getAllSubStrings( ucBuffer, ucStrings, 64, WHITESPACE ); 
+    print( STDIO, "\r%d strings: ", uiLen );
+    for( i = 0; i < uiLen; i++ ){
+        print( STDIO, " (%s)", ucStrings[ i ] );
+    } // for
+    print( STDIO, "\rTesting action..." );
+    if( isStringSameIgnoreCase( ucStrings[ 0 ], "open" ) ){
+        print( STDIO, "Open detected\rTesting protocol..." );
+        if( isStringSameIgnoreCase( ucStrings[ 1 ], "i2c" ) ){
+            print( STDIO, "i2c detected" );
+            ucProtocol = 0;
+            ucPin0 = convertStringToPin( ucStrings[ 2 ] );
+            ucPin1 = convertStringToPin( ucStrings[ 3 ] );
+            ucAddress = convertStringToInt( ucStrings[ 4 ] );
+        } else if( isStringSameIgnoreCase( ucStrings[ 1 ], "spi" ) ){
+            print( STDIO, "spi detected" );
+            ucProtocol = 1;
+            ucPin0 = convertStringToPin( ucStrings[ 2 ] );
+            ucPin1 = convertStringToPin( ucStrings[ 3 ] );
+            ucPin2 = convertStringToPin( ucStrings[ 4 ] );
+            ucPin3 = convertStringToPin( ucStrings[ 5 ] );
+            print( STDIO, "\rCS=%d SCK=%d MISO=%d MOSI=%d", ucPin0, ucPin1, ucPin2, ucPin3 );
+        } // else if
+        print( STDIO, "\rOpening port..." );
+        ucCOM = cmdOpenPort( ucProtocol, ucPin0, ucPin1, ucPin2, ucPin3, ucAddress );
+        if( ucCOM != 0xFF ){
+            print( STDIO, "\rCOM%d", __PYGMY_FIRSTUSERCOMPORT + ucCOM );
+            return( 1 );
+        } // else
+    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "close" ) ){
+        ucCOM = convertStringToInt( ucStrings[ 1 ] );// - __PYGMY_FIRSTUSERCOMPORT;
+    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "send" ) ){
+        replaceChars( ucStrings[ 1 ], "COM", ' ' );
+        ucCOM = convertStringToInt( ucStrings[ 1 ] );// - __PYGMY_FIRSTUSERCOMPORT;
+        //ucAddress = convertStringToInt( ucStrings[ 1 ] );
+        ucAddress = 0;
+        uiLen -= 2;
+        for( i = 0; i < uiLen; i++ ){
+            ucData[ i ] = convertStringToInt( ucStrings[ i + 2 ] );
+        } // for
+        cmdWritePort( ucCOM, ucAddress, ucData, uiLen );
+            //ucData[ 1 ] = convertStringToInt( ucStrings[ 4 ] );
+        /*if( ucProtocol ){
+            spiWriteBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucData, uiLen - 2 );
+        } else{
+            i2cWriteBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], ucAddress, ucData, uiLen - 2 );
+        } // else
+        */
+        return( 1 );
+    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "read" ) ){
+        replaceChars( ucStrings[ 1 ], "COM", ' ' );
+        ucCOM = convertStringToInt( ucStrings[ 1 ] );// - __PYGMY_FIRSTUSERCOMPORT;
+        ucAddress = 0;
+        uiLen = 1;
+        //if( uiLen > 2 ){
+        //    ucAddress = convertStringToInt( ucStrings[ 2 ] );
+        //} // if
+        if( uiLen > 2 ){
+            uiLen = convertStringToInt( ucStrings[ 2 ] );
+        } // if
+            
+        /*if( globalCMDPorts[ ucCOM ].SPI != 0xFF ){
+             spiReadBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucData, uiLen );//, ucAddress, ucData, 2 );
+        } else if( globalCMDPorts[ ucCOM ].I2C != 0xFF ){
+            i2cReadBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], ucAddress, ucData, uiLen );
+        } else{
+            return( 0 );
+        } // else
+        */
+        cmdReadPort( ucCOM, ucAddress, ucData, uiLen );
+        print( STDIO, "\rData: " );
+        for( i = 0; i < uiLen; i++ ){
+            print( STDIO, " (%d)", ucData[ i ] );
+        } //for
+        return( 1 );
+    } // else if
+    
+    return( 0 );
+}
+
+u8 cmd_humidity( u8 *ucBuffer )
+{
+    PYGMYSPIPORT pygmySPI;
+    u16 uiPressure, uiTemp;
+
+    pinConfig( A4, OUT );
+    pinSet( A4, HIGH );
+    spiConfig( &pygmySPI, D0, D1, D3, D2 );
+    pinSet( D0, LOW );
+    spiWriteByte( &pygmySPI, 0x24 ); // Start Conversion
+    delay( 100 );
+    spiWriteByte( &pygmySPI, 0x00 ); // 
+    pinSet( D0, HIGH );
+
+    delay( 100 );
+
+    pinSet( D0, LOW );
+    spiWriteByte( &pygmySPI, 0x80 );
+    delay( 100 );
+    uiPressure = spiReadByte( &pygmySPI );
+    spiWriteByte( &pygmySPI, 0x82 );
+    delay( 100 );
+    uiPressure |= spiReadByte( &pygmySPI );
+    spiWriteByte( &pygmySPI, 0x84 );
+    delay( 100 );
+    uiTemp = (u16)spiReadByte( &pygmySPI )<<8;
+    spiWriteByte( &pygmySPI, 0x86 );
+    delay( 100 );
+    uiTemp |= spiReadByte( &pygmySPI );
+    pinSet( D0, HIGH );
+    
+    print( COM3, "\rPressure %d Temp %d\r> ", uiPressure, uiTemp );
+    pinSet( A4, LOW );
+}
+
+u8 cmd_psend( u8 *ucBuffer )
+{
+    
+
+    return( 1 );
+}
+
+//--------------------------------------End Port Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
 
 //--------------------------------------Basic RF Commands-------------------------------------

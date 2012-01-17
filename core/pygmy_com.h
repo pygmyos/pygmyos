@@ -357,7 +357,6 @@ typedef struct
 #define PYGMY_STREAMS_CR            BIT4
 
 typedef struct {
-                //u8 Status;
                 u16 RXBufferLen;
                 u16 RXIndex;
                 u16 RXLen;
@@ -393,22 +392,22 @@ enum {
             COM6,
         #endif
         #ifdef __PYGMYSTREAMSP1
-            SP1,
+            COM7,
         #endif
         #ifdef __PYGMYSTREAMSP2
-            SP2,
+            COM8,
         #endif
         #ifdef __PYGMYSTREAMSP3
-            SP3,
+            COM9,
         #endif
-        #ifdef __PYGMYSTREAMBUS1
-            BUS1,
+        #ifdef __PYGMYSTREAMBUS1 // Hardware I2C1
+            COM10,
         #endif
-        #ifdef __PYGMYSTREAMBUS2
-            BUS2,
+        #ifdef __PYGMYSTREAMBUS2 // Hardware I2C2
+            COM11,
         #endif
-        #ifdef __PYGMYSTREAMBUS3
-            BUS3,
+        #ifdef __PYGMYSTREAMBUS3 // Hardware I2C3
+            COM12,
         #endif
         #ifdef __PYGMYSTREAMSDIO
             SDIO,
@@ -430,7 +429,7 @@ enum {
         #endif
         MAXCOMPORTS,
         };
-
+#define __PYGMY_FIRSTUSERCOMPORT        20 // Lower ports are reserved for hardware
 enum {
         RS232,
         SPI,
@@ -439,21 +438,30 @@ enum {
         };
  
 
-#define RTS     BIT0
-#define CTS     BIT1
-#define STOP1   BIT2
-#define STOP15  BIT3
-#define TXIE    BIT4
-#define TXFIFO  TXIE
-            
+#define RTS                 BIT0
+#define CTS                 BIT1
+#define STOP1               BIT2
+#define STOP15              BIT3
+#define TXIE                BIT4
+#define TXFIFO              TXIE
+   
+#define I2CBUSERROR         BIT0     
+#define I2CWORDADDRESS      BIT1
+#define I2CSPEEDSTANDARD    BIT2 // 100kbps, All speed bits clear = 10kbps
+#define I2CSPEEDFAST        BIT3 // 400kbps
+#define I2CSPEEDFASTPLUS    BIT4 // 1Mbps
+#define I2CSPEEDHIGH        BIT5 // 3.4Mbps
+    
 typedef struct{
                 u8 SCL;
                 u8 SDA;
+                u8 Address;
                 GPIO *PortSCL;
                 GPIO *PortSDA;
                 u16 PinSCL;
                 u16 PinSDA;
                 u16 Speed;
+                u16 CR;
                 //u8 Status;
                 } PYGMYI2CPORT;
             
@@ -466,6 +474,7 @@ typedef struct{
                 u16 PinSCK;
                 u16 PinMOSI;
                 u16 PinMISO;
+                u16 CR;
                 } PYGMYSPIPORT;
             
 typedef struct{
@@ -482,7 +491,12 @@ typedef struct{
                 u16 Mask;
                 u8 Width;
                 } PYGMYPARALLELPORT;
-
+typedef struct{
+                u8 SPI;
+                u8 I2C;
+                //u8 Type;
+                } PYGMYPORTINDEX;
+            
 #ifdef __PYGMYSTREAMS
     extern PYGMYFIFO globalStreams[];
 #endif
@@ -544,19 +558,22 @@ void parallelConfig( PYGMYPARALLELPORT *pygmyPort, u8 ucWidth, u8 ucCS, u8 ucA0,
 void parallelWrite( PYGMYPARALLELPORT *pygmyPort, u8 ucA0, u16 uiWord );
 u16 parallelRead( PYGMYPARALLELPORT *pygmyPort, u8 ucA0 );            
             
-void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI );           
+void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI ); 
+void spiReadBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen );
+void spiWriteBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen );
 void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte );
 void spiWriteWord( PYGMYSPIPORT *pygmySPI, u16 uiWord );
 void spiWriteLong( PYGMYSPIPORT *pygmySPI, u32 ulLong );
 u8 spiReadByte( PYGMYSPIPORT *pygmySPI );
             
-void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u16 uiSpeed );
+void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 uiSpeed );
 void i2cDelay( PYGMYI2CPORT *pygmyI2C );
 void i2cStart( PYGMYI2CPORT *pygmyI2C );
 void i2cStop( PYGMYI2CPORT *pygmyI2C );
 void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit );
 u8 i2cReadBit( PYGMYI2CPORT *pygmyI2C );
-u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u8 ucAddress, u8 *ucBuffer, u16 uiLen );
+u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u16 ucAddress, u8 *ucBuffer, u16 uiLen );
+u8 i2cReadBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen );
 u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte );
 u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C );
     

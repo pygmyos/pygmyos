@@ -129,7 +129,7 @@ u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket )
     u8 i;
     
     // Load common sections
-    pygmyPacket->DestID     = bufferToU32( ucBuffer );
+    pygmyPacket->DestID     = convertBufferToU32( ucBuffer );
     print( COM3, "\rDestID: %X", pygmyPacket->DestID );
     pygmyPacket->Command    = ( ( *( ucBuffer + 4 ) ) & 0xE0 ) >> 5;
     print( COM3, "\rCommand: %d", pygmyPacket->Command );
@@ -137,7 +137,7 @@ u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket )
     print( COM3, "\rPayload Len: %d", pygmyPacket->Len );
     pygmyPacket->Chunk      = *( ucBuffer + 5 );
     print( COM3, "\rChunk: %d", pygmyPacket->Chunk );
-    pygmyPacket->CRC        = bufferToU16( ( ucBuffer + 6 + pygmyPacket->Len ) );
+    pygmyPacket->CRC        = convertBufferToU16( ( ucBuffer + 6 + pygmyPacket->Len ) );
    
     if( sysCRC16( ucBuffer, pygmyPacket->Len + 6 ) != pygmyPacket->CRC ){
         print( COM3, "\rCRC %X does not match %X", pygmyPacket->CRC, sysCRC16( ucBuffer, pygmyPacket->Len + 6 ) ); 
@@ -149,7 +149,7 @@ u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket )
     if( pygmyPacket->Command == RF_OPEN ){
         pygmyPacket->Type       = pygmyPacket->Payload[ 0 ];
         print( COM3, "\rType: %d", pygmyPacket->Type );
-        pygmyPacket->SrcID = bufferToU32( ( pygmyPacket->Payload + 1 ) );
+        pygmyPacket->SrcID = convertBufferToU32( ( pygmyPacket->Payload + 1 ) );
         print( COM3, "\rSRCID: %X", pygmyPacket->SrcID );
         /*if( pygmyPacket->Type == RF_FILE ){
             for( i = 0; i < 13; i++ ){

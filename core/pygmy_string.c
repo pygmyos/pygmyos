@@ -24,7 +24,7 @@ const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 
 #ifdef __PYGMYNEBULA
-    #define PYGMYMAXPINS  23
+    #define PYGMYMAXPINS  27
     const PYGMYPAIR PYGMYNEBULAPINS[] = {
                                         { (u8*)"LED0",  LED0 },
                                         { (u8*)"LED1",  LED1 },
@@ -48,7 +48,12 @@ const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C'
                                         { (u8*)"A4",    A4 },
                                         { (u8*)"A5",    A5 },
                                         { (u8*)"A6",    A6 },
-                                        { (u8*)"A7",    A7 } };
+                                        { (u8*)"A7",    A7 },
+                                        { (u8*)"D0",    D0 },
+                                        { (u8*)"D1",    D1 },
+                                        { (u8*)"D2",    D2 },
+                                        { (u8*)"D3",    D3 },
+                                        { (u8*)NULL,    0 } };
 #endif // __PYGMYNEBULA
 
 u8 *convertPinToString( u8 ucPin )
@@ -67,44 +72,39 @@ u8 *convertPinToString( u8 ucPin )
 u8 convertStringToPin( u8 *ucBuffer )
 {
     // This function is constant string safe
-    u8 i, *ucParam, ucParamBuf[ 16 ], ucPin;
+    u8 i, ucPin;
 
-    for( i = 0; i < 16 && ucBuffer[ i ]; i++ ){
-        ucParamBuf[ i ] = ucBuffer[ i ];
-    } // for
-    ucParamBuf[ i ] = '\0';
-    ucParam = getNextSubString( (u8*)ucParamBuf, WHITESPACE );
-    if( replaceChars( ucParam, "pP", ' ' ) ){
-        if( replaceChars( ucParam, "aA", ' ' ) ){
+    #ifdef __PYGMYNEBULA
+        for( i = 0; i < PYGMYMAXPINS; i++ ){
+            if( isStringSame( PYGMYNEBULAPINS[ i ].String, ucBuffer ) ){
+                return( PYGMYNEBULAPINS[ i ].Value );
+            } // if     
+        } // for
+    #endif // __PYGMYNEBULA
+    // Pin isn't an alias, check for port letter and pin number
+    if( replaceChars( ucBuffer, "pP", ' ' ) ){
+        if( replaceChars( ucBuffer, "aA", ' ' ) ){
             ucPin = 0;
-        } else if( replaceChars( ucParam, "bB", ' ' ) ){
+        } else if( replaceChars( ucBuffer, "bB", ' ' ) ){
             ucPin = 16;
-        } else if( replaceChars( ucParam, "cC", ' ' ) ){
+        } else if( replaceChars( ucBuffer, "cC", ' ' ) ){
             ucPin = 32;
-        } else if( replaceChars( ucParam, "dD", ' ' ) ){
+        } else if( replaceChars( ucBuffer, "dD", ' ' ) ){
             ucPin = 48;
-        } else if( replaceChars( ucParam, "eE", ' ' ) ){
+        } else if( replaceChars( ucBuffer, "eE", ' ' ) ){
             ucPin = 64;
-        } else if( replaceChars( ucParam, "fF", ' ' ) ){
+        } else if( replaceChars( ucBuffer, "fF", ' ' ) ){
             ucPin = 80;
         } else{
             return( 0xFF );
         } // else
-        ucPin += convertStringToInt( ucParam );
+        return( ucPin + convertStringToInt( ucBuffer ) );
     } // if
-    #ifdef __PYGMYNEBULA
-        for( i = 0; i < 128; i++ ){
-            if( isStringSame( PYGMYNEBULAPINS[ i ].String, ucParam ) ){
-                ucPin = PYGMYNEBULAPINS[ i ].Value;
-                break;
-            } // if     
-        } // for
-    #endif // __PYGMYNEBULA
 
-    return( ucPin );
+    return( 0xFF );
 }
 
-u16 bufferToU16( u8 *ucBuffer )
+u16 convertBufferToU16( u8 *ucBuffer )
 {
     u16 i;
 
@@ -114,7 +114,7 @@ u16 bufferToU16( u8 *ucBuffer )
     return( i );
 }
 
-u32 bufferToU32( u8 *ucBuffer )
+u32 convertBufferToU32( u8 *ucBuffer )
 {
     u32 ii;
     u8 i;
@@ -260,6 +260,47 @@ u16 len( u8 *ucString )
     return( i );
 }
 
+u8 convertCharToUpper( u8 ucChar )
+{
+    if( ucChar > 64 && ucChar < 91 ){
+        ucChar += 32;
+    } // if
+
+    return( ucChar );
+}
+
+u8 convertCharToLower( u8 ucChar )
+{
+    if( ucChar > 96 && ucChar < 123 ){
+        ucChar -= 32;
+    } // if
+
+    return( ucChar );
+}
+
+u8 isCharSameIgnoreCase( u8 ucChar1, u8 ucChar2 )
+{
+    if( convertCharToUpper( ucChar1 ) == convertCharToUpper( ucChar2 ) ){
+       return( 1 );
+    } // if
+
+    return( 0 );
+}
+
+u8 isStringSameIgnoreCase( u8 *ucString1, u8 *ucString2 )
+{
+    if( len( ucString1 ) != len( ucString2 ) )
+        return ( 0 );
+    
+    for( ; *ucString1; ){
+        if( !isCharSameIgnoreCase( *(ucString1++), *(ucString2++) ) ){
+            return( 0 );
+        } // if
+    } // for
+    
+    return( 1 );
+}
+
 s8 isStringSame( u8 *ucBuffer, u8 *ucString )
 {
     if( len( ucBuffer ) != len( ucString ) )
@@ -272,6 +313,24 @@ s8 isStringSame( u8 *ucBuffer, u8 *ucString )
     } // for
     
     return( 1 );
+}
+
+u16 getAllSubStrings( u8 *ucBuffer, u8 *ucStrings[], u16 uiLen, u8 ucMode )
+{
+    u16 i;
+    u8 *ucSub;
+
+    // First clear string buffer to prevent memory errors later
+    for( i = 0; i < uiLen; i++ ){
+        ucStrings[ i ] = NULL;
+    } // for
+    ucSub = getNextSubString( ucBuffer, ucMode );
+    for( i = 0; i < uiLen && ucSub; i++ ){
+        ucStrings[ i ] = ucSub;
+        ucSub = getNextSubString( NULL, ucMode );
+    } // for
+
+    return( i );
 }
 
 u8 *getNextSubString( u8 *ucBuffer, u8 ucMode )
