@@ -300,17 +300,19 @@ u8 cmd_pinevent( u8 *ucBuffer )
 
 u8 cmd_pinset( u8 *ucBuffer )
 {
-    u8 *ucParams[ 2 ], ucPin, ucState;
+    u8 *ucParams[ 2 ], ucPin;
     
     getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
     ucPin = convertStringToPin( ucParams[ 0 ] );
     if( isStringSameIgnoreCase( ucParams[ 1 ], "high" ) || isStringSame( ucParams[ 1 ], "1" )
-        || isStringSameIgnoreCase( ucParams[ 1 ], "on" ) || isStringSame( ucParams[ 1 ], "0" ) ){
-        ucState = 1;
+        || isStringSameIgnoreCase( ucParams[ 1 ], "on" ) ){
+        pinSet( ucPin, 1 );
+    } if( isStringSameIgnoreCase( ucParams[ 1 ], "low" ) || isStringSame( ucParams[ 1 ], "0" )
+        || isStringSameIgnoreCase( ucParams[ 1 ], "off" ) ){
+        pinSet( ucPin, 0 );
     } else{
-        ucState = 0;
+        return( FALSE );
     } // else
-    pinSet( ucPin, ucState );
 
     return( TRUE );
 }
@@ -492,9 +494,7 @@ u8 cmd_copy( u8 *ucBuffer )
     u8 *ucParams[ 2 ];
     
     getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
-    fileCopy( ucParams[ 0 ], ucParams[ 1 ] );
-    
-    return( TRUE );
+    return( fileCopy( ucParams[ 0 ], ucParams[ 1 ] ) );
 }
 
 //----------------------------------End Basic File Commands-----------------------------------

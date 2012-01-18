@@ -52,6 +52,15 @@ u8 pinGetIRQPin( u8 ucPin )
     return( globalIRQPins[ ucPin ] );
 }
 
+u16 pinAnalog( u8 ucPin )
+{
+    if( !adcGetStatus( ) ){
+        adcSingleSampleInit();
+    } // if
+
+    return( adcSingleSample( ucPin ) );
+}
+
 void pinConfig( u8 ucPin, u8 ucMode )
 {
     u32 uiPortMode, uiPortClear;
