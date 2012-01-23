@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -541,7 +541,7 @@ typedef struct{
 void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate );
 void comDisable( u8 ucPort );
 void comEnable( u8 ucPort );
-u16 generateBaud( u32 uiClock, u32 uiRate );
+u16 comGenerateBaud( u32 ulClock, u32 ulRate );
 u8 putsUSART1( u8 *ucBuffer );
 u8 putsUSART2( u8 *ucBuffer );
 u8 putsUSART3( u8 *ucBuffer );
@@ -577,6 +577,7 @@ u8 i2cReadBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen
 u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte );
 u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C );
     
+void streamHandler( u8 ucPort, u8 ucChar );
 void streamInit( void );
 u8 streamReset( u8 ucStream );
 void streamSetActionChars( u8 ucStream, u8 *ucString );
@@ -597,6 +598,7 @@ u8 streamSetGet( u8 ucStream, void *ptrFunc );
 u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 u8 streamGetEcho( u8 ucStream );
+void streamEchoChar( u8 ucStream, u8 ucChar );
 void streamEnableEcho( u8 ucStream );
 void streamDisableEcho( u8 ucStream );
 void streamEnableActionChars( u8 ucStream );

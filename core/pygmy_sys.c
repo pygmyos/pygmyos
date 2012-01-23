@@ -137,6 +137,18 @@ u8 sysInit( void )
 	return( 0 );
 }
 
+void sysSetPipe( u8 ucPortFrom, u8 ucPortTo )
+{
+    if( ucPortFrom >= MAXCOMPORTS || ucPortTo >= MAXCOMPORTS ){
+        return;
+    } // if
+    #ifdef __PYGMYCOMMANDS
+    streamSetGet( COM3, cmdGetsCOM3 );
+    #endif // __PYGMYCOMMANDS
+    
+    streamSetPut( COM3, putsUSART3 );
+}
+
 void sysEnableComClock( u8 ucPort )
 {
     #ifdef __PYGMYSTREAMCOM1

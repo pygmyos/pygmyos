@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -49,17 +49,29 @@ void voltShieldInit( void )
     pinConfig( SHIELD_VOLT4, ANALOG );
 
     pinSet( SHIELD_VENABLE, LOW ); // Disable Voltage Regulator
-    print( COM3, "\rApplying defaults to volt shield" );
     for( i = 0; i < 4; i++ ){
         voltShieldSetInputMode( i, VOLTAGE );
         voltShieldSetCoupling( i, DC );
     } // for
-    print( COM3, "\rReseting Digipot" );
     pinSet( SHIELD_RESET, LOW );
     delay( 30 );
     pinSet( SHIELD_RESET, HIGH );
-    
-    print( COM3, "\rVolt Shield Initialized" );
+}
+
+u16 voltShieldGetGain( u8 ucChannel )
+{
+    u16 uiGain;
+
+    if( !globalVoltShieldStatus ){
+        voltShieldInit();
+    } // if
+    uiGain = digipotGetWiper( &globalI2CDigipot, ucChannel - 1 ); // Wipers are 0 base
+    if( uiGain < 127 ){
+        return( 0 );
+    } // if
+    uiGain = uiGain / ( 1 + ( 0xFF - uiGain  ) );
+
+    return( uiGain );
 }
 
 void voltShieldSetGain( u8 ucChannel, u16 uiGain )
@@ -67,6 +79,11 @@ void voltShieldSetGain( u8 ucChannel, u16 uiGain )
     if( !globalVoltShieldStatus ){
         voltShieldInit();
     } // if
+    if( uiGain > 255 ){
+        return;
+    } // if
+    uiGain = 0xFF - ( 0xFF / ( 1 + uiGain ) );
+    digipotSetWiper( &globalI2CDigipot, ucChannel - 1, uiGain );
 }
 
 void voltShieldSetCoupling( u8 ucChannel, u8 ucCoupling )

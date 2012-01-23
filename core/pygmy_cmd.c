@@ -50,6 +50,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"pinpwm",     cmd_pinpwm},
                                     {(u8*)"pinconfig",  cmd_pinconfig},
                                     
+                                    {(u8*)"mnt",        cmd_mnt},
                                     {(u8*)"format",     cmd_format},
                                     {(u8*)"rm",         cmd_rm},
                                     {(u8*)"ls",         cmd_ls},
@@ -57,7 +58,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"open",       cmd_open},
                                     {(u8*)"read",       cmd_read},
                                     {(u8*)"write",      cmd_write},
-                                    {(u8*)"copy",       cmd_copy},
+                                    {(u8*)"cp",       cmd_cp},
                                     
                                     {(u8*)"modem",      cmd_modem},
                                 
@@ -66,6 +67,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"rfopen",     cmd_rfopen},
                                     {(u8*)"rfsend",     cmd_rfsend},
                                     
+                                    {(u8*)"voltshield", cmd_voltshield},
                                     
                                     {(u8*)"", cmdNull} // No Commands after NULL
                                     }; 
@@ -195,9 +197,56 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+u8 cmd_voltshield( u8 *ucBuffer )
+{
+    //u16 uiSample;
+    u8 *ucParams[ 4 ], ucLen, ucChannel, ucGain;
+
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 4, WHITESPACE );
+
+    
+    if( isStringSame( ucParams[ 0 ], "set" ) ){
+        if( ucLen < 4 ){
+            return( FALSE );
+        } // if 
+        ucChannel = convertStringToInt( ucParams[ 2 ] );
+        if( isStringSame( ucParams[ 1 ], "gain" ) ){
+            ucGain = convertStringToInt( ucParams[ 3 ] );
+            voltShieldSetGain( ucChannel, ucGain );
+        } else if( isStringSame( ucParams[ 1 ], "coupling" ) || isStringSame( ucParams[ 1 ], "couple" ) ){
+            if( isStringSameIgnoreCase( ucParams[ 3 ], "ac" ) ){
+                voltShieldSetCoupling( ucChannel, AC );
+            }else if(isStringSameIgnoreCase( ucParams[ 3 ], "dc" ) ){
+                voltShieldSetCoupling( ucChannel, DC );
+            } else{
+                return( FALSE );
+            } // else
+        } else{
+            return( FALSE );
+        } // else
+    } else if( isStringSame( ucParams[ 0 ], "get" ) ){
+        if( ucLen < 3 ){
+            return( FALSE );
+        } // if
+        ucChannel = convertStringToInt( ucParams[ 2 ] );
+        if( isStringSame( ucParams[ 1 ], "resistance" ) || isStringSame( ucParams[ 1 ], "res" ) ){
+            //voltShieldSetCoupling( ucChannel, RESISTANCE );
+            print( STDIO, "\r%d", voltShieldGetResistance( ucChannel ) );
+        } else if( isStringSame( ucParams[ 1 ], "voltage" ) || isStringSame( ucParams[ 1 ], "volt" ) ){
+            print( STDIO, "\r%d", voltShieldGetVoltage( ucChannel ) );
+        } else{
+            return( FALSE );
+        } // else
+    } else{
+        return( FALSE );
+    } // else
+
+    return( TRUE );
+}
+
 u8 cmd_modem( u8 *ucBuffer )
 {
-    print( COM2, "%s", getNextSubString( ucBuffer, NEWLINE ) );
+    print( COM2, "%s\r", getNextSubString( ucBuffer, NEWLINE ) );
 
     return( 1 );
 }
@@ -307,7 +356,7 @@ u8 cmd_pinset( u8 *ucBuffer )
     if( isStringSameIgnoreCase( ucParams[ 1 ], "high" ) || isStringSame( ucParams[ 1 ], "1" )
         || isStringSameIgnoreCase( ucParams[ 1 ], "on" ) ){
         pinSet( ucPin, 1 );
-    } if( isStringSameIgnoreCase( ucParams[ 1 ], "low" ) || isStringSame( ucParams[ 1 ], "0" )
+    } else if( isStringSameIgnoreCase( ucParams[ 1 ], "low" ) || isStringSame( ucParams[ 1 ], "0" )
         || isStringSameIgnoreCase( ucParams[ 1 ], "off" ) ){
         pinSet( ucPin, 0 );
     } else{
@@ -377,7 +426,7 @@ u8 cmd_pinconfig( u8 *ucBuffer )
 
 //------------------------------------Basic File Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
-u8 cmd_mount( u8 *ucBuffer )
+u8 cmd_mnt( u8 *ucBuffer )
 {
     fileMountRoot();
     
@@ -489,7 +538,7 @@ u8 cmd_mv( u8 *ucBuffer )
     return( fileRename( ucParam1, ucParam2 ) );
 }
 
-u8 cmd_copy( u8 *ucBuffer )
+u8 cmd_cp( u8 *ucBuffer )
 {
     u8 *ucParams[ 2 ];
     
@@ -602,45 +651,34 @@ u8 cmd_port( u8 *ucBuffer )
             return( 1 );
         } // else
     } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "close" ) ){
-        ucCOM = convertStringToInt( ucStrings[ 1 ] );// - __PYGMY_FIRSTUSERCOMPORT;
-    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "send" ) ){
+        ucCOM = convertStringToInt( ucStrings[ 1 ] );
+    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "send" ) || isStringSameIgnoreCase( ucStrings[ 0 ] ) ){
+        if( uiLen < 3 ){
+            return( FALSE );
+        } // if
         replaceChars( ucStrings[ 1 ], "COM", ' ' );
-        ucCOM = convertStringToInt( ucStrings[ 1 ] );// - __PYGMY_FIRSTUSERCOMPORT;
-        //ucAddress = convertStringToInt( ucStrings[ 1 ] );
-        ucAddress = 0;
-        uiLen -= 2;
-        for( i = 0; i < uiLen; i++ ){
-            ucData[ i ] = convertStringToInt( ucStrings[ i + 2 ] );
+        ucCOM = convertStringToInt( ucStrings[ 1 ] );
+        ucAddress = convertStringToInt( ucStrings[ 2 ] );
+        print( STDIO, "\rSending %d Data Bytes to COM: %d, Address: %d, \r", uiLen - 3, ucCOM, ucAddress );
+        for( i = 0; i < uiLen - 3; i++ ){
+            ucData[ i ] = convertStringToInt( ucStrings[ i + 3 ] );
+            print( STDIO, "%d (%d)\r", i, ucData[ i ] );
         } // for
-        cmdWritePort( ucCOM, ucAddress, ucData, uiLen );
-            //ucData[ 1 ] = convertStringToInt( ucStrings[ 4 ] );
-        /*if( ucProtocol ){
-            spiWriteBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucData, uiLen - 2 );
-        } else{
-            i2cWriteBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], ucAddress, ucData, uiLen - 2 );
-        } // else
-        */
+        cmdWritePort( ucCOM, ucAddress, ucData, uiLen - 3 );
+           
         return( 1 );
     } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "read" ) ){
-        replaceChars( ucStrings[ 1 ], "COM", ' ' );
-        ucCOM = convertStringToInt( ucStrings[ 1 ] );// - __PYGMY_FIRSTUSERCOMPORT;
-        ucAddress = 0;
-        uiLen = 1;
-        //if( uiLen > 2 ){
-        //    ucAddress = convertStringToInt( ucStrings[ 2 ] );
-        //} // if
-        if( uiLen > 2 ){
-            uiLen = convertStringToInt( ucStrings[ 2 ] );
+        if( uiLen < 4 ){
+            return( FALSE );
         } // if
+        replaceChars( ucStrings[ 1 ], "COM", ' ' );
+        ucCOM = convertStringToInt( ucStrings[ 1 ] );
+        
+        ucAddress = convertStringToInt( ucStrings[ 2 ] );
+        print( STDIO, "\rAddress: %d", ucAddress );
+        uiLen = convertStringToInt( ucStrings[ 3 ] );
+        print( STDIO, "\rLen: %d", uiLen );
             
-        /*if( globalCMDPorts[ ucCOM ].SPI != 0xFF ){
-             spiReadBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucData, uiLen );//, ucAddress, ucData, 2 );
-        } else if( globalCMDPorts[ ucCOM ].I2C != 0xFF ){
-            i2cReadBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], ucAddress, ucData, uiLen );
-        } else{
-            return( 0 );
-        } // else
-        */
         cmdReadPort( ucCOM, ucAddress, ucData, uiLen );
         print( STDIO, "\rData: " );
         for( i = 0; i < uiLen; i++ ){

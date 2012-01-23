@@ -49,7 +49,7 @@ u8 cmd_pinanalog( u8 *ucBuffer );
 u8 cmd_pinpwm( u8 *ucBuffer );
 u8 cmd_pinconfig( u8 *ucBuffer );
 
-u8 cmd_mount( u8 *ucBuffer );
+u8 cmd_mnt( u8 *ucBuffer );
 u8 cmd_format( u8 *ucBuffer );
 u8 cmd_read( u8 *ucBuffer );
 u8 cmd_write( u8 *ucBuffer );
@@ -57,8 +57,9 @@ u8 cmd_ls( u8 *ucBuffer );
 u8 cmd_rm( u8 *ucBuffer );
 u8 cmd_open( u8 *ucBuffer );
 u8 cmd_mv( u8 *ucBuffer );
-u8 cmd_copy( u8 *ucBuffer );
+u8 cmd_cp( u8 *ucBuffer );
 
+u8 cmd_voltshield( u8 *ucBuffer );
 u8 cmd_modem( u8 *ucBuffer );
 
 u8 cmd_humidity( u8 *ucBuffer );

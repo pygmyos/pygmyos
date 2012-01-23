@@ -37,13 +37,8 @@
 #define SHIELD_RES4             A6
 #define SHIELD_VENABLE          A7
 
-#define DIGIPOT_WIPER0          0x00
-#define DIGIPOT_WIPER1          0x01
-#define DIGIPOT_TCON0           0x04
-#define DIGIPOT_STATUS          0x05
-#define DIGIPOT_WIPER2          0x06
-#define DIGIPOT_WIPER3          0x07
-#define DIGIPOT_TCON1           0x0A
+
+
 // General Call Commands, may cause device conflicts
 //#define DIGIPOT_WRITEWIPER0     0x40
 //#define DIGIPOT_WRITEWIPER1     0x48
@@ -61,6 +56,7 @@
 #define DC                      1
 
 void voltShieldInit( void );
+u16 voltShieldGetGain( u8 ucChannel );
 void voltShieldSetGain( u8 ucChannel, u16 uiGain );
 void voltShieldSetCoupling( u8 ucChannel, u8 ucCoupling );
 void voltShieldSetInputMode( u8 ucChannel, u8 ucMode );
