@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -249,7 +249,9 @@ typedef struct {
                 u32 TimeStamp;
                 u32 Expire;
                 } PYGMYCOMMAND;
-
+            
+#define PYGMY_MAXQUEUES  4
+            
 typedef struct {
                 u8 Index;
                 u8 Count;
@@ -320,7 +322,10 @@ typedef struct {
             
 //------------------------------------------------------------------------------
 //----------------------------Constant Data-------------------------------------
-           
+
+#define PYGMY_TASK_INIT         BIT16
+#define PYGMY_MSG_INIT          BIT17
+            
 extern const u8 PYGSYS_BITS[];
 extern const u8 PYGSYS_INVBITS[];
 extern const u8 PYGMYHEXCHARS[];
@@ -1254,6 +1259,8 @@ u8 cmdIsQueued( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u8 *ucName  );
 u8 cmdQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd );
 void cmdInitQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
 void cmdReplace( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd );
+u8 cmdGetRetriesRemaining( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
+void *cmdListQueue( u16 uiIndex );
 
 u16 msgGetIndex( u8 *ucName, u16 uiID );
 u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue );
@@ -1279,9 +1286,6 @@ u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum );
 void pdiaPrintInteger( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucFormat, u32 ulData );
 void pdiaPrintString( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucBuffer );
 
-void DriverThread_RestoreThreads( void );
-void DriverThread_KillThreads( void );
-
 u32 descriptorGetMainClock( void );
 u32 descriptorGetXTAL( void );
 u32 descriptorGetID( void );
@@ -1290,14 +1294,6 @@ u8 *getIDString( void );
 u8 *getID( void );
 u32 getIDCode( void );
 u32 getIDRevision( void );
-
-/*void setTime( u32 ulTime );
-u32 getTime( void );
-u32 convertSystemTimeToSeconds( PYGMYTIME *pygmyTime );
-void convertSecondsToSystemTime( u32 ulSeconds, PYGMYTIME *pygmyTime );
-*/
-
-//u8 executeCmd( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
 
 //void enableXTAL( void );
 void delay( u32 ulDelay );
@@ -1310,4 +1306,9 @@ u32 stopwatchGet( void );
 //--------------------------------------------------------------------------------------
 //--------------------------------------Deprecated--------------------------------------
 
+//void DriverThread_RestoreThreads( void );
+//void DriverThread_KillThreads( void );
 
+
+//------------------------------------End Deprecated------------------------------------
+//--------------------------------------------------------------------------------------

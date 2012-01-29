@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -36,8 +36,12 @@ PYGMYTASK           pygmyGlobalTasks[ PYGMY_MAXTASKS ];
 PYGMYMESSAGE        pygmyGlobalMessages[ PYGMY_MAXMESSAGES ];
 PYGMYSYSTEM         pygmyGlobalData;
 
+PYGMYCOMMANDQUEUE   *pygmyGlobalQueues[ PYGMY_MAXQUEUES ];
 u8 sysInit( void )
 {
+    u16 i;
+
+    pygmyGlobalData.Status = 0;
     pygmyGlobalData.MCUID = descriptorGetID( );
     pygmyGlobalData.XTAL = 12000000;
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
@@ -123,22 +127,31 @@ u8 sysInit( void )
             cmdInit();
         #endif // __PYGMYCOMMANDS
     #endif
-    
+    timeInit();
     #ifdef __PYGMYFILES
         fileMountRoot();
     #endif
+    
     #ifdef __PYGMYTASKS
         taskInit();
     #endif
     #ifdef __PYGMYMESSAGES
         msgInit();
     #endif
-
+    
+    #ifdef __PYGMYMODEMSHIELD
+        modemInit();
+    #endif
+    for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
+        pygmyGlobalQueues[ i ] = NULL;
+    } // for
+    
 	return( 0 );
 }
 
 void sysSetPipe( u8 ucPortFrom, u8 ucPortTo )
 {
+    // ToDo: Finish stream piping
     if( ucPortFrom >= MAXCOMPORTS || ucPortTo >= MAXCOMPORTS ){
         return;
     } // if
@@ -402,11 +415,17 @@ void sysSetXTAL( u32 ulFreq )
 
 //--------------------------------------------------------------------------------------------
 //----------------------------------Pygmy OS Command/Response---------------------------------
-#ifdef PYGMYCOMMANDS
+#ifdef __PYGMYCOMMANDS
 void cmdInitQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
 {
     u16 i;
 
+    for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
+        if( !pygmyGlobalQueues[ i ] ){
+            pygmyGlobalQueues[ i ] = pygmyCmdQueue;
+            break;
+        } // if
+    } // for
     pygmyCmdQueue->Index = 0;
     pygmyCmdQueue->Count = 0;
     for( i = 0; i < PYGMY_MAXCOMMANDS; i++ ){
@@ -421,6 +440,7 @@ void cmdPrint( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
 
 void cmdDelete( PYGMYCOMMANDQUEUE *pygmyCmdQueue, u16 uiIndex )
 {
+    print( STDIO, "\rCmdDelete %s", pygmyCmdQueue->Commands[ uiIndex ].Name );
     pygmyCmdQueue->Commands[ uiIndex ].Status = 0;
     pygmyCmdQueue->Commands[ uiIndex ].Retry = 0;
     pygmyCmdQueue->Commands[ uiIndex ].Name = NULL;
@@ -440,6 +460,7 @@ void cmdProcess( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
 {
     u16 i;
 
+
     if( pygmyCmdQueue->Count ){
         for( i = 0; i < PYGMY_AT_MAXCOMMANDS; i++ ){
             if( !pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Status ){
@@ -454,11 +475,11 @@ void cmdProcess( PYGMYCOMMANDQUEUE *pygmyCmdQueue )
             if( pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire > PYGMY_AT_MAXEXPIRE ){
                 pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire = PYGMY_AT_MAXEXPIRE;
             } // if
-            pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire += time();
+            pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire += timeGet();
             pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].PrintHandler( );//(u8*)PYGMY_CMD_NULL );
             pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Status |= PYGMY_AT_TX;
         } // if
-        if( pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire <= time() ){
+        if( pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire <= timeGet() ){
             if( !pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Retry ){
                 cmdDelete( pygmyCmdQueue, pygmyCmdQueue->Index );
                 if( pygmyCmdQueue->Count ){
@@ -480,7 +501,7 @@ void cmdReplace( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Name          = pygmyCmd->Name;
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].EventHandler  = pygmyCmd->EventHandler;
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].PrintHandler  = pygmyCmd->PrintHandler;
-    pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].TimeStamp     = time();
+    pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].TimeStamp     = timeGet();
     pygmyCmdQueue->Commands[ pygmyCmdQueue->Index ].Expire        = pygmyCmd->Expire;
 
     ++pygmyCmdQueue->Count;
@@ -515,21 +536,22 @@ u8 cmdQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
 {
     u16 uiIndex;
 
+    
     if( ( pygmyCmdQueue->Count + 1 ) < PYGMY_AT_MAXCOMMANDS ){
         // Calculate Index with modulus so that if Index + Count are larger than array, Index will wrap
         // Remainder of ( ( ATCount + 1 ) + ATIndex % MAX = location for new command element
     
         uiIndex = ( pygmyCmdQueue->Index + pygmyCmdQueue->Count ) % PYGMY_AT_MAXCOMMANDS;
-
+        
         pygmyCmdQueue->Commands[ uiIndex ].Status        = PYGMY_AT_QUEUED;
         pygmyCmdQueue->Commands[ uiIndex ].Retry         = pygmyCmd->Retry;
         pygmyCmdQueue->Commands[ uiIndex ].Name          = pygmyCmd->Name;
         pygmyCmdQueue->Commands[ uiIndex ].EventHandler  = pygmyCmd->EventHandler;
         pygmyCmdQueue->Commands[ uiIndex ].PrintHandler  = pygmyCmd->PrintHandler;
         //pygmyGlobalData.ATCommands[ uiIndex ].ErrorHandler  = pygmyATCommand->ErrorHandler;
-        pygmyCmdQueue->Commands[ uiIndex ].TimeStamp     = time();
+        pygmyCmdQueue->Commands[ uiIndex ].TimeStamp     = timeGet();
         pygmyCmdQueue->Commands[ uiIndex ].Expire        = pygmyCmd->Expire;
-        
+        print( STDIO, "\rCmdQueue %s", pygmyCmdQueue->Commands[ uiIndex ].Name );
         ++pygmyCmdQueue->Count;
         cmdProcess( pygmyCmdQueue );
         return( 1 );
@@ -537,6 +559,12 @@ u8 cmdQueue( PYGMYCOMMANDQUEUE *pygmyCmdQueue, PYGMYCOMMAND *pygmyCmd )
         
     return( 0 );
 }
+
+void *cmdListQueue( u16 uiIndex )
+{
+    return( pygmyGlobalQueues[ uiIndex ] );
+}
+
 #endif
 //--------------------------------End Pygmy OS Command/Response-------------------------------
 //--------------------------------------------------------------------------------------------
@@ -643,7 +671,7 @@ u16 taskProcess( void )
     u32 ulTime;
     u16 i;
 
-    ulTime = time();
+    ulTime = timeGet();
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         if( pygmyGlobalTasks[ i ].ID != PYGMY_BLANKID ){
             if( pygmyGlobalTasks[ i ].Expire ){
@@ -684,6 +712,7 @@ void taskInit( void )
         pygmyGlobalTasks[ i ].TimeStamp     = 0;
         pygmyGlobalTasks[ i ].Expire        = 0;
     } // for   
+    pygmyGlobalData.Status |= PYGMY_TASK_INIT;
 }
 
 u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
@@ -726,7 +755,7 @@ u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGM
                 pygmyGlobalTasks[ i ].Reload    = 0;
             } // else
             pygmyGlobalTasks[ i ].EventHandler  = EventHandler;
-            pygmyGlobalTasks[ i ].TimeStamp     = time( );
+            pygmyGlobalTasks[ i ].TimeStamp     = timeGet( );
             pygmyGlobalTasks[ i ].Expire        = ulExpire;
 
             //return( PYGMY_TASK_SUCCESS );
@@ -832,7 +861,8 @@ u16 msgInit( void )
         pygmyGlobalMessages[ i ].Value          = 0;
         pygmyGlobalMessages[ i ].TimeStamp      = 0;
     } // for
-    
+    pygmyGlobalData.Status |= PYGMY_MSG_INIT;
+
     return( 1 );
 }
 
@@ -910,7 +940,7 @@ u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue )
             pygmyGlobalMessages[ i ].DestName   = ucName;
             pygmyGlobalMessages[ i ].Message    = ucMessage;
             pygmyGlobalMessages[ i ].Value      = uiValue;
-            pygmyGlobalMessages[ i ].TimeStamp  = time();
+            pygmyGlobalMessages[ i ].TimeStamp  = timeGet();
             return( 1 );
         } // if
     } // for
@@ -923,7 +953,7 @@ u16 msgProcess( void )
     u32 ulTime;
     u16 i, ii;
 
-    ulTime = time();
+    ulTime = timeGet();
     for( i = 0; i < PYGMY_MAXMESSAGES; i++ ){                       // Cycle through messages to check for any unserviced
         if (  pygmyGlobalMessages[ i ].DestID && !( pygmyGlobalMessages[ i ].DestID & PYGMY_SERVICEDID ) ){// Serviced ID set after task notified
             // Check to make sure message hasn't gone stale, delete if it has
@@ -1336,10 +1366,16 @@ void SysTick_Handler( void )
     pygmyGlobalData.StopWatch += 100;
 
     #ifdef __PYGMYTASKS 
-        taskProcess();
+        if( pygmyGlobalData.Status & PYGMY_TASK_INIT ){
+            //print( COM3, "\rProc Tasks" );
+            taskProcess();
+        } // if
     #endif
     #ifdef __PYGMYMESSAGES
-        msgProcess();
+        if( pygmyGlobalData.Status & PYGMY_MSG_INIT ){
+            print( COM3, "\rProc Msgs" );
+            msgProcess();
+        } // if
     #endif
 
 }

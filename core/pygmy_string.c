@@ -128,7 +128,7 @@ u32 convertBufferToU32( u8 *ucBuffer )
 
 s8 isCharInString( u8 ucChar, u8 *ucChars )
 {
-    for( ; ucChars && *ucChars; ) {
+    for( ; *ucChars; ) {
         if( ucChar == *(ucChars++) ){
             return( 1 );
         } // if

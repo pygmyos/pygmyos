@@ -20,8 +20,12 @@
 
 #include "pygmy_profile.h"
 
-#define SHIELD_SCL              TX1
-#define SHIELD_SDA              RX1
+#ifndef SHIELD_SCL
+    #define SHIELD_SCL              TX1
+#endif
+#ifndef SHIELD_SDA
+    #define SHIELD_SDA              RX1
+#endif
 #define SHIELD_INSW1            T0
 #define SHIELD_RES2             T1
 #define SHIELD_RES1             T2

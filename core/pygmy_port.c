@@ -578,13 +578,14 @@ u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
     } // else
     
     globalPygmyPWM[ i ].Count = globalPygmyPWM[ i ].UpCount;
-    
+    /*
     print( COM3, "\rAdded PWM to Pin %d", ucPin );
     print( COM3, "\rglobalPygmyPWMFreq: %d", globalPygmyPWMFreq );
     print( COM3, "\rUpCount: %d", globalPygmyPWM[ i ].UpCount );   
     print( COM3, "\rDownCount: %d", globalPygmyPWM[ i ].DownCount );
     print( COM3, "\rucDutyCycle: %d", ucDutyCycle );
-    
+    */
+
     return( 1 );
 }
 

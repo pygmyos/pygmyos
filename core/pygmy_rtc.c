@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -28,7 +28,7 @@ void resetBackupDomain( void )
     RCC->BDCR = BIT16; // Sets reset bit, BDCR will be 0 after reset
 }
 
-void timeInit( u32 ulTime )
+void timeInit( void )
 {
     u16 i;
     // Warning! Follow Configuration procedure:
@@ -52,8 +52,8 @@ void timeInit( u32 ulTime )
     RTC->CRL    &=  ~( RTC_RSF | RTC_OWF | RTC_ALRF | RTC_SECF ); // Clear any set flags
     RTC->PRLH   =   0x0000;                 // MSBs, not used with LSE
     RTC->PRLL   =   0x7FFF;                 // Prescale value for 32.768KHz LSE, see device reference
-    //RTC->CNTH   =   ( ulTime >> 16 );  // RTC Time register is divided into 16 bits MSBs
-    //RTC->CNTL   =   (u16)( ulTime );        // and 16 bits LSBs
+    RTC->CNTH   =   0;//( ulTime >> 16 );  // RTC Time register is divided into 16 bits MSBs
+    RTC->CNTL   =   0;//(u16)( ulTime );        // and 16 bits LSBs
     RTC->CRL    &=  ~RTC_CNF;                // Exit config mode for RTC to update registers
 }
 

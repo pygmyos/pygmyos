@@ -110,8 +110,8 @@
 #define SST_ID_4M                   0x8D // SST25VF040B
 
 #ifndef __PYGMY_BOOT
-    #define FLASH_CS_LOW    pygmyFlashSPI.PortCS->BRR = pygmyFlashSPI.PinCS
-    #define FLASH_CS_HIGH   pygmyFlashSPI.PortCS->BSRR = pygmyFlashSPI.PinCS
+    //#define FLASH_CS_LOW    pygmyFlashSPI.PortCS->BRR = pygmyFlashSPI.PinCS
+    //#define FLASH_CS_HIGH   pygmyFlashSPI.PortCS->BSRR = pygmyFlashSPI.PinCS
 #endif
 
 

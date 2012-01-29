@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -21,7 +21,6 @@
 #pragma once
 
 #include "pygmy_profile.h"
-//#include "pygmy_sys.h"
 
 #define RTC_OWIE        BIT2
 #define RTC_ALRIE       BIT1
@@ -70,7 +69,7 @@ typedef struct
 #endif
 
 void resetBackupDomain( void );
-void initTime( u32 ulTime );
+void initTime( void );
 void rtcClearFlags( void );
 void setTime( u32 ulTime );
 u32 getTime( void );

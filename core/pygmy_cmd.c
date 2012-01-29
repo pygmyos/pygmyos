@@ -42,14 +42,14 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"kill",       cmd_kill},
                                     //{(u8*)"recv",       cmd_recv}, // XModem
                                     //{(u8*)"send",       cmd_send}, // XModem
-                                    {(u8*)"humidity",   cmd_humidity},
+                                    
                                     {(u8*)"pinevent",   cmd_pinevent},
                                     {(u8*)"pinset",     cmd_pinset},
                                     {(u8*)"pinget",     cmd_pinget},
                                     {(u8*)"pinanalog",  cmd_pinanalog},
                                     {(u8*)"pinpwm",     cmd_pinpwm},
                                     {(u8*)"pinconfig",  cmd_pinconfig},
-                                    
+                                    #ifdef __PYGMYSTREAMFILE
                                     {(u8*)"mnt",        cmd_mnt},
                                     {(u8*)"format",     cmd_format},
                                     {(u8*)"rm",         cmd_rm},
@@ -58,16 +58,22 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"open",       cmd_open},
                                     {(u8*)"read",       cmd_read},
                                     {(u8*)"write",      cmd_write},
-                                    {(u8*)"cp",       cmd_cp},
-                                    
-                                    {(u8*)"modem",      cmd_modem},
+                                    {(u8*)"cp",         cmd_cp},
+                                    #endif    
                                 
                                     {(u8*)"port",       cmd_port},
                                     
                                     {(u8*)"rfopen",     cmd_rfopen},
                                     {(u8*)"rfsend",     cmd_rfsend},
-                                    
+                                    #ifdef __PYGMYMODEMSHIELD
+                                    {(u8*)"modem",      cmd_modem},
+                                    #endif
+                                    #ifdef __PYGMYHUMIDITYSHIELD
+                                    {(u8*)"humidity",   cmd_humidity},
+                                    #endif
+                                    #ifdef __PYGMYVOLTAGESHIELD
                                     {(u8*)"voltshield", cmd_voltshield},
+                                    #endif
                                     
                                     {(u8*)"", cmdNull} // No Commands after NULL
                                     }; 
@@ -246,9 +252,9 @@ u8 cmd_voltshield( u8 *ucBuffer )
 
 u8 cmd_modem( u8 *ucBuffer )
 {
-    print( COM2, "%s\r", getNextSubString( ucBuffer, NEWLINE ) );
-
-    return( 1 );
+    //print( COM2, "%s\r", getNextSubString( ucBuffer, NEWLINE ) );
+    
+    return( cmdExecute( ucBuffer, PYGMYMODEMCMDS ) );
 }
 
 u8 cmdNull( u8 *ucBuffer )
@@ -277,6 +283,9 @@ u8 cmd_poke( u8 *ucBuffer )
 
 u8 cmd_ps( u8 *ucBuffer )
 {
+    PYGMYCOMMANDQUEUE *pygmyQueue;
+    PYGMYTASK pygmyTask;
+    u16 i, ii;
     u8 *ucParam;
 
     ucParam = getNextSubString( ucBuffer, WHITESPACE );
@@ -285,6 +294,29 @@ u8 cmd_ps( u8 *ucBuffer )
             rfListSockets();
         } // if
     } // if
+    print( STDIO, "\rTasks\r\r" );
+    for( i = 0; i < PYGMY_MAXTASKS; i++ ){
+        taskList( &pygmyTask, i );
+        if( pygmyTask.ID ){
+            println( STDIO, "%4d %s %t", pygmyTask.ID, pygmyTask.Name, pygmyTask.TimeStamp );
+        }
+    } // for
+    
+    for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
+        
+        pygmyQueue = cmdListQueue( i );
+        if( !pygmyQueue ){
+            continue;
+        } // if
+        print( STDIO, "\rCommand Queue\r\r" );
+        for( ii = 0; ii < PYGMY_MAXCOMMANDS; ii++ ){
+            if( pygmyQueue->Commands[ ii ].Status ){
+                print( STDIO, "\r%s %d %t", pygmyQueue->Commands[ ii ].Name, 
+                    pygmyQueue->Commands[ ii ].Retry, pygmyQueue->Commands[ ii ].TimeStamp );
+            } // if
+        } // for
+         
+    } // for
 
     return( 1 );
 }
@@ -652,7 +684,7 @@ u8 cmd_port( u8 *ucBuffer )
         } // else
     } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "close" ) ){
         ucCOM = convertStringToInt( ucStrings[ 1 ] );
-    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "send" ) || isStringSameIgnoreCase( ucStrings[ 0 ] ) ){
+    } else if( isStringSameIgnoreCase( ucStrings[ 0 ], "send" ) || isStringSameIgnoreCase( ucStrings[ 0 ], "write" ) ){
         if( uiLen < 3 ){
             return( FALSE );
         } // if
