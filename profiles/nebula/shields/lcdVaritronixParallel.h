@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -17,6 +17,8 @@
     You should have received a copy of the GNU Lesser General Public License
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
+
+#pragma once
 
 #include "pygmy_profile.h"
 
@@ -54,12 +56,11 @@
 
 #define SHIELD_SCL              PA9 // TX1
 #define SHIELD_SDA              PA10// RX1
-#define SHIELD_DOWN             PC8 // D3    
+#define SHIELD_DOWN             D3  // PC8    
 #define SHIELD_UP               PA0 // A0
-#define SHIELD_RIGHT            PA4 // DAC1
-#define SHIELD_LEFT             PA6 // TA0
+#define SHIELD_RIGHT            TA0 // PA4
+#define SHIELD_LEFT             DAC1// PA6
 #define SHIELD_CENTER           PA5 // DAC2
 #define SHIELD_BUTTON1          PA2 // TX2
 #define SHIELD_BUTTON2          PA3 // RX2
-
 

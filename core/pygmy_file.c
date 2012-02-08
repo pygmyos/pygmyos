@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -85,11 +85,16 @@ u8 fileOpen( PYGMYFILE *pygmyFile, u8 *ucName, u8 ucAttrib )
     u32 ulFileEntry;
     u32 ulEntryAddress, ulNameMatch;
 
+    if( ucAttrib & APPEND ){
+        // Append must always have write 
+        ucAttrib |= WRITE; 
+    } // if
     if( ucAttrib ){
         pygmyFile->Attributes = ucAttrib;
     } else{ 
         pygmyFile->Attributes = READ;
     } // else
+    
     fileMountRoot( );
     
     if( !fileIsValidName( ucName ) ){
@@ -115,9 +120,9 @@ u8 fileOpen( PYGMYFILE *pygmyFile, u8 *ucName, u8 ucAttrib )
         } // if
         //[ FILENAME 13B ][ ATTRIB 1B ][ ID_File 2B ] ( 16B total )
         ulFileEntry = pygmyRootVolume.ActiveFiles + ( ulFileEntry * 16); // Each file Entry exactly 16 bytes
-        //Pygmy_FLASH_WriteString( ulFileEntry, pygmyFile->Name );
+        
         flashWriteBuffer( ulFileEntry, len( pygmyFile->Name )+1, pygmyFile->Name );
-        flashWriteByte( ulFileEntry+13, (WRITE|READ) );//pygmyFile->Attributes );
+        flashWriteByte( ulFileEntry+13, (WRITE|READ) );
         pygmyFile->ID_File = ulNameMatch;
         pygmyFile->ID_Sector = 1;
         flashWriteWord( ulFileEntry+14, pygmyFile->ID_File );
@@ -125,6 +130,7 @@ u8 fileOpen( PYGMYFILE *pygmyFile, u8 *ucName, u8 ucAttrib )
     } // if 
     
     ulEntryAddress = pygmyRootVolume.ActiveFiles + ( ulNameMatch * 16); // Each file Entry exactly 16 bytes
+    
     pygmyFile->ID_File = flashReadWord( ulEntryAddress + 14 ); // last two bytes store ID
     pygmyFile->Length = fileGetLength( pygmyFile->ID_File );  
     pygmyFile->Sector = pygmyRootVolume.FirstFileSector / pygmyRootVolume.SectorSize;
@@ -157,6 +163,34 @@ u8 fileOpenResource( PYGMYFILE *pygmyFile, u8 *ucResource )
     return( 1 );
 }
 
+u8 fileDelete( u8 *ucName )
+{
+    u16 uiFileEntry;
+
+    fileMountRoot( );
+    uiFileEntry = fileSeekName( ucName );
+    if( !uiFileEntry || !( pygmyRootVolume.Attributes & WRITE ) ){
+        return( 0 );
+    } // if
+    flashWriteByte( pygmyRootVolume.ActiveFiles + ( uiFileEntry * 16 ), 0 ); // First byte 0 marks as deleted
+    // Next find all FAT entries with the ID uiFleEntry and Delete
+    fileDeleteFATEntry( uiFileEntry, 0 ); // 0 erases all FAT Entries with ID uiFileEntry
+    
+    return( 1 );
+}
+
+void fileCopyHandle( PYGMYFILE *pygmyFrom, PYGMYFILE *pygmyTo )
+{
+    pygmyTo->Sector     = pygmyFrom->Sector;
+    pygmyTo->Length     = pygmyFrom->Length;
+    pygmyTo->Index      = pygmyFrom->Index;
+    pygmyTo->ID_Sector  = pygmyFrom->ID_Sector;
+    pygmyTo->ID_File    = pygmyFrom->ID_File;
+    pygmyTo->Attributes = pygmyFrom->Attributes;
+    pygmyTo->Resource   = pygmyFrom->Resource;
+    copyString( pygmyFrom->Name, pygmyTo->Name );
+}
+
 u32 fileGetPosition( PYGMYFILE *pygmyFile )
 {
     return( pygmyFile->Index );
@@ -187,6 +221,11 @@ u8 fileSetPosition( PYGMYFILE *pygmyFile, u8 ucOrigin, s32 lIndex )
 u8 fileIsEOF( PYGMYFILE *pygmyFile )
 {
     return( pygmyFile->Attributes & EOF );
+}
+
+u8 fileIsRootFull( void )
+{
+    return( pygmyRootVolume.Attributes & VOLUMEFULL );
 }
 
 u8 *fileGetVolumeName( u8 *ucName )
@@ -296,79 +335,6 @@ u8 fileRename( u8 *ucCurrentName, u8 *ucName )
     return( 1 );
 }
 
-u16 fileAllocateFAT( u16 uiID_File, u8 ucID_Sector )
-{
-    u32 ulFAT, ulAddress;
-
-    ulFAT = fileGetFreeFATEntry( );
-    if( ulFAT != 0xFFFF ){
-        flashSectorErase( pygmyRootVolume.FirstFileSector + ( ulFAT * pygmyRootVolume.SectorSize ) );
-        ulAddress = ulFAT * 4;
-        flashWriteByte( pygmyRootVolume.ActiveFAT + ulAddress++, 0x7F ); // 0x7F = Allocated
-        flashWriteByte( pygmyRootVolume.ActiveFAT + ulAddress++, ucID_Sector ); // 0x00 and 0xFF reserved for error
-        flashWriteWord( pygmyRootVolume.ActiveFAT + ulAddress, uiID_File );      
-    } // if
-
-    return( ulFAT );
-}
- 
-u16 fileGetMaxFiles( void )
-{
-    return( pygmyRootVolume.MaxFiles );
-}
-
-u16 fileGetName( u16 uiFileEntry, u8 *ucName )
-{
-    // This function is incremental in nature and designed to provided
-    // listing information
-    u32 ulAddress;
-    u8 i;
-
-    if( uiFileEntry > pygmyRootVolume.MaxFiles ){
-        return( 0 );
-    } // if
-
-    ulAddress = pygmyRootVolume.ActiveFiles + 64 + ( uiFileEntry * 16 );
-
-    for( i = 0; i < PYGMY_FILE_MAXFILENAMELEN; i++ ){
-        ucName[ i ] = flashReadByte( ulAddress + i );
-        if( ucName[ i ] == 0xFF ){
-            ucName[ i ] = '\0';
-        } // if
-        if( ucName[ i ] == '\0' ){
-            if( !i ){
-                return( 0 );
-            } else{
-                break;
-            } // else
-        } // if
-    } // for
-    
-    // return the ID of the file to use to load length
-    return( flashReadWord( ulAddress + 14 ) );
-}
-
-u16 fileSeekName( u8 *ucName )
-{
-    u32 i, ii;
-    u8 ucBuffer[ 16 ];
-    
-    for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
-        for( ii = 0; ii < PYGMY_FILE_MAXFILENAMELEN; ii++ ){
-            ucBuffer[ ii ] = flashReadByte( pygmyRootVolume.ActiveFiles + ( ( 4 + i ) * 16 ) + ii );
-            if( !ucBuffer[ ii ] || ucBuffer[ ii ] == 0xFF ){
-                ucBuffer[ ii ] = '\0';
-                break;
-            } // if
-        } // for
-        if( isStringSame( ucName, ucBuffer ) ){
-            return( 4 + i );
-        } // if
-    } // for
-
-    return( 0 );
-}
-
 u16 fileGetFreeFileEntry( void )
 {
     u32 ulAddress;
@@ -397,10 +363,10 @@ u16 fileGetFreeFileEntry( void )
     if( uiErased ){
         // Create pointer to unused Table set
         if( pygmyRootVolume.ActiveFiles == pygmyRootVolume.Files_B ){ 
-            ulAddress = pygmyRootVolume.Files_A;
+            ulAddress = PYGMY_FILE_FILES_A;
         } else{
             ulAddress = pygmyRootVolume.Files_B;
-        }// if
+        } // else
         for( i = 0; i < pygmyRootVolume.FilesSectors; i++ ){
             flashSectorErase( ulAddress + ( i * pygmyRootVolume.SectorSize ) );
         } // for
@@ -429,45 +395,32 @@ u16 fileGetFreeFileEntry( void )
     
         return( uiErased ); // This was the location of the first known deleted entry, now free
     } // if
+    
+    // If we drop through, there are no free sectors remaining, mark volume as full
+    pygmyRootVolume.Attributes |= VOLUMEFULL;
 
     return( 0 );
 }
 
-u16 fileGetFAT( u16 uiID, u8 ucIndex )
+u16 fileGetFAT( u16 uiID, u16 uiIndex )
 {
-    u8 ucAlloc, ucID_Sector;
-    u16 i, uiTmpID;
+    u8 ucAlloc;
+    u16 i, uiTmpID, uiID_Sector;
 
     for( i = 0; i < pygmyRootVolume.Sectors; i++ ){
-        ucAlloc = flashReadByte( pygmyRootVolume.ActiveFAT + ( i * 4 ) );
-        ucID_Sector = flashReadByte( pygmyRootVolume.ActiveFAT + ( i * 4 ) + 1 );
+        uiID_Sector = (u16)flashReadWord( pygmyRootVolume.ActiveFAT + ( i * 4 ) );
+        ucAlloc = uiID_Sector >> 14;
+        uiID_Sector <<= 2;
+        uiID_Sector >>= 2; //&= 0x3FFF;
         uiTmpID = (u16)flashReadWord( pygmyRootVolume.ActiveFAT + ( i * 4 ) + 2 );
-        if(  ucAlloc == 0x7F && ucID_Sector == ucIndex && uiID == uiTmpID ){
+        if(  ucAlloc == 0x01 && uiID_Sector == uiIndex && uiID == uiTmpID ){
             return( i );
         } // if
     } // for
-    
-    return( 0xFFFF ); // 0xFFFF indicates error
-}
+   
+    pygmyRootVolume.Attributes |= VOLUMEERROR;
 
-u16 fileAllocateContiguousFATEntries( u16 uiID, u16 uiEntries )
-{
-    u16 i, uiEntry, uiFirstEntry;
-    
-    for( i = 1; i < uiEntries; i++ ){
-        uiEntry = fileGetFreeFATEntry( );
-        if( i == 1 ){
-            uiFirstEntry = uiEntry;
-        } // if
-        print( COM3, "\rEntry: %d", uiEntry );
-        if( !(uiEntry == uiFirstEntry + ( i - 1 ) ) || uiEntry == 0xFFFF ){
-            return( 0xFFFF );
-        } // if
-        fileAllocateFAT( uiID, i );
-        
-    } // for
-    
-    return( uiFirstEntry );
+    return( 0xFFFF ); // 0xFFFF indicates error
 }
 
 u16 fileGetFreeFATEntry( void )
@@ -478,27 +431,29 @@ u16 fileGetFreeFATEntry( void )
     // Read MSB of each Entry until 0xFF is found 
     // Return 0xFF for failure, last entry is invalid for a FAT Entry
     // Last Entry would always be reserved for Active Table Byte
-    //[ ALLOCATION 1B ][ SEQUENCE 1B ][ FILE 2B ]
+    // [ ALLOCATION 4bits MSb ][ SEQUENCE 4 bits LSb ][ SEQUENCE 1B ][ FILE 2B ]
+    // Note that sequence is a 12 bit field, allocation should be shifted 4 bits before testing 
     for( i = 0, ucErased = 0; i < pygmyRootVolume.Sectors; i++ ){
-        ii = flashReadByte( pygmyRootVolume.ActiveFAT + ( i * 4 ) );
-        if( ii == 0x00 ){
-            ucErased = 1;
-        } // if
-        if( ii == 0xFF ){
+        ii = flashReadWord( pygmyRootVolume.ActiveFAT + ( i * 4 ) );
+        if( ( ii & BIT15 ) && ( ii & BIT14 ) ){
+            // BIT15 and BIT14 set means empty
             return( i );
-        } // if
-    }
+        } else if( !(ii & BIT15 ) && !( ii & BIT14 ) ){
+            // BIT15 and BIT14 cleared means erased
+            ucErased = 1;
+        } // else if
+    } // for
     
     // We have deleted entries in the FAT that can be recycled, since we have no free entries
     // To recycle we must swap the tables A to B or B to A
     if( ucErased ){
+        pygmyRootVolume.Attributes &= ~VOLUMEFULL;
         pygmyRootVolume.ActiveFAT = fileGetActiveFAT( );
-        if( pygmyRootVolume.ActiveFAT == pygmyRootVolume.FAT_B ){ 
+        if( pygmyRootVolume.ActiveFAT == pygmyRootVolume.FAT_B )
             ulAddress = pygmyRootVolume.FAT_A;
         } else{
             ulAddress = pygmyRootVolume.FAT_B;
         } //else
-        
         // Now that alternate table location is known clear, copy while omitting deleted entries
         // Also, the Active FAT and Files must be updated after copy, at this point ulAddress contains the
         //     destination for sector copy and the ActiveFAT contains 
@@ -511,7 +466,7 @@ u16 fileGetFreeFATEntry( void )
             } else if( ulFAT == 0xFFFFFFFF ){
                 ulFAT = i; // Only assign ulFAT on first recycled Entry
             } // else if
-        } // for
+        } // for 
         // Now delete original table and make updated table active
         // This will set the Active/Inactive byte to 0xFF, or inactive
         for( i = 0; i < pygmyRootVolume.FATSectors; i++ ){ // If more then 1 sector reserved for each A and B
@@ -531,63 +486,57 @@ u16 fileGetFreeFATEntry( void )
 u32 fileGetActiveFAT( void )
 {  
     // Warning! Changed to mark ACTIVE table with 0!
+    // Note: Sectors may never be an even value such as 1024, 
+    //  normally the file and FAT sectors will see to this, but the last 32 bit field should always be
+    //  left for use by the Active/Inactive tag below
     if( flashReadByte( pygmyRootVolume.FAT_A + (pygmyRootVolume.FATSectors * pygmyRootVolume.SectorSize) - 1 ) == 0x00 ){
-        return( pygmyRootVolume.FAT_A ); // Table A Active, last byte is set to 0x00 once inactive
+        return( pygmyRootVolume.FAT_A ); // Table A Active, last byte is set to 0x00 for active, 0xFF for inactive
     } // if
  
     if( flashReadByte( pygmyRootVolume.FAT_B + (pygmyRootVolume.FATSectors * pygmyRootVolume.SectorSize) - 1 ) == 0x00 ){
-        return( pygmyRootVolume.FAT_B ); // Table B Active, last byte is set to 0x00 once inactive
+        return( pygmyRootVolume.FAT_B ); // Table B Active, last byte is set to 0x00 for active, 0xFF for inactive
     } // if
     
     flashWriteByte( pygmyRootVolume.FAT_A + (pygmyRootVolume.FATSectors * pygmyRootVolume.SectorSize) - 1, 0x00 );
-        
+
     return( pygmyRootVolume.FAT_A );
 }
 
 u32 fileGetActiveFiles( void )
 {
-    if( flashReadByte( pygmyRootVolume.Files_A ) ){
-        return( pygmyRootVolume.Files_A );
+    if( flashReadByte( PYGMY_FILE_FILES_A ) ){
+        return( PYGMY_FILE_FILES_A );
     } // if
     if( flashReadByte( pygmyRootVolume.Files_B ) ){
         return( pygmyRootVolume.Files_B );
     } // if
+    pygmyRootVolume.Attributes |= VOLUMEERROR;
     
     return( 0xFFFFFFFF ); // both Files tables inactive means memory failure
 }
 
-u8 fileDelete( u8 *ucName )
-{
-    u16 uiFileEntry;
-
-    fileMountRoot( );
-    uiFileEntry = fileSeekName( ucName );
-    if( !uiFileEntry )
-        return( 0 );
-    flashWriteByte( pygmyRootVolume.ActiveFiles + ( uiFileEntry * 16 ), 0 ); // First byte 0 marks as deleted
-    // Next find all FAT entries with the ID uiFleEntry and Delete
-    fileDeleteFATEntry( uiFileEntry, 0 ); // 0 erases all FAT Entries with ID uiFileEntry
-    
-    return( 1 );
-}
-
-u8 fileDeleteFATEntry( u16 uiID_File, u8 ucID_Sector )
+u8 fileDeleteFATEntry( u16 uiID_File, u16 uiID_Sector )
 {
     u32 i, ii;
-    u16 uiTmpID, uiDeleted;
+    u16 uiTmpID, uiDeleted, uiSector;
+    u8 ucAlloc;
 
     // ucID_Sector == 0 calls for a complete erase
     for( i = 0, uiDeleted = 0; i < pygmyRootVolume.Sectors; i++ ){ // There are as many entries as Sectors
         ii = i * 4;
+        uiSector = flashReadWord( pygmyRootVolume.ActiveFAT + ii );
+        ucAlloc = uiSector >> 14;
+        uiSector &= 0x3FFF;
         uiTmpID = flashReadByte( pygmyRootVolume.ActiveFAT + ii + 2 ) << 8;
         uiTmpID |= flashReadByte( pygmyRootVolume.ActiveFAT + ii + 3 );
         if( uiTmpID == uiID_File ){
-            if( !ucID_Sector ){
-                flashWriteByte( pygmyRootVolume.ActiveFAT + ii, 0 );
+            pygmyRootVolume.Attributes &= ~VOLUMEFULL;
+            if( !uiID_Sector ){
+                flashWriteByte( pygmyRootVolume.ActiveFAT + ii, 0x0F );
                 uiDeleted = 1;
-            } else if( ucID_Sector == flashReadByte( pygmyRootVolume.ActiveFAT + ii + 1 ) ){
-                if ( flashReadByte( pygmyRootVolume.ActiveFAT + ii ) ){
-                    flashWriteByte( pygmyRootVolume.ActiveFAT + ii, 0 );
+            } else if( uiID_Sector == uiSector ){
+                if ( ucAlloc ){
+                    flashWriteByte( pygmyRootVolume.ActiveFAT + ii, 0x0F );
                     return( 1 );
                 } // if
             } //else if
@@ -595,6 +544,88 @@ u8 fileDeleteFATEntry( u16 uiID_File, u8 ucID_Sector )
     } // for
  
     return( uiDeleted );
+}
+
+u16 fileAllocateFAT( u16 uiID_File, u16 uiID_Sector )
+{
+    u32 ulFAT, ulAddress;
+
+    // BIT15 set, BIT14 set is empty
+    // BIT15 clear, BIT14 set is allocated
+    // BIT15 clear, BIT14 clear is deleted
+    // An ID_Sector of 0x00 and 0xFF reserved for error
+    // If these IDs are requested, return error ( 0xFFFF )
+    if( !uiID_Sector || uiID_Sector > 0x3FFE ){
+        pygmyRootVolume.Attributes |= VOLUMEERROR;
+        return( 0xFFFF );
+    } // if
+    ulFAT = fileGetFreeFATEntry( );
+    if( ulFAT != 0xFFFF ){
+        flashSectorErase( pygmyRootVolume.FirstFileSector + ( ulFAT * pygmyRootVolume.SectorSize ) );
+        ulAddress = ulFAT * 4;
+        //flashWriteByte( pygmyRootVolume.ActiveFAT + ulAddress++, 0x7F ); // 0x07 = Allocated, shifted 4 bits, F leaves bits unaffected
+        flashWriteWord( pygmyRootVolume.ActiveFAT + ulAddress, BIT14 | uiID_Sector ); 
+        flashWriteWord( pygmyRootVolume.ActiveFAT + ulAddress + 2, uiID_File );  
+    } // if
+
+    return( ulFAT );
+}
+ 
+u16 fileGetMaxFiles( void )
+{
+    return( pygmyRootVolume.MaxFiles );
+}
+
+u16 fileGetName( u16 uiFileEntry, u8 *ucName )
+{
+    // This function is incremental in nature and designed to provided
+    // listing information
+    u32 ulAddress;
+    u8 i;
+
+    if( uiFileEntry > pygmyRootVolume.MaxFiles ){
+        return( 0 );
+    } // if
+    
+    ulAddress = pygmyRootVolume.ActiveFiles + 64 + ( uiFileEntry * 16 );
+    for( i = 0; i < PYGMY_FILE_MAXFILENAMELEN; i++ ){
+        ucName[ i ] = flashReadByte( ulAddress + i );
+        if( ucName[ i ] == 0xFF ){
+            ucName[ i ] = '\0';
+            if( !i ){
+                return( 0 );
+            } else{
+                break;
+            } // else
+        } // if
+        //if( ucName[ i ] == '\0' ){
+            
+        //} // if
+    } // for
+    
+    // return the ID of the file to use to load length
+    return( flashReadWord( ulAddress + 14 ) );
+}
+
+u16 fileSeekName( u8 *ucName )
+{
+    u32 i, ii;
+    u8 ucBuffer[ 16 ];
+    
+    for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
+        for( ii = 0; ii < PYGMY_FILE_MAXFILENAMELEN; ii++ ){
+            ucBuffer[ ii ] = flashReadByte( pygmyRootVolume.ActiveFiles + ( ( i + 4 ) * 16 ) + ii );
+            if( !ucBuffer[ ii ] || ucBuffer[ ii ] == 0xFF ){
+                ucBuffer[ ii ] = '\0';
+                break;
+            } // if
+        } // for
+        if( isStringSame( ucName, ucBuffer ) ){
+            return( 4 + i );
+        } // if
+    } // for
+
+    return( 0 );
 }
 
 u8 fileClose( PYGMYFILE *pygmyFile )
@@ -670,7 +701,7 @@ u32 fileGetLength( u32 ulID_File )
 
     ulAddress = fileGetFAT( ulID_File, 1 ); // This returns sector index, not address
     if( ulAddress == 0xFFFF ){
-        return( 0 );//xFFFFFFFF );
+        return( 0 );
     } // if
     // Sector index retrieved from FAT is 0 based, add index to first file sector and mult by
     // sector size to get address
@@ -686,39 +717,6 @@ u32 fileGetLength( u32 ulID_File )
 
     return( 0 ); // Return the only invalid file length on error
 }
-
-u32 filePreAllocate( PYGMYFILE *pygmyFile, u32 ulSize )
-{   
-    // Returns 0 for fail, or address if success
-    // This function Pre-Allocates requested size in contiguous sectors
-    // for raw access. This mode allows high speed bulk access and should
-    // be used with caution!
-
-    u32 i, ulSectors, ulSector, ulAddress;
-
-    // Do not pre-allocate on a read-only file, or one with date
-    // already saved. 
-    if( !( pygmyFile->Attributes & WRITE ) || pygmyFile->Length || pygmyFile->Index ){
-        print( COM3, "\rWrong Attribs" );
-        return( 0 );
-    } // if
-    ulSectors = ( ulSize + 128 ) / pygmyRootVolume.SectorSize;
-    if( ( ulSize + 128 ) % pygmyRootVolume.SectorSize ){
-        ++ulSectors;
-    } // if
-    ulSector = fileAllocateContiguousFATEntries( pygmyFile->ID_File, ulSectors );
-    if( ulSector == 0xFFFF || ulSector == 0 ){
-        print( COM3, "\rNon Contiguous" );
-        return( 0 );
-    } // if
-    ulAddress = ( ulSector * pygmyRootVolume.SectorSize ) + 128;
-    //for( i = 0; i < ulSectors; i++ ){
-    //    fileAllocateFAT( pygmyFile->ID_File, pygmyFile->ID_Sector + i );
-    //} // for
- 
-    return( ulAddress );
-}
-
 
 u8 filePutBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer )
 {
@@ -745,19 +743,23 @@ u8 filePutString( PYGMYFILE *pygmyFile, u8 *ucString )
 u8 filePutChar( PYGMYFILE *pygmyFile, u8 ucChar )
 {
     u32 i, ulAddress;
-
-    if( !( pygmyFile->Attributes & WRITE ) ){ 
+    
+    if( !( pygmyFile->Attributes & WRITE ) || pygmyRootVolume.Attributes & VOLUMEFULL ) {
         return( 0 ); // In Write mode, Length and Index must match or memory corruption will occur
     } // if
     if( !( (( pygmyFile->Index + 128 ) ) % pygmyRootVolume.SectorSize ) ){      
         i = fileAllocateFAT( pygmyFile->ID_File, pygmyFile->ID_Sector + 1 );
-        if( i == 0xFFFF ){
-            return( 0 ); // memory is full!
+        if( pygmyRootVolume.Attributes & VOLUMEFULL ){// i == 0xFFFF ){ 
+            return( 0 );// memory is full!
         } // if
         pygmyFile->Sector = i + ( pygmyRootVolume.FirstFileSector / pygmyRootVolume.SectorSize );
         ++pygmyFile->ID_Sector;     
     } // if
     ulAddress = ( pygmyFile->Sector * pygmyRootVolume.SectorSize ) + ((( pygmyFile->Index + 128 ) ) % pygmyRootVolume.SectorSize );
+    if( ulAddress < ( pygmyRootVolume.FirstFileSector / pygmyRootVolume.SectorSize ) || ulAddress > 0x03FFF000 ){
+        pygmyRootVolume.Attributes |= VOLUMEERROR;
+        return( 0 );
+    } // if 
     flashWriteByte( ulAddress, ucChar );
     
     ++pygmyFile->Index;
@@ -901,13 +903,11 @@ u8 fileGetChar( PYGMYFILE *pygmyFile )
         ulAddress = ( pygmyFilePtr->Sector * pygmyRootVolume.SectorSize ) + ((( pygmyFilePtr->Index + 128 ) ) % pygmyRootVolume.SectorSize ) ;
         
         ulAddress = ulAddress | 0x03000000;
-        //pygmyFlashSPI.PortCS->BRR = pygmyFlashSPI.PinCS;               // CS active low to enable chip  
         FLASH_CS_LOW;
         spiWriteLong( &pygmyFlashSPI, ulAddress );
         for( i = 0; i < PYGMY_FILE_BUFLEN; i++ ){
             ucBuffer[ i ] = spiReadByte( &pygmyFlashSPI );
-        } // for
-        //pygmyFlashSPI.PortCS->BSRR = pygmyFlashSPI.PinCS;   
+        } // for   
         FLASH_CS_HIGH;
     } // if
       
@@ -926,7 +926,7 @@ u8 fileMountRoot( void )//Volume( void )//PYGMYFILEVOLUME *pygmyFileVolume )
     
     flashWriteEnable( );
     // Note that the Files_A and Files_B values are static and will not change, both Files A/B will be same in both tables 
-    pygmyRootVolume.Files_A = 0;//Pygmy_FLASH_ReadLong( PYGMY_FILE_VOLUME_FIELD_FILES_A );
+    //pygmyRootVolume.Files_A = PYGMY_FILE_FILES_A;//Pygmy_FLASH_ReadLong( PYGMY_FILE_VOLUME_FIELD_FILES_A );
     pygmyRootVolume.Files_B = flashReadLong( PYGMY_FILE_VOLUME_FIELD_FILES_B );
     
     ulTableOffset = fileGetActiveFiles();
@@ -940,26 +940,83 @@ u8 fileMountRoot( void )//Volume( void )//PYGMYFILEVOLUME *pygmyFileVolume )
     
     // Add code to copy volume name to structure here, if needed
      
-    pygmyRootVolume.Attributes = flashReadByte( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_ATTRIB );
-    pygmyRootVolume.Sectors = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_SECTORS );
-    pygmyRootVolume.SectorSize = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_SECTORSIZE );
-    pygmyRootVolume.MaxFiles = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_MAXFILES );
-    pygmyRootVolume.MediaSize = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_MEDIASIZE );
-    pygmyRootVolume.EntriesPerFAT = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_ENTRIESPERFAT );
-    pygmyRootVolume.FilesSectors = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FILESSECTORS );
-    pygmyRootVolume.FATSectors = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FATSECTORS );
-    pygmyRootVolume.FirstFileSector = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FIRSTFILESECTOR );
-    pygmyRootVolume.FAT_A = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FAT_A );
-    pygmyRootVolume.FAT_B = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FAT_B );
-    
-    pygmyRootVolume.ActiveFAT = fileGetActiveFAT();
-    
+    pygmyRootVolume.Attributes          = flashReadByte( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_ATTRIB );
+    pygmyRootVolume.Sectors             = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_SECTORS );
+    pygmyRootVolume.SectorSize          = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_SECTORSIZE );
+    pygmyRootVolume.MaxFiles            = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_MAXFILES );
+    pygmyRootVolume.MediaSize           = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_MEDIASIZE );
+    pygmyRootVolume.EntriesPerFAT       = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_ENTRIESPERFAT );
+    pygmyRootVolume.FilesSectors        = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FILESSECTORS );
+    pygmyRootVolume.FATSectors          = flashReadWord( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FATSECTORS );
+    pygmyRootVolume.FirstFileSector     = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FIRSTFILESECTOR );
+    pygmyRootVolume.FAT_A               = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FAT_A );
+    pygmyRootVolume.FAT_B               = flashReadLong( ulTableOffset + PYGMY_FILE_VOLUME_FIELD_FAT_B );
+    pygmyRootVolume.ActiveFAT           = fileGetActiveFAT();
+
     return( 1 );
+}
+
+void filePrintDebug( u8 ucStream )
+{
+    u32 i, ulA, ulB;
+    u8 ucBuffer1[ 16 ], ucBuffer2[ 16 ], ucTerm[] = { 0xFF, 0x00 };
+
+    print( ucStream, "\rRoot:" );
+    print( ucStream, "\r\tAttrib: 0x%2X", pygmyRootVolume.Attributes );
+    print( ucStream, "\r\tSectors: %d", pygmyRootVolume.Sectors );
+    print( ucStream, "\r\tSectorSize: %d", pygmyRootVolume.SectorSize );
+    print( ucStream, "\r\tMaxFiles: %d", pygmyRootVolume.MaxFiles );
+    print( ucStream, "\r\tMediaSize: %d", pygmyRootVolume.MediaSize );
+    print( ucStream, "\r\tEntriesPerFAT: %d", pygmyRootVolume.EntriesPerFAT );
+    print( ucStream, "\r\tFilesSectors: %d", pygmyRootVolume.FilesSectors );
+    print( ucStream, "\r\tFATSectors: %d", pygmyRootVolume.FATSectors );
+    print( ucStream, "\r\tFirstFileSector: %d", pygmyRootVolume.FirstFileSector );
+    print( ucStream, "\r\tFAT_A: %d", pygmyRootVolume.FAT_A );
+    print( ucStream, "\r\tFAT_B: %d", pygmyRootVolume.FAT_B );
+    print( ucStream, "\r\tActiveFAT: %d", pygmyRootVolume.ActiveFAT );
+    print( ucStream, "\r\tActiveFiles: %d", pygmyRootVolume.ActiveFiles );
+
+    print( ucStream, "\r\rFAT_A         FAT_B" );
+    for( i = 0; i < ( pygmyRootVolume.EntriesPerFAT * pygmyRootVolume.FATSectors ); i++ ){
+        ulA = flashReadLong( pygmyRootVolume.FAT_A + ( i * 4 ) );
+        ulB = flashReadLong( pygmyRootVolume.FAT_B + ( i * 4 ) );
+        if( ulA == 0xFFFFFFFF && ulB == 0xFFFFFFFF ){
+            continue;
+        } // if
+        print( ucStream, "\r0x%8X    0x%8X", ulA, ulB);
+    } // for
+    PYGMY_WATCHDOG_REFRESH;
+    print( ucStream, "\r\rFiles_A               Files_B" );
+    for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
+        flashReadBuffer( i * 16, ucBuffer1, 16 );
+        flashReadBuffer( pygmyRootVolume.Files_B + ( i * 16 ), ucBuffer2, 16 );
+        
+        if( !ucBuffer1[ 0 ] ){
+            copyString( "DELETED", ucBuffer1 );
+        } // if
+        
+        if( ucBuffer1[ 0 ] == 0xFF ){
+            copyString( "EMPTY", ucBuffer1 );
+        } else{
+            replaceChars( ucBuffer1, ucTerm, 0x00 );
+        } // else
+        if( !ucBuffer2[ 0 ] ){
+            copyString( "DELETED", ucBuffer1 );
+        } // if
+        
+        if( ucBuffer2[ 0 ] == 0xFF ){
+            copyString( "EMPTY", ucBuffer2 );
+        } else{
+            replaceChars( ucBuffer2, ucTerm, 0x00 );
+        } // else
+        print( ucStream, "\r%10s %10s", ucBuffer1, ucBuffer2 );
+        PYGMY_WATCHDOG_REFRESH;
+    } // for
 }
 
 u32 fileFormat( u8 *ucName )
 {
-    u32 ulCapacity;
+    u32 ulCapacity, ulFATBase;
     u16 uiSectorSize, uiSectors, uiSecPerFAT;
     u8 ucAttribs;
 
@@ -979,25 +1036,17 @@ u32 fileFormat( u8 *ucName )
     // If ID is for FLASH, use the following settings:
         ucAttribs = READ|WRITE|MEDIAFLASH;
         uiSectorSize = 0x1000;
-    // If ID is for RAM, use the following settings:
-        // ToDo: Add RAM test and settings
+    // Flash ICs up to 32Mbit use 1 4KB sector for FAT_A and 1 for FAT_B
     if( ulCapacity == SST_ID_32M ){
-        //print( COM3, "4MB" );
         uiSectors = 1024;
         uiSecPerFAT = 4;
     } else if( ulCapacity == SST_ID_16M ){
-        //print( COM3, "2MB" );
         uiSectors = 512;
         uiSecPerFAT = 2;
-        //ucAttribs = READ|WRITE|MEDIAFLASH;
     } else if( ulCapacity == SST_ID_8M ){
-        //print( COM3, "1MB" );
         uiSectors = 256;
-        //ucAttribs = READ|WRITE|MEDIAFLASH;
     } else if( ulCapacity == SST_ID_4M ){
-        //print( COM3, "512KB" );
         uiSectors = 128;
-        //ucAttribs = READ|WRITE|MEDIAFLASH;
     } // else if
     
     #ifndef __PYGMY_BOOT
@@ -1007,21 +1056,24 @@ u32 fileFormat( u8 *ucName )
         } // if
     #endif
     flashWriteByte( PYGMY_FILE_VOLUME_FIELD_ATTRIB, ucAttribs );
-    flashWriteWord( PYGMY_FILE_VOLUME_FIELD_SECTORS, uiSecPerFAT * 252 ); //uiSectors - ( uiSecPerFAT * 2 ) );
+    flashWriteWord( PYGMY_FILE_VOLUME_FIELD_SECTORS, uiSecPerFAT * 252 ); 
     flashWriteWord( PYGMY_FILE_VOLUME_FIELD_SECTORSIZE, uiSectorSize ); // hard coded to SST family sectors size
     flashWriteLong( PYGMY_FILE_VOLUME_FIELD_MAXFILES, uiSecPerFAT * 252 );
     // Media size is defined as total sectors minus FILE and FAT sectors * SECTOR SIZE
     ulCapacity = ( uiSectors - ( uiSecPerFAT * 2 ) ) * uiSectorSize;
     flashWriteLong( PYGMY_FILE_VOLUME_FIELD_MEDIASIZE, ulCapacity );
-    flashWriteWord( PYGMY_FILE_VOLUME_FIELD_ENTRIESPERFAT, 252 );
+    flashWriteWord( PYGMY_FILE_VOLUME_FIELD_ENTRIESPERFAT, uiSecPerFAT * 252 ); // 252
     flashWriteWord( PYGMY_FILE_VOLUME_FIELD_FILESSECTORS, uiSecPerFAT );
-    flashWriteWord( PYGMY_FILE_VOLUME_FIELD_FATSECTORS, uiSecPerFAT );
-    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FIRSTFILESECTOR, ( ( uiSecPerFAT * 5 ) * uiSectorSize ) );
-    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FILES_A, 0x00000000 );
+    flashWriteWord( PYGMY_FILE_VOLUME_FIELD_FATSECTORS, 1 );
+    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FIRSTFILESECTOR, ( ( ( uiSecPerFAT * 2 ) + 2 )* uiSectorSize ) );
+    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FILES_A, PYGMY_FILE_FILES_A );
     flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FILES_B, uiSecPerFAT * uiSectorSize );
-    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FAT_A, ( ( uiSecPerFAT * 2 ) * uiSectorSize ) );
-    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FAT_B, ( ( uiSecPerFAT * 3 ) * uiSectorSize ) );
-    flashWriteByte( ( ( uiSecPerFAT * 4 ) * uiSectorSize ) - 1, 0x00 );
+    ulFATBase = ( uiSecPerFAT * 2 ) * uiSectorSize;
+    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FAT_A, ulFATBase );
+    flashWriteLong( PYGMY_FILE_VOLUME_FIELD_FAT_B, ulFATBase + uiSectorSize );
+    flashWriteByte( ( ulFATBase - uiSectorSize ) - 1, 0x00 ); // Mark FAT_A as active
+    
+    fileMountRoot();
     
     return( ulCapacity );
 }       

@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -20,8 +20,8 @@
 
 #include "pygmy_profile.h"
 
-const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
+const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 #ifdef __PYGMYNEBULA
     #define PYGMYMAXPINS  27

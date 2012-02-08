@@ -52,8 +52,8 @@ void timeInit( void )
     RTC->CRL    &=  ~( RTC_RSF | RTC_OWF | RTC_ALRF | RTC_SECF ); // Clear any set flags
     RTC->PRLH   =   0x0000;                 // MSBs, not used with LSE
     RTC->PRLL   =   0x7FFF;                 // Prescale value for 32.768KHz LSE, see device reference
-    RTC->CNTH   =   0;//( ulTime >> 16 );  // RTC Time register is divided into 16 bits MSBs
-    RTC->CNTL   =   0;//(u16)( ulTime );        // and 16 bits LSBs
+    //RTC->CNTH   =   0;//( ulTime >> 16 );  // RTC Time register is divided into 16 bits MSBs
+    //RTC->CNTL   =   0;//(u16)( ulTime );        // and 16 bits LSBs
     RTC->CRL    &=  ~RTC_CNF;                // Exit config mode for RTC to update registers
 }
 

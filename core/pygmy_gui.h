@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -21,7 +21,6 @@
 #pragma once
 
 #include "pygmy_profile.h"
-//#include "pygmy_file.h"
 
 #define PYGMY_PBM_TYPEMASK				0xF000
 #define PYGMY_PBM_IMAGE				    0x0000
@@ -66,39 +65,39 @@
 #define PYGMY_PBM_32BPP				    0x0006
 
 // Draw Style Defines
-#define PYGMY_VISIBLE           BIT0
-#define PYGMY_ACTIVE            BIT1
-#define PYGMY_DOT               BIT2
-#define PYGMY_DASH              BIT3
-#define PYGMY_BORDER            BIT4
-#define PYGMY_3D                BIT5
-#define PYGMY_ROUNDED           BIT6
-#define PYGMY_CHAMFER           BIT7
-#define PYGMY_FILLED            BIT8
-#define PYGMY_BLEND             BIT9
-#define PYGMY_INVERT            BIT10
-#define PYGMY_GRAYED            BIT11
-#define PYGMY_BLINK             BIT12
-#define PYGMY_WORDWRAP          BIT13
-#define PYGMY_LETTERWRAP        BIT14
-#define PYGMY_LEFTALIGN         BIT15
-#define PYGMY_CENTERED          BIT16
-#define PYGMY_RIGHTALIGN        BIT17
-#define PYGMY_SCROLL            BIT18
+#define VISIBLE           BIT0
+#define ACTIVE            BIT1
+#define DOT               BIT2
+#define DASH              BIT3
+#define BORDER            BIT4
+#define BORDER3D                BIT5
+#define ROUNDED           BIT6
+#define CHAMFER           BIT7
+#define FILLED            BIT8
+#define BLEND             BIT9
+#define INVERT            BIT10
+#define GRAYED            BIT11
+#define BLINK             BIT12
+#define WORDWRAP          BIT13
+#define LETTERWRAP        BIT14
+#define LEFTALIGN         BIT15
+#define CENTERED          BIT16
+#define RIGHTALIGN        BIT17
+#define SCROLL            BIT18
 // Object Style Defines
-#define PYGMY_TITLE             BIT19
-#define PYGMY_WINDOW            BIT20
-#define PYGMY_BUTTON            BIT21
-#define PYGMY_TEXT              BIT22
-#define PYGMY_SLIDER            BIT23
-#define PYGMY_PROGRESS          BIT24
-#define PYGMY_CHECK             BIT25
-#define PYGMY_RADIO             BIT26
-#define PYGMY_TABS              BIT27
-#define PYGMY_WHEEL             BIT28
-#define PYGMY_ALERT             BIT29
-#define PYGMY_BUSY              BIT30
-#define PYGMY_TOOLBAR           BIT31
+#define TITLE             BIT19
+#define WINDOW            BIT20
+#define BUTTON            BIT21
+#define TEXT              BIT22
+#define SLIDER            BIT23
+#define PROGRESS          BIT24
+#define CHECK             BIT25
+#define RADIO             BIT26
+#define TABS              BIT27
+#define WHEEL             BIT28
+#define ALERT             BIT29
+#define BUSY              BIT30
+#define TOOLBAR           BIT31
 //#define PYGMY_STYLE_BARGRAPH        BIT14
 //#define PYGMY_STYLE_LINEGRAPH       BIT15
 //#define PYGMY_STYLE_PIEGRAPH        BIT16
@@ -123,7 +122,7 @@ typedef struct {
                 //u16 uiBackColor;
                 PYGMYCOLOR Color;
                 PYGMYCOLOR BackColor;
-                PYGMYFILE File;
+                PYGMYFILE *File;
                 u16 Style;
                 u16 Height;
                 
@@ -155,6 +154,7 @@ typedef struct {
                 } PYGMYGUIOBJECT;
 
 typedef struct{
+                PYGMYFONT *Font;
                 PYGMYCOLOR Color;
                 PYGMYCOLOR BackColor;
                 PYGMYCURSOR Cursor;
@@ -164,12 +164,12 @@ typedef struct{
                 u16 Y;
                 u16 Width;
                 u16 Height;
-                
                 u8 *String;
                 void *Parent;
                 } PYGMYWIDGET;
             
 typedef struct{
+                PYGMYCOLOR AlphaColor;
                 PYGMYCOLOR BackColor;
                 PYGMYCOLOR Color;
                 PYGMYCURSOR Cursor;
@@ -177,19 +177,61 @@ typedef struct{
                 u8 Contrast;
                 u8 BPP;
                 } PYGMYGUI;
+    
+typedef struct {
+                u32 Timer;
+                u32 Reload;
+                u32 TimeStamp;
+                u32 Expire;
+                u16 *Coords;
+                u16 Len;
+                u16 ID;
+                u16 Index;
+                PYGMYFILE File;
+                } PYGMYSPRITE;
             
-u8 setFont( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont );
+u8 guiSetFont( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont );
+u8 putsLCD( u8 *ucBuffer );
 void drawChar( u8 ucChar );
 void drawString( u8 *ucBuffer );
 void drawCircle( u16 uiX0, u16 uiY0, u16 uiRadius, u32 ulStyle );         
 void drawSine( u16 uiX0, u16 uiY0, u16 uiFrequency, s8 a );
-u32 getImage( PYGMYFILE *pygmyFile, u16 uiIndex );
+void guiSetCursor( u16 uiX, u16 uiY );
+u16 guiGetCursorX( void );
+u16 guiGetCursorY( void );
+void *guiGetCursor( void );
+void guiSetColor( u8 ucR, u8 ucG, u8 ucB );
+void guiSetBackColor( u8 ucR, u8 ucG, u8 ucB );
+void guiSetAlphaColor( u8 ucR, u8 ucG, u8 ucB );
+void guiSetFontColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB );
+void guiSetFontBackColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB );
+            
+void guiApplyColor( void );
+void guiApplyBackColor( void );
+void guiApplyFontColor( void );
+void guiApplyFontBackColor( void );
+u16 guiGetCursorX( void );
+u16 guiGetCursorY( void );
+void *guiGetCursor( void );
+void guiClearArea( u16 uiX0, u16 uiY0, u16 uiX1, u16 uiY1 );
+void guiClearScreen( void );
+u16 guiGetEntries( PYGMYFILE *pygmyFile );           
+u16 guiGetHeader( PYGMYFILE *pygmyFile );
+u32 guiGetImage( PYGMYFILE *pygmyFile, u16 uiIndex );
+void guiInitSprites( void );
+u8 guiDeleteSprite( u16 uiID );
+u8 guiRemoveSpriteCoords( u16 uiID, u16 uiX, u16 uiY );
+void *guiGetSprite( u16 uiID );
+u8 guiCreateSprite( PYGMYFILE *pygmyFile, u16 uiID, u16 *uiCoords, u16 uiLen, u32 ulTimer, u32 ulExpire );
+void guiSpriteProcess( void );
+u16 drawSprite( PYGMYSPRITE *pygmySprite );
 u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex );
 void drawBitmap( u16 uiX, u16 uiY, PYGMYFILE *fileImage );            
-void drawPixel( u16 uiX, u16 uiY ); //, u16 uiColor );
+void drawPixel( u16 uiX, u16 uiY ); 
 void drawClearPixel( u16 uiX, u16 uiY );
 void drawBlendPixel( u16 uiX, u16 uiY );
 void drawLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle ); 
+void drawPoly( u16 *uiPoints, u16 uiLen, u32 ulStyle );
 void drawRect( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius );
 void drawFill( u16 x, u16 y );
 u8 guiGetPixelOpening( u16 uiX, u16 uiY, u32 ulColor );

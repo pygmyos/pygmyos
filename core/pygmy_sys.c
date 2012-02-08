@@ -42,8 +42,9 @@ u8 sysInit( void )
     u16 i;
 
     pygmyGlobalData.Status = 0;
-    pygmyGlobalData.MCUID = descriptorGetID( );
+    pygmyGlobalData.MCUID = DESC_STM32F103XLD;//descriptorGetID( );
     pygmyGlobalData.XTAL = 12000000;
+    
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
         pygmyGlobalData.XTAL = 16000000;
         pygmyGlobalData.MainClock = 32000000;
@@ -66,6 +67,7 @@ u8 sysInit( void )
         pygmyGlobalData.DelayTimer = PYGMY_TIMER1;
         pygmyGlobalData.PWMTimer = PYGMY_TIMER0;
     } // else
+    
     sysEnableTimerClock( pygmyGlobalData.DelayTimer );
     // The following implements default stream config from the profile
     // If no defaults are defined, configuration must be done manually
@@ -90,9 +92,12 @@ u8 sysInit( void )
             streamSetRXBuffer( COM2, globalCOM2RXBuffer, __PYGMYCOM2BUFFERLEN );
             streamSetPut( COM2, putsUSART2 );
         #endif
-        #ifdef __PYGMYSTREAMCOM3
+        #ifdef __PYGMYSTREAMCOM3 // USB and STDIO on Nebulas
             #ifdef __PYGMYCOMMANDS
                 streamSetGet( COM3, cmdGetsCOM3 );
+                streamEnableEcho( COM3 );
+                streamEnableBackspace( COM3 );
+                streamEnableActionChars( COM3 );
             #endif // __PYGMYCOMMANDS
             streamSetRXBuffer( COM3, globalCOM3RXBuffer, __PYGMYCOM3BUFFERLEN );
             streamSetPut( COM3, putsUSART3 );
@@ -124,23 +129,39 @@ u8 sysInit( void )
             streamSetSTDIO( COM3 );
         #endif
         #ifdef __PYGMYCOMMANDS
+            print( COM3, "\rInit Commands..." );
             cmdInit();
+            print( COM3, "Done." );
         #endif // __PYGMYCOMMANDS
     #endif
+    print( COM3, "\rInit Time..." );
     timeInit();
+    print( COM3, "Done." );
     #ifdef __PYGMYFILES
+        print( COM3, "\rMounting root..." );
         fileMountRoot();
+        print( COM3, "Done." );
     #endif
     
     #ifdef __PYGMYTASKS
+        print( COM3, "\rInit Tasks..." );
         taskInit();
+        print( COM3, "Done." );
     #endif
     #ifdef __PYGMYMESSAGES
+        print( COM3, "\rInit Message System..." );
         msgInit();
+        print( COM3, "Done." );
     #endif
-    
+    #ifdef __PYGMYLCDSHIELD
+        print( COM3, "\rInit LCD..." );
+        lcdInit();
+        print( COM3, "Done." );
+    #endif
     #ifdef __PYGMYMODEMSHIELD
+        print( COM3, "\rInit Modem..." );
         modemInit();
+        print( COM3, "Done." );
     #endif
     for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
         pygmyGlobalQueues[ i ] = NULL;
@@ -224,6 +245,30 @@ void sysEnableComClock( u8 ucPort )
             PYGMY_RCC_I2C3_ENABLE;
         } // if
     #endif // __PYGMYSTREAMBUS3
+}
+ 
+u32 sysRandom( u32 ulFrom, u32 ulTo )
+{
+    u32 ulRand, i;
+
+    //pygmyGlobalData.Random <<= 1;
+    //pygmyGlobalData.Random += timeGet();
+    pygmyGlobalData.Random += ( pygmyGlobalData.Random << 1 ) ^ ( timeGet() + ADC1->DR + GPIOA->IDR + GPIOB->IDR + GPIOD->IDR + GPIOC->IDR );
+    ulRand = pygmyGlobalData.Random;
+    for( i = 0; i < 32; i++ ){
+        ulRand >>= 1;
+        if( ulRand >= ulFrom && ulRand <= ulTo ){
+            return( ulRand );
+        } // if
+    } // for
+    ulRand = pygmyGlobalData.Random % ( ulTo - ulFrom );
+    if( ulRand > ulTo ) {
+        ulRand = ulTo;
+    } else if( ulRand < ulFrom ){
+        ulRand = ulFrom;
+    } // else if
+
+    return( ulRand );
 }
 
 void sysDisableComClock( u8 ucPort )
@@ -1326,12 +1371,13 @@ void *sysGetTimer( u8 ucTimer )
 
 void stopwatchStart( void )
 {
-    pygmyGlobalData.StopWatch = ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
+    //pygmyGlobalData.StopWatch = ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
+    pygmyGlobalData.StopWatch = 0;
 }
 
 u32 stopwatchGet( void )
 {
-    pygmyGlobalData.StopWatch += ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
+    //pygmyGlobalData.StopWatch += ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
     return( pygmyGlobalData.StopWatch );
 }
 
@@ -1363,7 +1409,7 @@ void SysTick_Handler( void )
 {
     PYGMY_WATCHDOG_REFRESH; 
     
-    pygmyGlobalData.StopWatch += 100;
+    pygmyGlobalData.StopWatch += 10;
 
     #ifdef __PYGMYTASKS 
         if( pygmyGlobalData.Status & PYGMY_TASK_INIT ){
@@ -1377,7 +1423,9 @@ void SysTick_Handler( void )
             msgProcess();
         } // if
     #endif
-
+    #ifdef __PYGMYSPRITES
+        guiSpriteProcess( );
+    #endif
 }
 
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------

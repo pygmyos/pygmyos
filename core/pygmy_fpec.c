@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -19,6 +19,31 @@
 ***************************************************************************/
 
 #include "pygmy_profile.h"
+
+u16 *globalBaseAddress;
+
+u16 fpecGetID( void )
+{   
+    // This function is for use with initial run on JTAG
+    // The degug registers are not available outside JTAG on some silicon revisions ( ST bugs )
+    // If JTAG registers are unavailable and descriptor is un written, the return will be invalid
+    // Note that under normal operation this is not a possible scenario
+    u32 *ulID;
+
+    if ( SIZEREG->Pages >= 512 ){
+        globalBaseAddress = 0x08000000 + ( ( 510 ) * 2048 );
+    } else{
+        globalBaseAddress = 0x08000000 + ( ( SIZEREG->Pages - 2 ) * 1024 );
+    } // else
+    // First Check the decriptor page in internal flash
+    
+    ulID = (u32*)globalBaseAddress;
+    if( *ulID == 0xFFFFFFFF ){
+        // Well, the descriptor is empty, time to load from debug
+        ulID = (u32*)0xE0042000; // Address of 32bit ID and revision code in DBG regs
+    } // if    
+    return( *ulID & 0x00000FFF );
+}
 
 u8 fpecProcessIHEX( u8 *ucBuffer )
 {
@@ -69,10 +94,15 @@ u8 fpecProcessIHEX( u8 *ucBuffer )
     return( 1 );
 }
 
-u8 fpecUnlock( void )
+u8 fpecUnlock( u8 ucBank )
 {
-    FPEC->KEYR = FPEC_KEY1;
-    FPEC->KEYR = FPEC_KEY2;
+    if( ucBank ){
+        FPEC->KEYR2 = FPEC_KEY1;
+        FPEC->KEYR2 = FPEC_KEY2;
+    } else{
+        FPEC->KEYR = FPEC_KEY1;
+        FPEC->KEYR = FPEC_KEY2;
+    } // else
 }
 
 u8 fpecLock( void )
@@ -93,17 +123,27 @@ u8 fpecWriteLong( u16 *uiAddress, u32 ulData )
 u8 fpecWriteWord( u16 *uiAddress, u16 uiData )
 {
     // A dummy write, calling this function and pointing to a valid
-    // location is FLASH, is required before writing data after an
+    // location in FLASH, is required before writing data after an
     // erase operation!!!
-    if( FPEC->CR & FPEC_CR_LOCK ){
-        fpecUnlock( );
-    } // if
     
-    FPEC->CR |= FPEC_CR_PG;
-    *uiAddress = uiData;
-    while( FPEC->SR & FPEC_SR_BSY )
-        ;
-   
+    if( (u32)uiAddress > FPEC_MAXBANK1 ){
+        if( FPEC->CR2 & FPEC_CR_LOCK ){
+            fpecUnlock( 1 );
+        } // if
+        FPEC->CR2 |= FPEC_CR_PG;
+        *uiAddress = uiData;
+        while( FPEC->SR2 & FPEC_SR_BSY )
+            ;
+    } else{
+        if( FPEC->CR & FPEC_CR_LOCK ){
+            fpecUnlock( 0 );
+        } // if
+        FPEC->CR |= FPEC_CR_PG;
+        *uiAddress = uiData;
+        while( FPEC->SR & FPEC_SR_BSY )
+            ;
+    } // else
+    
     if( *uiAddress == uiData ){
         return( 1 );
     } // if
@@ -111,17 +151,54 @@ u8 fpecWriteWord( u16 *uiAddress, u16 uiData )
     return( 0 );
 }
 
-u8 fpecEraseProgramMemory( u16 uiStart, u16 uiEnd )
+u8 fpecWriteDescriptor( u16 uiDescriptor, u32 ulValue )
 {
-    u32 i, ucFail;
+    // Descriptor entries are 32 bits each
+    u16 *uiAddress;
+
+    uiAddress = (u16*)globalBaseAddress; 
+    uiAddress += uiDescriptor * 2;
     
-    fpecUnlock();
-    for( i = uiStart; i < uiEnd; i++ ){
-        for( ucFail = 0; !fpecErasePage( 0x08000000 + ( i * 1024 ) ) ; ucFail++ ){
-            if( ucFail > 3 ) // Acceptable limit of retries before we know something is wrong
-                return( 0 );
-        }
-    }
+    if( *((u32*)uiAddress) == 0xFFFFFFFF ){ 
+        //putstr( "\rDesc: " );
+        //putIntUSART3( uiAddress );
+        return( fpecWriteLong( uiAddress, ulValue ) );
+    } // if
+    
+    return( 0 );
+}
+
+u8 fpecEraseDescriptor( void )
+{
+
+}
+
+u8 fpecEraseMemory( u16 uiStart, u16 uiEnd )
+{
+
+}
+
+u8 fpecEraseProgramMemory( void ) 
+{
+    u32 i;
+    u16 uiLen, uiPageSize;
+    //u8 ucFail;
+    
+    // SIZEREG changes from pages to KB at 512
+    if ( SIZEREG->Pages >= 512 ){
+        uiLen = ( SIZEREG->Pages / 2 ) - 2;
+        uiPageSize = 2048;
+        i = 4;
+    } else{
+        uiLen = SIZEREG->Pages - 2;
+        uiPageSize = 1024;
+        i = 8;
+    } // else
+    
+    for( ; i < uiLen; i++ ){ 
+        PYGMY_WATCHDOG_REFRESH;
+        fpecErasePage( 0x08000000 + ( i * uiPageSize ) ); 
+    } // for
 
     return( 1 );
 }
@@ -129,21 +206,49 @@ u8 fpecEraseProgramMemory( u16 uiStart, u16 uiEnd )
 u8 fpecErasePage( u32 ulAddress )
 {
     u32 *ulData;
-    u16 i;
+    u16 i, uiLen;
 
     ulData = (u32*)ulAddress;
+    if ( SIZEREG->Pages >= 512 ){
+        uiLen = 512;
+    } else{
+        uiLen = 256;
+    } // else
     
-    FPEC->CR |= FPEC_CR_PER;            // Page Erase
-    FPEC->AR = ulAddress;               // Load Address
-    FPEC->CR |= FPEC_CR_STRT;           // Start Erase
-    while( FPEC->SR & FPEC_SR_BSY )    // Wait until complete
-        ;
-    FPEC->CR &= ~(FPEC_CR_PER|FPEC_CR_STRT);           // Start Erase
-    for( i = 0; i < 256; i++ ){         // Verify the 1KB Page is empty
+    for( i = 0; i < uiLen; i++ ){         // Verify the 1KB Page is empty
+        if( *(ulData+i) != 0xFFFFFFFF ){
+            break;
+        } // if
+    } // for
+    if( i == uiLen ){
+        // Don't erase a page that is already erased
+        return( 1 );
+    } // if
+    if( (u32)ulAddress >= 0x08080000 ){ 
+        fpecUnlock( 1 );
+        FPEC->CR2 |= FPEC_CR_PER;            // Page Erase
+        FPEC->AR2 = ulAddress;               // Load Address
+        FPEC->CR2 |= FPEC_CR_STRT;           // Start Erase
+        i = 0; // At least one command must be executed before checking status to avoid F103XL silicon bug
+        while( FPEC->SR2 & FPEC_SR_BSY )    // Wait until complete
+            ;
+        FPEC->CR2 &= ~(FPEC_CR_PER|FPEC_CR_STRT);           // Start Erase
+    } else{
+        fpecUnlock( 0 );
+        FPEC->CR |= FPEC_CR_PER;            // Page Erase
+        FPEC->AR = ulAddress;               // Load Address
+        FPEC->CR |= FPEC_CR_STRT;           // Start Erase
+        i = 0; // At least one command must be executed before checking status to avoid F103XL silicon bug
+        while( FPEC->SR & FPEC_SR_BSY )    // Wait until complete
+            ;
+        FPEC->CR &= ~(FPEC_CR_PER|FPEC_CR_STRT);           // Start Erase
+    } // else
+    
+    for( ; i < uiLen; i++ ){         // Verify the 1KB Page is empty
         if( *(ulData+i) != 0xFFFFFFFF ){
             return( 0 );
         } // if
     } // for
-    
+       
     return( 1 );
 }

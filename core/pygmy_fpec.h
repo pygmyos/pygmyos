@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -32,6 +32,12 @@ typedef struct{
     volatile u32 RESERVED;
     volatile u32 OBR;
     volatile u32 WRPR;
+    volatile u32 RESERVED2[ 8 ]; // XL
+    volatile u32 KEYR2; // XL
+    volatile u32 RESERVED3; // XL
+    volatile u32 SR2; // XL
+    volatile u32 CR2; // XL
+    volatile u32 AR2; // XL
 } FPEC_TYPEDEF;    
 
 typedef struct{
@@ -59,7 +65,6 @@ typedef struct{
 #define FPEC_RDPRT                  0x00A5
 #define FPEC_KEY1                   0x45670123
 #define FPEC_KEY2                   0xCDEF89AB
-
 #define FPEC_ACR_HLFCYA             BIT3
 
 #define FPEC_SR_EOP                 BIT5
@@ -91,6 +96,10 @@ typedef struct{
 #define FPEC_ACR_LATENCY1           BIT0
 #define FPEC_ACR_LATENCY2           BIT1
 
+#define FPEC_MAXBANK1               0x0807FFFF
+#define FPEC_DENSITY_XL             BIT0
+#define FPEC_DENSITY_ODDPAGE        BIT1
+
 #define IHEX_DATA                   0x00
 #define IHEX_EOF                    0x01
 #define IHEX_EXTENDEDSEGMENTADDR    0x02
@@ -104,9 +113,12 @@ typedef struct{
 //#define IHEX_CHECKSUM_OFFSET        
 
 u8 fpecLock( void );
-u8 fpecUnlock( void );
+u8 fpecUnlock( u8 ucBank );
 u8 fpecProcessIHEX( u8 *ucBuffer );
 u8 fpecWriteLong( u16 *uiAddress, u32 ulData );
 u8 fpecWriteWord( u16 *uiAddress, u16 uiData );
-u8 fpecEraseProgramMemory( u16 uiStart, u16 uiEnd );
+u8 fpecEraseProgramMemory( void );//u16 uiStart, u16 uiEnd );
 u8 fpecErasePage( u32 ulAddress );
+u8 fpecWriteDescriptor( u16 uiDescriptor, u32 ulValue );
+u16 fpecGetID( void );
+

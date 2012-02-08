@@ -87,7 +87,7 @@ void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
         if( ucPort == COM3 ){
             PYGMY_RCC_USART3_ENABLE;
             PYGMY_RCC_GPIOB_ENABLE;
-            interruptSetPriority( USART3_IRQ, 3 );
+            interruptSetPriority( USART3_IRQ, 1 );
             interruptEnable( USART3_IRQ );
             ptrUSART = USART3;
             if( ucOptions & RTS ){

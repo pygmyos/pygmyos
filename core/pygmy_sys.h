@@ -279,8 +279,7 @@ typedef struct {
                 u32 TimeStamp;
                 u32 Expire;
                 } PYGMYTASK;            
-            
-
+           
             
 // Warning! there is no Timer0, it is included as a place holder
 enum {  PYGMY_TIMER0,   PYGMY_TIMER1,   PYGMY_TIMER2,   PYGMY_TIMER3,   PYGMY_TIMER4,   PYGMY_TIMER5, 
@@ -308,6 +307,7 @@ typedef struct {
                 u32 XTAL;
                 u32 StopWatch;
                 u32 Status;
+                u32 Random;
                 u16 MCUID;
                 //u16 CursorX;
                 //u16 CursorY;
@@ -1280,6 +1280,7 @@ u8 taskIsRunning( u8 *ucName, u16 uiID );
 
 void TaskException_Handler( void );
 
+u32 sysRandom( u32 ulFrom, u32 ulTo);
 u8 sysCRC8( u8 *ucBuffer, u16 uiLen );
 u16 sysCRC16( u8 *ucBuffer, u16 uiLen );
 u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum );

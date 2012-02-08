@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -38,8 +38,10 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"reset",      cmd_reset},
                                     {(u8*)"peek",       cmd_peek},
                                     {(u8*)"poke",       cmd_poke},
+                                    #ifdef __PYGMYTASKS
                                     {(u8*)"ps",         cmd_ps},
                                     {(u8*)"kill",       cmd_kill},
+                                    #endif // __PYGMYTASKS
                                     //{(u8*)"recv",       cmd_recv}, // XModem
                                     //{(u8*)"send",       cmd_send}, // XModem
                                     
@@ -56,6 +58,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"ls",         cmd_ls},
                                     {(u8*)"mv",         cmd_mv},
                                     {(u8*)"open",       cmd_open},
+                                    {(u8*)"close",      cmd_close},
                                     {(u8*)"read",       cmd_read},
                                     {(u8*)"write",      cmd_write},
                                     {(u8*)"cp",         cmd_cp},
@@ -512,6 +515,30 @@ u8 cmd_write( u8 *ucBuffer )
     return( 1 );
 }
 
+/*u8 cmd_ls( u8 *ucBuffer )
+{
+    u32 i, ii, ulAddress;
+    u8 ucName[ 16 ];
+
+    ulAddress = pygmyRootVolume.ActiveFiles + 64;// + ( uiFileEntry * 16 );
+    print( COM3, "\rReading address: %d", ulAddress);
+    for( ii = 0; ii < pygmyRootVolume.MaxFiles; ii++ ){
+        for( i = 0; i < 16; i++ ){
+            ucName[ i ] = flashReadByte( ulAddress + ( ii * 16 ) + i );
+            if( ucName[ i ] == 0xFF ){
+                ucName[ i ] = '\0';
+                if( !i ){
+                    break;
+                } else{
+                    print( COM3, "\r%d %s", ii, ucName );
+                    break;
+                } // else
+            } // if
+        } // for
+    } // for
+
+    return( 1 );
+}*/
 u8 cmd_ls( u8 *ucBuffer )
 {
     u16 i, ii, uiLen, uiID;
@@ -538,36 +565,45 @@ u8 cmd_rm( u8 *ucBuffer )
     return( fileDelete( getNextSubString( ucBuffer, WHITESPACE ) ) );
 }
 
+u8 cmd_close( u8 *ucBuffer )
+{
+    PYGMYFILE *pygmyFile;
+    
+    pygmyFile = ( PYGMYFILE *)sysGetFile();
+    fileClose( pygmyFile );
+
+    return( TRUE );
+}
+
 u8 cmd_open( u8 *ucBuffer )
 {
     PYGMYFILE *pygmyFile;
-    u8 *ucParam1, *ucParam2, ucMode;
+    u8 *ucParams[ 2 ], ucMode;
     
-    ucParam1 = getNextSubString( ucBuffer, WHITESPACE );
-    ucParam2 = getNextSubString( NULL, WHITESPACE );
-    if( ucParam2[ 0 ] == '-' ){
-        ++ucParam2;
+    getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    
+    if( ucParams[ 1 ][ 0 ] == '-' ){
+        ++ucParams[ 1 ];
     } // if
-    if( isCharInString( *ucParam2, "rR" ) ){
+    if( isCharInString( *ucParams[ 1 ], "rR" ) ){
         ucMode = READ;
-    } else if( isCharInString( *ucParam2, "aA" ) ){
-        ucMode = WRITE;
-    } else if( isCharInString( *ucParam2, "wW" ) ){
+    } else if( isCharInString( *ucParams[ 1 ], "aA" ) ){
         ucMode = APPEND;
+    } else if( isCharInString( *ucParams[ 1 ], "wW" ) ){
+        ucMode = WRITE;
     } // else if
     pygmyFile = ( PYGMYFILE *)sysGetFile();
 
-    return( fileOpen( pygmyFile, ucParam1, ucMode ) );
+    return( fileOpen( pygmyFile, ucParams[ 0 ], ucMode ) );
 }
 
 u8 cmd_mv( u8 *ucBuffer )
 {
-    u8 *ucParam1, *ucParam2;
+    u8 *ucParams[ 2 ], *ucParam2;
 
-    ucParam1 = getNextSubString( ucBuffer, WHITESPACE );
-    ucParam2 = getNextSubString( NULL, WHITESPACE );
+    getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
 
-    return( fileRename( ucParam1, ucParam2 ) );
+    return( fileRename( ucParams[ 1 ], ucParams[ 2 ] ) );
 }
 
 u8 cmd_cp( u8 *ucBuffer )

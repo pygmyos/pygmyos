@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -56,6 +56,7 @@ u8 cmd_write( u8 *ucBuffer );
 u8 cmd_ls( u8 *ucBuffer );
 u8 cmd_rm( u8 *ucBuffer );
 u8 cmd_open( u8 *ucBuffer );
+u8 cmd_close( u8 *ucBuffer );
 u8 cmd_mv( u8 *ucBuffer );
 u8 cmd_cp( u8 *ucBuffer );
 

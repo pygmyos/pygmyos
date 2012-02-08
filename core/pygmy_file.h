@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -80,8 +80,10 @@
 #define HIDDEN                  BIT3 
 #define FOLDER                  BIT4
 #define SYSTEM                  BIT5
-#define NEW                     BIT6
+#define BURIED                  BIT6 // Any folder or file that is non-root
 #define EOF                     BIT7
+#define VOLUMEFULL              BIT7
+#define VOLUMEERROR             BIT6
 
 #define PYGMY_FILE_ERROR_SUCCESS                  BIT0
 #define PYGMY_FILE_ERROR_MEMFULL                  BIT2
@@ -117,10 +119,10 @@
 
 typedef struct PYGMYFILEVOLUME_TYPEDEF {
                 u8 Name[ PYGMY_FILE_MAXVOLUMENAMELEN + 1 ];
-                u16 Attributes;
+                u8 Attributes;
                 u32 ActiveFiles;
                 u32 ActiveFAT;
-                u32 Sectors;
+                u16 Sectors; // was u32
                 u16 SectorSize;
                 u32 MaxFiles;
                 u32 MediaSize; // Sectors * SectorSize
@@ -128,7 +130,7 @@ typedef struct PYGMYFILEVOLUME_TYPEDEF {
                 u16 FilesSectors;
                 u16 FATSectors;
                 u32 FirstFileSector;
-                u32 Files_A;
+                //u32 Files_A; // Files_A has to be 0
                 u32 Files_B;
                 u32 FAT_A;
                 u32 FAT_B;
@@ -156,7 +158,7 @@ extern PYGMYSPIPORT pygmyFlashSPI;
        
 u16 fileAllocateContiguousFATEntries( u16 uiID, u16 uiEntries );
 u32 filePreAllocate( PYGMYFILE *pygmyFile, u32 ulSize );
-            
+void fileCopyHandle( PYGMYFILE *pygmyFrom, PYGMYFILE *pygmyTo );  
 u8 fileOpenResource( PYGMYFILE *pygmyFile, u8 *ucResource );            
 u8 fileOpen( PYGMYFILE *pygmyFile, u8 *ucName, u8 ucAttrib );
 u8 fileSetPosition( PYGMYFILE *pygmyFile, u8 ucOrigin, s32 lIndex );
@@ -181,7 +183,7 @@ u16 fileGetMaxFiles( void );
 u32 fileGetSector( u32 ulSector );
 u16 fileGetFreeFATEntry( void );
 u16 fileGetFreeFileEntry( void );
-u16 fileGetFAT( u16 uiID, u8 ucIndex );
+u16 fileGetFAT( u16 uiID, u16 uiIndex );
 u32 fileGetFreeSpace( void );
 u8 *fileGetVolumeName( u8 *ucName );
 u32 fileGetActiveFAT( void );
@@ -190,12 +192,14 @@ u8 fileMountVolume( void );//PYGMYFILEVOLUME *pygmyFileVolume );
 u32 fileFormat( u8 *ucName );
 u8 fileIsValidName( u8 *ucName );
 u8 fileIsEOF( PYGMYFILE *pygmyFile );
+u8 fileIsRootFull( void );
 u8 fileWriteEntry( PYGMYFILE *pygmyFile );            
 u8 fileWriteLength( PYGMYFILE *pygmyFile, u32 ulLength );
-u8 fileDeleteFATEntry( u16 uiID_File, u8 ucID_Sector );
-u16 fileAllocateFAT( u16 uiID_File, u8 ucID_Sector );
+u8 fileDeleteFATEntry( u16 uiID_File, u16 uiID_Sector );
+u16 fileAllocateFAT( u16 uiID_File, u16 uiID_Sector );
 u16 fileSeekName( u8 *ucName );
-            
+void filePrintDebug( u8 ucStream );
+
 u8 flashReadByte( u32 ulAddress );
 u16 flashReadWord( u32 ulAddress );
 u32 flashReadLong( u32 ulAddress );
