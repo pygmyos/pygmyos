@@ -461,6 +461,7 @@ u8 cmd_pinconfig( u8 *ucBuffer )
 
 //------------------------------------Basic File Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+#ifdef __PYGMYSTREAMFILE
 u8 cmd_mnt( u8 *ucBuffer )
 {
     fileMountRoot();
@@ -541,7 +542,7 @@ u8 cmd_write( u8 *ucBuffer )
 }*/
 u8 cmd_ls( u8 *ucBuffer )
 {
-    u16 i, ii, uiLen, uiID;
+    /*u16 i, ii, uiLen, uiID;
     u8 ucName[ 16 ];
 
     for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
@@ -556,7 +557,8 @@ u8 cmd_ls( u8 *ucBuffer )
         } // if
     } // for
     print( STDIO, "\rFree:           %d\r", fileGetFreeSpace() );
-  
+  */
+    filePrintList( STDIO );
     return( 1 );
 }
 
@@ -613,6 +615,7 @@ u8 cmd_cp( u8 *ucBuffer )
     getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
     return( fileCopy( ucParams[ 0 ], ucParams[ 1 ] ) );
 }
+#endif // __PYGMYSTREAMFILE
 
 //----------------------------------End Basic File Commands-----------------------------------
 //--------------------------------------------------------------------------------------------

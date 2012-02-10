@@ -89,7 +89,7 @@ u8 fpecProcessIHEX( u8 *ucBuffer )
         case IHEX_EOF:
             return( 0xFF );
             break;
-    }
+    } // switch
 
     return( 1 );
 }
@@ -160,14 +160,13 @@ u8 fpecWriteDescriptor( u16 uiDescriptor, u32 ulValue )
     uiAddress += uiDescriptor * 2;
     
     if( *((u32*)uiAddress) == 0xFFFFFFFF ){ 
-        //putstr( "\rDesc: " );
-        //putIntUSART3( uiAddress );
         return( fpecWriteLong( uiAddress, ulValue ) );
     } // if
     
     return( 0 );
 }
 
+/* Deprecated
 u8 fpecEraseDescriptor( void )
 {
 
@@ -177,6 +176,11 @@ u8 fpecEraseMemory( u16 uiStart, u16 uiEnd )
 {
 
 }
+
+u8 fpecEraseBoot( void )
+{
+    
+}*/
 
 u8 fpecEraseProgramMemory( void ) 
 {

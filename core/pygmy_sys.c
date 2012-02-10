@@ -129,39 +129,25 @@ u8 sysInit( void )
             streamSetSTDIO( COM3 );
         #endif
         #ifdef __PYGMYCOMMANDS
-            print( COM3, "\rInit Commands..." );
             cmdInit();
-            print( COM3, "Done." );
         #endif // __PYGMYCOMMANDS
     #endif
-    print( COM3, "\rInit Time..." );
     timeInit();
-    print( COM3, "Done." );
     #ifdef __PYGMYFILES
-        print( COM3, "\rMounting root..." );
         fileMountRoot();
-        print( COM3, "Done." );
     #endif
     
     #ifdef __PYGMYTASKS
-        print( COM3, "\rInit Tasks..." );
         taskInit();
-        print( COM3, "Done." );
     #endif
     #ifdef __PYGMYMESSAGES
-        print( COM3, "\rInit Message System..." );
         msgInit();
-        print( COM3, "Done." );
     #endif
     #ifdef __PYGMYLCDSHIELD
-        print( COM3, "\rInit LCD..." );
         lcdInit();
-        print( COM3, "Done." );
     #endif
     #ifdef __PYGMYMODEMSHIELD
-        print( COM3, "\rInit Modem..." );
         modemInit();
-        print( COM3, "Done." );
     #endif
     for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
         pygmyGlobalQueues[ i ] = NULL;
@@ -1419,7 +1405,6 @@ void SysTick_Handler( void )
     #endif
     #ifdef __PYGMYMESSAGES
         if( pygmyGlobalData.Status & PYGMY_MSG_INIT ){
-            print( COM3, "\rProc Msgs" );
             msgProcess();
         } // if
     #endif

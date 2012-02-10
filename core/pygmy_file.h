@@ -198,11 +198,14 @@ u8 fileWriteLength( PYGMYFILE *pygmyFile, u32 ulLength );
 u8 fileDeleteFATEntry( u16 uiID_File, u16 uiID_Sector );
 u16 fileAllocateFAT( u16 uiID_File, u16 uiID_Sector );
 u16 fileSeekName( u8 *ucName );
+
 void filePrintDebug( u8 ucStream );
+void filePrintList( u8 ucStream );
 
 u8 flashReadByte( u32 ulAddress );
 u16 flashReadWord( u32 ulAddress );
 u32 flashReadLong( u32 ulAddress );
+void flashReadBuffer( u32 ulAddress, u8 *ucBuffer, u16 uiLen );
 void flashWriteWord( u32 ulAddress, u16 uiWord );
 void flashWriteLong( u32 ulAddress, u32 ulLong );
 void flashWriteBuffer( u32 ulAddress, u16 uiLen , u8 *ucBuffer );

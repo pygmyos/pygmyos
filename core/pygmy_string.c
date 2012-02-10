@@ -458,24 +458,27 @@ u8 convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
     s64 i, iType, iLen, iMagnitude, iValue;
     u8 ucPadding;
 
-    for( i = 0; i < 8 && ucFormat[ i ]; i++ )
+    //print( COM3, "(%s)", ucFormat );
+    for( i = 0; i < 8 && ucFormat[ i ]; i++ ){
         ucTmpFormat[ i ] = ucFormat[ i ];
+    } // for
     ucTmpFormat[ i ] = '\0';
     ucFormat = ucTmpFormat;
     
     if( lData < 0 ){
         *(ucBuffer++) = '-';
         lData = ~((u32)lData) + 1; // reverse 2s complement
-    }
+    } // if
     if( *ucFormat == '%' ){
         ++ucFormat;
-    }
-    if( !isAlphaOrNumeric( *ucFormat ) || *ucFormat == '0' ){
+    } // if
+    //if( !isAlphaOrNumeric( *ucFormat ) || *ucFormat == '0' ){
+    if( *ucFormat == '0' ){
         ucPadding = *ucFormat;
         ++ucFormat;
     } else{
-        ucPadding = '0';
-    }
+        ucPadding = ' ';
+    } // if
     
     if( replaceChars( ucFormat, "xXHh", ' ' ) ){
         iType = 16;
@@ -488,20 +491,22 @@ u8 convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
     } // else
     
     iLen = convertStringToInt( ucFormat )-1;
-    if( iLen < 0 )
+    if( iLen < 0 ){
         iLen = 0;
-    for( i = 0, iMagnitude = 1; ( iMagnitude * iType ) <= lData; i++ )
+    } // if
+    for( i = 0, iMagnitude = 1; ( iMagnitude * iType ) <= lData; i++ ){
         iMagnitude *= iType;
+    } // for
     for( ; iLen > i; iLen-- ){
-        *(ucBuffer++) = ucPadding;//'0';
-    }
+        *(ucBuffer++) = ucPadding; //'0';
+    } // for
     
     for( ; i>=0; i-- ){
         iValue = lData / iMagnitude;
         *(ucBuffer++) = PYGMYHEXCHARS[ iValue ];
         lData -= ( iValue * iMagnitude );
         iMagnitude /= iType;
-    }
+    } // for
     *ucBuffer = '\0';
 }
 

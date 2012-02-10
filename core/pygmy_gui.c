@@ -21,6 +21,13 @@
 #include "pygmy_profile.h"
 #include <math.h>
 
+#ifndef LCD_HEIGHT
+    #define LCD_HEIGHT 0
+#endif // LCD_HEIGHT
+#ifndef LCD_WIDTH
+    #define LCD_WIDTH 0
+#endif // LCD_WIDTH
+
 extern const u8 PYGMY_HEXCHARS[];
 
 PYGMYGUI globalGUI;
