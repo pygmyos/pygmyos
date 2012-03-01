@@ -573,7 +573,6 @@ void i2cStop( PYGMYI2CPORT *pygmyI2C )
     pinConfig( pygmyI2C->SDA, PULLUP );
     if ( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
         // ToDo: Handle loss of arbitration
-        print( COM3, "\rI2C Error" );
     } // 
     i2cDelay( pygmyI2C );
     //pygmyI2C->Status = 0; // Transaction terminated
@@ -677,7 +676,7 @@ u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte )
     // write a byte and return ack/nack from slave
     u8 i;
     u8 ucAck;
-    //print( COM3, "\rSending (%d )", ucByte );
+
     for ( i = 0; i < 8; i++ ){
         if( ucByte & BIT7 ){
             i2cWriteBit( pygmyI2C, 1 );
@@ -688,7 +687,7 @@ u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte )
     } // for
     ucAck = i2cReadBit( pygmyI2C );
     if( ucAck ){
-        //print( COM3, "\rI2C Ack Error" );
+        // ToDo: Add code to handle Ack error
     } // if
     return( ucAck );
 }
@@ -1005,7 +1004,6 @@ void streamHandler( u8 ucPort, u8 ucChar )
         } // if
     } // if
 }
-#endif
 
 #ifdef __PYGMYSTREAMCOM1
 void USART1_IRQHandler( void )
@@ -1054,13 +1052,11 @@ u8 putsUSART1FIFO( u8 *ucBuffer )
 #endif // __PYGMYSTREAMCOM1
 
 #ifdef __PYGMYSTREAMCOM2
-//#ifndef __PYGMYSTREAMCOM2FAST
 void USART2_IRQHandler( void )
 {
     u16 i;
     u8 ucChar, *ucChars;
-    //u8 ucString[2];
-    //print( COM3, "RX2" );
+
     if( USART2->SR & USART_RXNE){
         ucChar = USART2->DR;
         //USART2->SR = 0;
@@ -1313,3 +1309,4 @@ u8 putsUSART6FIFO( u8 *ucBuffer )
 	return( 1 );
 }
 #endif // __PYGMYSTREAMCOM6
+#endif // __PYGMYSTREAMS

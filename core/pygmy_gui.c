@@ -21,12 +21,15 @@
 #include "pygmy_profile.h"
 #include <math.h>
 
-#ifndef LCD_HEIGHT
+
+#ifdef __PYGMYLCDSHIELD
+/*#ifndef LCD_HEIGHT
     #define LCD_HEIGHT 0
 #endif // LCD_HEIGHT
 #ifndef LCD_WIDTH
     #define LCD_WIDTH 0
 #endif // LCD_WIDTH
+*/
 
 extern const u8 PYGMY_HEXCHARS[];
 
@@ -37,6 +40,30 @@ PYGMYGUI globalGUI;
 #endif
 PYGMYSPRITE globalSprites[ __PYGMYMAXSPRITES ];
 u32 globalSpriteStatus = 0;
+//PYGMYTHEME globalTheme;
+PYGMYWIDGET globalWidgets;
+PYGMYFORM *globalForms;
+u8 globalFormsStatus = 0, globalFormsLen = 0;
+
+void guiSetStyle( u32 ulStyle )
+{
+    globalGUI.Style = ulStyle;
+}
+
+u32 guiGetStyle( void )
+{
+    return( globalGUI.Style );
+}
+
+void guiSetRadius( u8 ucRadius )
+{
+    globalGUI.Radius = ucRadius;
+}
+
+u8 guiGetRadius( u8 ucRadius )
+{
+    return( globalGUI.Radius );
+}
 
 void guiSetCursor( u16 uiX, u16 uiY )
 {
@@ -116,10 +143,24 @@ void guiSetFontBackColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB )
     pygmyFont->BackColor.B = ucB;
 }
 
+void guiSetFonts( PYGMYFONT *fontSmall, PYGMYFONT *fontMedium, PYGMYFONT *fontLarge )
+{
+    globalGUI.Font          = fontSmall;
+    globalGUI.SmallFont     = fontSmall;
+    globalGUI.MediumFont    = fontMedium;
+    globalGUI.LargeFont     = fontLarge;
+}
+
 u8 guiSetFont( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont )
 {
-	u16 uiPygmyInfo, uiEntries;
+	u32 ulImageStart, uiPygmyInfo;//, uiEntries;
     
+    pygmyFont->Color.R         = globalGUI.Color.R;
+    pygmyFont->Color.G         = globalGUI.Color.G;
+    pygmyFont->Color.B         = globalGUI.Color.B;
+    pygmyFont->BackColor.R     = globalGUI.BackColor.R;
+    pygmyFont->BackColor.G     = globalGUI.BackColor.G;
+    pygmyFont->BackColor.B     = globalGUI.BackColor.B;
     globalGUI.Font                  = pygmyFont;
     globalGUI.Font->File            = pygmyFile;
     globalGUI.Font->Color.R         = globalGUI.Color.R;
@@ -129,22 +170,20 @@ u8 guiSetFont( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont )
     globalGUI.Font->BackColor.G     = globalGUI.BackColor.G;
     globalGUI.Font->BackColor.B     = globalGUI.BackColor.B;
     
-    uiPygmyInfo = guiGetHeader( pygmyFile );
-    uiEntries = guiGetEntries( pygmyFile );
-    if( uiEntries < 96 || !( uiPygmyInfo & ( PYGMY_PBM_IMAGESTRIP | PYGMY_PBM_FONT ) ) ){
-		return( FALSE );
+    ulImageStart = guiGetImage( pygmyFile, 0 );
+    if( !ulImageStart ){
+        return( FALSE );
     } // if
-    
+    fileSetPosition( pygmyFile, START, ulImageStart );
+    uiPygmyInfo = fileGetWord( pygmyFile, BIGENDIAN );
 	if( uiPygmyInfo & PYGMY_PBM_16BITD  ){		// Determine 8 or 16 bit Width and Height fields
         fileSetPosition( pygmyFile, CURRENT, 3 );
-        pygmyFont->Height = fileGetChar( pygmyFile ) * 0x0100;
+        pygmyFont->Height = fileGetWord( pygmyFile, BIGENDIAN );
 	} else{
         fileSetPosition( pygmyFile, CURRENT, 1 );
-        pygmyFont->Height = 0;
+        pygmyFont->Height |= fileGetChar( pygmyFile );
     } // else
 	
-    pygmyFont->Height |= fileGetChar( pygmyFile );
-  
     return( TRUE );
 }
 
@@ -306,19 +345,20 @@ void guiOutputBMHeader( PYGMYFILE *pygmyFile, u32 ulWidth, u32 ulHeight, u8 ucBP
 {
     u32 ulBMDataSize, ulFileSize, ulPixelSize;
 
-    if( ucBPP & PYGMY_PBM_8BPP ){
-        ucBPP = 8;
+    /*if( ucBPP == 8 ){
         ulPixelSize = 1;
-    } else if( ucBPP & PYGMY_PBM_16BPP ){
-        ucBPP = 16;
+    } else if( ucBPP == 16 ){
         ulPixelSize = 2;
-    } else if( ucBPP & PYGMY_PBM_24BPP ){
-        ucBPP = 24;
+    } else if( ucBPP == 24 ){
         ulPixelSize = 3;
     } else{
         ucBPP = 32;
         ulPixelSize = 4;
-    }
+    }*/
+    if( ucBPP > 32 ){
+        return;
+    } // if
+    ulPixelSize = ucBPP / 8;
     ulBMDataSize = ( ( ulWidth + ( ulWidth % 4 ) ) * ulHeight ) * ulPixelSize;
     ulFileSize = 54 + ulBMDataSize;
     
@@ -355,34 +395,39 @@ void guiOutputBMHeader( PYGMYFILE *pygmyFile, u32 ulWidth, u32 ulHeight, u8 ucBP
     filePutLong( pygmyFile, 0, LITTLEENDIAN ); // Number of Colors ( 0 = MAX )
     filePutLong( pygmyFile, 0, LITTLEENDIAN ); // Number of Important Colors ( 0 = ALL )
     
-    
     // Ready to Save BMP Data
 }
 
 u8 guiSaveScreen( void )
 {
     PYGMYFILE pygmyFile;
-    u16 uiX, uiY, uiPixel, uiPadding;
+    u16 uiX, uiY, uiPixel, uiPadding, uiWidth, uiHeight;
     u8 ucName[ 13 ], ucR, ucG, ucB;
 
+    uiWidth = lcdGetWidth();
+    uiHeight = lcdGetHeight();
     convertIntToString( timeGet(), "%8d", ucName );
-    stringCopy( ".bmp", ucName+8 );
-    print( COM3, "\rCreating Screenshot %s", ucName );
-    if( !fileOpen( &pygmyFile, ucName, WRITE ) ){
+    copyString( ".bmp", ucName+8 );
+    print( COM3, "\rCreating Screenshot: %s X: %d Y: %d", ucName, uiWidth, uiHeight );
+    if( !fileOpen( &pygmyFile, "screenshot", WRITE ) ){
         print( COM3, "\rFile Fail!" );
         return( FALSE );
     } // if
-    guiOutputBMHeader( &pygmyFile, 128, 128, PYGMY_PBM_24BPP );
-    for( uiY = 0; uiY < LCD_HEIGHT; uiY++ ){
-        for( uiX = 0; uiX < LCD_WIDTH; uiX++ ){
-            uiPixel = lcdGetPixel( uiX, LCD_HEIGHT - uiY );
-            lcdGetRGB( uiPixel, &ucR, &ucG, &ucB );
-            fileWriteChar( &pygmyFile, ucR );
-            fileWriteChar( &pygmyFile, ucG );
-            fileWriteChar( &pygmyFile, ucB );
+    guiOutputBMHeader( &pygmyFile, 128, 128, 24 );
+    uiPadding = uiWidth % 4;
+    for( uiY = 0; uiY < uiHeight; uiY++ ){
+        //print( COM3, "\r" );
+        for( uiX = 0; uiX < uiWidth; uiX++ ){
+            uiPixel = lcdGetPixel( uiX, ( uiHeight - 1 ) - uiY );
+            //filePutWord( &pygmyFile, uiPixel, LITTLEENDIAN );
+            lcdGetRGB( uiPixel, 24, &ucR, &ucG, &ucB );
+            filePutChar( &pygmyFile, ucR );
+            filePutChar( &pygmyFile, ucG );
+            filePutChar( &pygmyFile, ucB );
+            //print( COM3, "(%X %X %X)", ucR, ucG, ucB );
         } // for
         for( uiX = 0; uiX < uiPadding; uiX++ ){
-            fileWriteChar( &pygmyFile, 0 );
+            filePutChar( &pygmyFile, 0 );
         } // for
     } // for
     fileClose( &pygmyFile );
@@ -401,23 +446,27 @@ void drawBitmap( u16 uiX, u16 uiY, PYGMYFILE *pygmyFile )
     } // else    
     
     fileSetPosition( pygmyFile, CURRENT, 8);
-    iData = fileGetChar( pygmyFile );
+    /*iData = fileGetChar( pygmyFile );
     iData |= (u32)fileGetChar( pygmyFile ) << 8;
     iData |= (u32)fileGetChar( pygmyFile ) << 16;
-    iData |= (u32)fileGetChar( pygmyFile ) << 24;
+    iData |= (u32)fileGetChar( pygmyFile ) << 24;*/
+    iData = fileGetLong( pygmyFile, LITTLEENDIAN );
     fileSetPosition( pygmyFile, CURRENT, 4 );
-    iWidth = fileGetChar( pygmyFile );
+    iWidth = fileGetLong( pygmyFile, LITTLEENDIAN );
+    /*iWidth = fileGetChar( pygmyFile );
     iWidth |= (u32)fileGetChar( pygmyFile ) << 8;
     iWidth |= (u32)fileGetChar( pygmyFile ) << 16;
-    iWidth |= (u32)fileGetChar( pygmyFile ) << 24;
-    iHeight = fileGetChar( pygmyFile );
+    iWidth |= (u32)fileGetChar( pygmyFile ) << 24;*/
+    iHeight = fileGetLong( pygmyFile, LITTLEENDIAN );
+    /*iHeight = fileGetChar( pygmyFile );
     iHeight |= (u32)fileGetChar( pygmyFile ) << 8;
     iHeight |= (u32)fileGetChar( pygmyFile ) << 16;
-    iHeight |= (u32)fileGetChar( pygmyFile ) << 24;
-    fileGetChar( pygmyFile ); // Skip 2 bytes for Planes used
-    fileGetChar( pygmyFile ); //
-    iBPP = fileGetChar( pygmyFile );
-    iBPP |= (u32)fileGetChar( pygmyFile ) << 8;
+    iHeight |= (u32)fileGetChar( pygmyFile ) << 24;*/
+    
+    fileSetPosition( pygmyFile, CURRENT, 2); // Skip 2 bytes for Planes used
+    iBPP = fileGetWord( pygmyFile, LITTLEENDIAN );
+    //iBPP = fileGetChar( pygmyFile );
+    //iBPP |= (u32)fileGetChar( pygmyFile ) << 8;
     iRLE = fileGetChar( pygmyFile ); // Ignore the next three bytes
 
     fileSetPosition( pygmyFile, START, iData );
@@ -481,14 +530,16 @@ u32 guiGetImage( PYGMYFILE *pygmyFile, u16 uiIndex )
     } // if
 	if( uiPygmyInfo & PYGMY_PBM_TABLE32 ){				// Table Entries are 32bit
         fileSetPosition( pygmyFile, CURRENT, uiIndex * 4 );
-        ulPixelIndex =  (u32)fileGetChar( pygmyFile ) << 24;
+        ulPixelIndex = fileGetLong( pygmyFile, BIGENDIAN );
+        /*ulPixelIndex =  (u32)fileGetChar( pygmyFile ) << 24;
         ulPixelIndex |= (u32)fileGetChar( pygmyFile ) << 16;
         ulPixelIndex |= (u32)fileGetChar( pygmyFile ) << 8;
-        ulPixelIndex |= (u32)fileGetChar( pygmyFile );
+        ulPixelIndex |= (u32)fileGetChar( pygmyFile );*/
 	} else{ 										// Table Entries are 16bit
         fileSetPosition( pygmyFile, START, 4 + (uiIndex * 2 ) );
-        ulPixelIndex =  (u32)fileGetChar( pygmyFile ) << 8;
-        ulPixelIndex |= (u32)fileGetChar( pygmyFile );
+        ulPixelIndex = fileGetWord( pygmyFile, BIGENDIAN );
+        //ulPixelIndex =  (u32)fileGetChar( pygmyFile ) << 8;
+        //ulPixelIndex |= (u32)fileGetChar( pygmyFile );
 	} // else
 		
     // The index returned is the absolute offset from the start of file
@@ -515,6 +566,53 @@ u16 drawSprite( PYGMYSPRITE *pygmySprite )
     return( uiWidth );
 }
 
+u16 drawVector( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY, s8 cScale, u16 uiIndex )
+{
+    u32 i, ii, ulIndex;
+    u16 uiPygmyInfo;
+    u8 ucBPP, ucPacket, ucByte1, ucPoints, ucR, ucG, ucB, ucBuffer[ 64 ];
+    
+    ulIndex = guiGetImage( pygmyFile, uiIndex );
+    fileSetPosition( pygmyFile, START, ulIndex );
+    uiPygmyInfo = fileGetWord( pygmyFile, BIGENDIAN );
+    ucBPP = ( uiPygmyInfo & 0x000F ); 
+    lcdSetBPP( ucBPP ); // Must be set BEFORE setting colors
+    for( ; !fileEOF( pygmyFile ); ){
+        ucPoints = fileGetChar( pygmyFile );
+        ucPacket = ucPoints & PYGMY_VECTOR_MASK;
+        if( ucPacket == PYGMY_VECTOR_COLOR ){
+            if( ucBPP == PYGMY_PBM_1BPP ){
+                ucR = fileGetChar( pygmyFile );
+                ucG = ucR;
+                ucB = ucR;
+            } else if( ucBPP == PYGMY_PBM_4BPP ){
+                ucR = fileGetChar( pygmyFile );
+            } else if( ucBPP == PYGMY_PBM_8BPP ){
+                ucByte1 = fileGetChar( pygmyFile );
+                ucR = ucByte1 >> 5;
+                ucG = ( ucByte1 & 0x18 ) >> 3;
+                ucB = (ucByte1 & 0x07 );
+            } else if( ucBPP == PYGMY_PBM_12BPP ){
+                
+            } else if( ucBPP == PYGMY_PBM_16BPP ){
+            
+            } else if( ucBPP == PYGMY_PBM_24BPP ){
+            
+            } // else if
+        } else if( ucPacket == PYGMY_VECTOR_POLY ){
+        
+        } else if( ucPacket == PYGMY_VECTOR_ARC ){
+        
+        } else if( ucPacket == PYGMY_VECTOR_SPLINE ){
+        
+        } else if( ucPacket == PYGMY_VECTOR_RASTER ){
+        
+        } else{
+            break;
+        }
+    } // for
+}
+
 u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
 {
 	u32 i, ii, ulPixelIndex, ulLen;
@@ -525,17 +623,23 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
     fileSetPosition( pygmyFile, START, ulPixelIndex );
     // Warning! ulPixelIndex is reused below
   
-	uiPygmyInfo = (u16) fileGetChar( pygmyFile ) * 0x0100;
-	uiPygmyInfo |= fileGetChar( pygmyFile );
+    uiPygmyInfo = fileGetWord( pygmyFile, BIGENDIAN );
+	//uiPygmyInfo = (u16) fileGetChar( pygmyFile ) * 0x0100;
+	//uiPygmyInfo |= fileGetChar( pygmyFile );
 	
 	if( uiPygmyInfo & PYGMY_PBM_16BITD  ){		// Determine 8 or 16 bit Width and Height fields
-		uiWidth = fileGetChar( pygmyFile ) * 0x0100;
-	} // if
-	uiWidth |= fileGetChar( pygmyFile );
-	if( uiPygmyInfo & PYGMY_PBM_16BITD ){		// Determine 8 or 16 bit Width and Height fields
-		uiHeight = fileGetChar( pygmyFile ) * 0x0100;
-	} // if
-	uiHeight |= fileGetChar( pygmyFile );
+		//uiWidth = fileGetChar( pygmyFile ) * 0x0100;
+        uiWidth = fileGetWord( pygmyFile, BIGENDIAN );
+        uiHeight = fileGetWord( pygmyFile, BIGENDIAN );
+	} else{
+        uiWidth = fileGetChar( pygmyFile );
+        uiHeight = fileGetChar( pygmyFile );
+    } // else
+	//uiWidth |= fileGetChar( pygmyFile );
+	//if( uiPygmyInfo & PYGMY_PBM_16BITD ){		// Determine 8 or 16 bit Width and Height fields
+	//	uiHeight = fileGetChar( pygmyFile ) * 0x0100;
+	//} // if
+	//uiHeight |= fileGetChar( pygmyFile );
     
 	ulLen = (u32) (uiWidth * uiHeight);
     ucBPP = ( uiPygmyInfo & 0x000F ); 
@@ -616,7 +720,7 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
                     guiApplyColor( );
                 } // else
                 lcdDrawPixel( uiXPos+uiX, uiYPos+uiY );
-            } else {// if( !( uiPygmyInfo & PYGMY_PBM_ALPHA  ) ){
+            } else if( !( uiPygmyInfo & PYGMY_PBM_ALPHA  ) ){
                 if( ( uiPygmyInfo & PYGMY_PBM_FONT ) && ( uiPygmyInfo & PYGMY_PBM_1BPP ) ){
                     guiApplyFontBackColor(  );
                 } else{
@@ -647,36 +751,308 @@ void drawClearPixel( u16 uiX, u16 uiY )
     lcdDrawPixel( uiX, uiY);
 }
 
+void drawJPEG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY )
+{
+    u16 uiWidth, uiHeight, uiThumbWidth, uiThumbHeight;
+    u16 uiVersion, uiUnits, uiSOI, uiAPP0, uiAPP0Len;
+    u8 ucID[ 5 ];
+  /*   BYTE SOI[2];          // 00h  Start of Image Marker  
+  BYTE APP0[2];         // 02h  Application Use Marker  
+  BYTE Length[2];       // 04h  Length of APP0 Field     
+  BYTE Identifier[5];   // 06h  "JFIF" (zero terminated) Id String 
+  BYTE Version[2];      // 07h  JFIF Format Revision      
+  BYTE Units;           // 09h  Units used for Resolution 
+  BYTE Xdensity[2];     // 0Ah  Horizontal Resolution     
+  BYTE Ydensity[2];     // 0Ch  Vertical Resolution       
+  BYTE XThumbnail;      // 0Eh  Horizontal Pixel Count    
+  BYTE YThumbnail;      // 0Fh  Vertical Pixel Count      */
+    uiSOI = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiAPP0 = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiAPP0Len = fileGetWord( pygmyFile, LITTLEENDIAN );
+    fileGetBuffer( pygmyFile, 5, ucID );
+    uiVersion = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiUnits = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiWidth = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiHeight = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiThumbWidth = fileGetWord( pygmyFile, LITTLEENDIAN );
+    uiThumbHeight = fileGetWord( pygmyFile, LITTLEENDIAN );
+    print( COM3, "\rSOI: 0x%X APP0: 0x%X APP0Len: 0x%X", uiSOI, uiAPP0, uiAPP0Len );
+    print( COM3, "\rID: %s Version: %d", ucID, uiVersion );
+    print( COM3, "\rWidth: %d Height: %d", uiWidth, uiHeight );
+    print( COM3, "\rThumbWidth: %d ThumbHeight: %d", uiThumbWidth, uiThumbHeight );
+}
+
+void drawPNG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY )
+{
+    u32 ulWidth, ulHeight, ulLen, ulCRC;
+    u8 ucBPP, ucColorType, ucCompression, ucFilter, ucInterlace;
+    u8 ucHeader[ 12 ], ucChunkType[ 5 ];
+    
+    // First load PNG Header
+    fileGetBuffer( pygmyFile, 8, ucHeader );
+    ucHeader[ 7 ] = '\0';
+    // Load each chunk and process supported types
+    while( !fileIsEOF( pygmyFile ) ){
+        ulLen = fileGetLong( pygmyFile, BIGENDIAN );
+        fileGetBuffer( pygmyFile, 4, ucChunkType );
+        ucChunkType[ 4 ] = '\0';
+        if( isStringSame( "IHDR", ucChunkType ) ){
+            ulWidth = fileGetLong( pygmyFile, BIGENDIAN );
+            ulHeight = fileGetLong( pygmyFile, BIGENDIAN );
+            ucBPP = fileGetChar( pygmyFile );
+            ucColorType = fileGetChar( pygmyFile );
+            ucCompression = fileGetChar( pygmyFile );
+            ucFilter = fileGetChar( pygmyFile );
+            ucInterlace = fileGetChar( pygmyFile );
+            print( COM3, "\rChunk: %s, Len: %d", ucChunkType, ulLen );
+            print( COM3, "\rWidth: %d Height: %d", ulWidth, ulHeight );
+            print( COM3, "\rBPP: %d", ucBPP );
+            print( COM3, "\rColor: %d", ucColorType );
+            print( COM3, "\rCompression: %d", ucCompression );
+            print( COM3, "\rFilter: %d", ucFilter );
+            print( COM3, "\rInterlace: %d", ucInterlace );
+        } else if( isStringSame( "PLTE", ucChunkType ) ){
+            print( COM3, "\rPalette: %d", ulLen );
+            fileSetPosition( pygmyFile, CURRENT, ulLen );
+            
+        } else if( isStringSame( "IDAT", ucChunkType ) ){
+            // Image data chunk, there may be multiple
+            print( COM3, "\rData: %d", ulLen );
+            fileSetPosition( pygmyFile, CURRENT, ulLen );
+        } else if( isStringSame( "IEND", ucChunkType ) ){
+            // End of image reached, 
+            print( COM3, "\rEnd" );
+            return;
+        } else{
+            // If chunk is ancilliary it's not supported, skip
+            fileSetPosition( pygmyFile, CURRENT, ulLen );
+        } // else if
+        // Get the CRC for the last chunk read to keep data aligned
+        ulCRC = fileGetLong( pygmyFile, BIGENDIAN );
+    } // while
+}
+
+
+
+u8 widgetAdd( u8 ucType, u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight, u32 ulValue, u8 *ucBuffer )
+{
+    
+}
+
+u8 widgetDelete( )
+{
+
+}
+
+u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight )
+{
+    PYGMYFORM *pygmyForms;
+    PYGMYWIDGET *newWidget;
+
+    if( globalFormsStatus ){
+        pygmyForms = sysReallocate( globalForms, sizeof( PYGMYFORM ) * globalFormsLen ); 
+    } else{
+        pygmyForms = sysAllocate( sizeof( PYGMYFORM ) );
+    } // else
+    if( !pygmyForms ){
+        return( 0 );
+    } // if
+    globalForms = pygmyForms;
+    globalForms[ globalFormsLen ].Len = 0;
+    newWidget = sysAllocate( sizeof( PYGMYWIDGET ) );
+    if( !newWidget ){
+        //print( COM3, "\rMemory Full!" );
+        return( FALSE );
+    } // if
+    globalForms[ globalFormsLen ].Widgets = newWidget;
+    globalForms[ globalFormsLen ].AlphaColor.R = globalGUI.AlphaColor.R;
+    globalForms[ globalFormsLen ].AlphaColor.G = globalGUI.AlphaColor.G;
+    globalForms[ globalFormsLen ].AlphaColor.B = globalGUI.AlphaColor.B;
+    globalForms[ globalFormsLen ].BackColor.R = globalGUI.BackColor.R;
+    globalForms[ globalFormsLen ].BackColor.G = globalGUI.BackColor.G;
+    globalForms[ globalFormsLen ].BackColor.B = globalGUI.BackColor.B;
+    globalForms[ globalFormsLen ].Color.R = globalGUI.Color.R;
+    globalForms[ globalFormsLen ].Color.G = globalGUI.Color.G;
+    globalForms[ globalFormsLen ].Color.B = globalGUI.Color.B;
+    ++globalFormsLen;
+    globalFormsStatus = 1;
+    
+    return( 1 );
+}
+
+void formRemove( void )
+{
+    PYGMYFORM *pygmyForms;
+
+    if( globalFormsLen ){
+        pygmyForms = sysReallocate( globalForms, sizeof( PYGMYFORM ) * ( globalFormsLen - 1 ) );
+    } // if
+    if( pygmyForms ){
+        globalForms = pygmyForms;
+        --globalFormsLen;
+    } // if
+}
+
+void formDrawAll( void )
+{
+    
+}
+
+u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
+{
+    PYGMYWIDGET *newWidget;
+    u32 ulLen;
+    u16 uiIndex = globalFormsLen - 1;
+    
+    ulLen = sizeof( PYGMYWIDGET ) * ( globalFormsLen + 1 );
+    newWidget = sysReallocate( globalForms[ uiIndex ].Widgets, ulLen );
+    if( !newWidget ){
+        print( COM3, "\rMemory Full!" );
+        return( FALSE );
+    } // if
+    globalForms[ uiIndex ].Widgets = newWidget;
+    
+    
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Value    = pygmyWidget->Value;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].X        = pygmyWidget->X;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Y        = pygmyWidget->Y;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Width    = pygmyWidget->Width;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Height   = pygmyWidget->Height;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Style    = pygmyWidget->Style;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Type     = pygmyWidget->Type;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].String   = pygmyWidget->String;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Action   = pygmyWidget->Action;
+
+    ++globalForms[ uiIndex ].Len;
+    print( COM3, "\rWidgets: %d", globalForms[ uiIndex ].Len );
+    return( TRUE );
+}
+
+void drawForms( void )
+{ 
+    PYGMYCOLOR *pygmyColor;
+    u16 i, ii;
+
+    for( i = 0; i < globalFormsLen; i++ ){
+        
+        guiClearArea( globalForms[ i ].X, globalForms[ i ].Y, 
+            globalForms[ i ].X + globalForms[ i ].Width, 
+            globalForms[ i ].Y + globalForms[ i ].Height );
+        for( ii = 0; ii < globalForms[ i ].Len; ii++ ){
+            PYGMY_WATCHDOG_REFRESH;
+            drawWidget( &globalForms[ i ].Widgets[ ii ] );
+        } // for
+    } // for
+}
 
 void drawWidget( PYGMYWIDGET *pygmyWidget )
 {
-    PYGMYFONT *pygmyFont;
-    u16 uiX, uiY;
+    u32 ulStyle;
+    u16 uiX, uiY, uiPos, uiPoly[ 8 ];
+    u8 ucRadius;
 
-    if( !( pygmyWidget->Style & VISIBLE ) ){
+    if( !(pygmyWidget->Style & VISIBLE ) ){
+        print( COM3, "\rWidget not visible" );
         return;
     } // if
-    guiSetColor( pygmyWidget->Color.B, pygmyWidget->Color.G, pygmyWidget->Color.R );
-    guiSetBackColor( pygmyWidget->BackColor.B, pygmyWidget->BackColor.G, pygmyWidget->BackColor.R );
-    //lcdSetColor( pygmyWidget->Color.B, pygmyWidget->Color.G, pygmyWidget->Color.R );
-    //lcdSetBackColor( pygmyWidget->BackColor.B, pygmyWidget->BackColor.G, pygmyWidget->BackColor.R );
+    //ulStyle = pygmyWidget->Style;
+    print( COM3, "\rWidget: %s", pygmyWidget->String );
+    ucRadius = globalGUI.Radius;
+    if( pygmyWidget->Style & INVERT ){
+        guiSetBackColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
+        guiSetColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
+    } else{
+        guiSetColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
+        guiSetBackColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
+    } // else
     if( pygmyWidget->Style & BORDER ){
-        
+        guiApplyColor();
         drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
-            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, 8 );
+            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style & ~FILLED, ucRadius );
+    } // if 
+    if( pygmyWidget->Type == BUTTON || pygmyWidget->Type == LABEL ){
+        if( pygmyWidget->Style & FILLED ){
+            guiApplyBackColor();
+            drawRect( pygmyWidget->X+1, pygmyWidget->Y+1, pygmyWidget->X + ( pygmyWidget->Width - 1 ),
+                pygmyWidget->Y + ( pygmyWidget->Height - 1 ), pygmyWidget->Style, ucRadius );
+        } // if
         
-        if( pygmyWidget->String[0] ){
-            if( pygmyWidget->Style & CENTERED ){
-                uiX = ( ( pygmyWidget->Width - ( pygmyWidget->Font->Height * len( pygmyWidget->String ) ) ) / 2 );
-                if( uiX > pygmyWidget->Width ){
-                    uiX = 8;
-                } // if
-                uiY = ( pygmyWidget->Height - pygmyWidget->Font->Height ) / 2;
-                if( uiY > pygmyWidget->Height ){
-                    uiY = 8;
-                } // if
-            } // if
+        if( pygmyWidget->Style & CENTERED ){
+            
+            uiY = ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
+            uiX = 2 + ( ( pygmyWidget->Width - ( ( globalGUI.Font->Height - 7 ) * len( pygmyWidget->String ) ) ) / 2 );
+            print( COM3, "\ruiX: %d", uiX );  
+        } // if
+    } else if( pygmyWidget->Type == CHECKBOX ){
+        guiApplyColor();
+        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
+            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
+        if( pygmyWidget->Value ){ // Draw Check if not zero
+            drawLine( pygmyWidget->X+1, pygmyWidget->Y+(pygmyWidget->Height/2), pygmyWidget->X+(pygmyWidget->Height/2),
+                pygmyWidget->Y + ( pygmyWidget->Height - 1 ), pygmyWidget->Style );
+            
+            drawLine( pygmyWidget->X+(pygmyWidget->Height/2), pygmyWidget->Y + ( pygmyWidget->Height - 1 ), 
+                pygmyWidget->X+(pygmyWidget->Height - 1), pygmyWidget->Y - 1, pygmyWidget->Style );
+        } // if
+        uiX = 2 + pygmyWidget->Height;
+        uiY = 2 + ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
+        
+        print( COM3, "\rWidget Height: %d", pygmyWidget->Height );
+        print( COM3, "\rFont Height: %d", globalGUI.Font->Height );
+        print( COM3, "\ruiX: %d uiY: %d", uiX, uiY );
+    } else if( pygmyWidget->Type == VSCROLLBAR ){
+        guiApplyColor();
+        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
+            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
+        drawRect( pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
+            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
+    } else if( pygmyWidget->Type == HSCROLLBAR ){
+        guiApplyColor();
+        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
+            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
+        drawRect( pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
+            pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
+        // Left Arrow
+        drawLine( pygmyWidget->X + 2, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+            pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
+            pygmyWidget->Style );
+        drawLine( pygmyWidget->X + 2, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+            pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
+            pygmyWidget->Style );
+        drawLine( pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
+            pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
+            pygmyWidget->Style );
+        // Right Arrow
+        drawLine( pygmyWidget->X + ( pygmyWidget->Width - 4 ), pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+            pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
+            pygmyWidget->Style );
+        drawLine( pygmyWidget->X + pygmyWidget->Width - 4, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+            pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
+            pygmyWidget->Style );
+        drawLine( pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
+            pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
+            pygmyWidget->Style );
+        if( pygmyWidget->Value ){
+            uiPos = pygmyWidget->Width / ( 100 / ( pygmyWidget->Value ) ); 
+        } else{
+            uiPos = pygmyWidget->Height;
+        } // else
+        drawRect( uiPos - ( pygmyWidget->Height / 2 ), pygmyWidget->Y, uiPos + ( pygmyWidget->Height / 2 ), 
+            pygmyWidget->Y + pygmyWidget->Height, pygmyWidget->Style, ucRadius );
+        drawLine( uiPos, pygmyWidget->Y + 4, uiPos, pygmyWidget->Y + ( pygmyWidget->Height - 4 ), pygmyWidget->Style );
+        drawLine( uiPos - 4, pygmyWidget->Y + 6, uiPos - 4, pygmyWidget->Y + ( pygmyWidget->Height - 6 ), pygmyWidget->Style );
+        drawLine( uiPos + 4, pygmyWidget->Y + 6, uiPos + 4, pygmyWidget->Y + ( pygmyWidget->Height - 6 ), pygmyWidget->Style );
+    } 
+    if( pygmyWidget->Style & CAPTION ){
+        if( pygmyWidget->String ){ 
             guiSetCursor( pygmyWidget->X + uiX, pygmyWidget->Y + uiY  );
+            if( !(pygmyWidget->Style & INVERT) ){
+                guiSetBackColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
+                guiSetColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
+            } else{
+                guiSetColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
+                guiSetBackColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
+            } // else
             #ifdef __PYGMYSTREAMLCD
                 print( LCD, pygmyWidget->String );
             #endif
@@ -686,8 +1062,9 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
                 print( LCD, "%d", pygmyWidget->Value );
             #endif
         } // else
-        //drawLine( pygmyWidget->X, pygmyWidget->Y, pygmyWidget
     } // if
+        //drawLine( pygmyWidget->X, pygmyWidget->Y, pygmyWidget
+    //} // if
 }
 
 
@@ -821,18 +1198,16 @@ void drawRect( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius )
         drawLine( iX2-uiRadius, iY2, iX2, iY2-uiRadius, ulStyle ); // bottom right
         drawLine( iX1+uiRadius, iY2, iX1, iY2-uiRadius, ulStyle ); // bottom left
         drawLine( iX1, iY1+uiRadius, iX1+uiRadius, iY1, ulStyle ); // top left
-    } // if
-    if( ( ulStyle & ROUNDED ) ){ 
+    } else if( ( ulStyle & ROUNDED ) ){ 
         drawRadius( iX1+uiRadius, iY1+uiRadius, BIT0, uiRadius, ulStyle );
         drawRadius( iX2-uiRadius, iY1+uiRadius, BIT1, uiRadius, ulStyle );
         drawRadius( iX1+uiRadius, iY2-uiRadius, BIT3, uiRadius, ulStyle );
         drawRadius( iX2-uiRadius, iY2-uiRadius, BIT2, uiRadius, ulStyle );
-    } else{
+    } // else if
         drawLine( iX1+uiRadius, iY1, iX2-uiRadius, iY1, ulStyle ); // top
         drawLine( iX1+uiRadius, iY2, iX2-uiRadius, iY2, ulStyle ); // bottom
         drawLine( iX1, iY1+uiRadius, iX1, iY2-uiRadius, ulStyle ); // left
         drawLine( iX2, iY1+uiRadius, iX2, iY2-uiRadius, ulStyle ); // right
-    } // else 
     
 }
 
@@ -852,17 +1227,16 @@ void drawRadius( u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 u
     u16 uiY = uiRadius;
     
     guiApplyColor();
-    if( ulStyle & FILLED ){
+    /*if( ulStyle & FILLED ){
         drawLine( uiCenterX - uiRadius, uiCenterY, uiCenterX + uiRadius, uiCenterY, ulStyle );
         drawLine( uiCenterX, uiCenterY - uiRadius, uiCenterX, uiCenterY + uiRadius, ulStyle );
     } else{
         lcdDrawPixel( uiCenterX, uiCenterY + uiRadius );
         lcdDrawPixel( uiCenterX, uiCenterY - uiRadius );
         lcdDrawPixel( uiCenterX + uiRadius, uiCenterY );
-        lcdDrawPixel( uiCenterX - uiRadius, uiCenterY );
-        
+        lcdDrawPixel( uiCenterX - uiRadius, uiCenterY );     
     } // else
-
+    */
     while( uiX < uiY ){
         if(f >= 0){
             uiY--;
@@ -931,11 +1305,11 @@ void drawAll( u8 *ucBuffer )
 {
     lcdWriteScreenBuffer();
 }
-
+/*
 void drawObject( PYGMYGUIOBJECT *pygmyGUIObject )
 {
    
-}
+}*/
 
 void drawPoly( u16 *uiPoints, u16 uiLen, u32 ulStyle )
 {
@@ -946,6 +1320,32 @@ void drawPoly( u16 *uiPoints, u16 uiLen, u32 ulStyle )
         uiY = uiPoints[ i++ ];
         drawLine( uiX, uiY, uiPoints[ i ], uiPoints[ i + 1 ], ulStyle );
     } // i
+}
+
+void drawThickLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulStyle )
+{
+    s16 iXStep, iYStep, iX, iY;
+    u8 i;
+    
+    iXStep = 0;
+    iYStep = 0;
+    if( iY1 == iY2 ){
+        iYStep = 1;
+    } else {//if( iY1 != iY2 ){
+        iXStep = 1;
+    } // if
+    
+    for( i = 0, iX = 0, iY = 0; i < ucThickness; i++ ){
+        if( i % 2 ){
+            drawLine( iX1-iX, iY1-iY, iX2-iX, iY2-iY, ulStyle );
+            
+        } else{
+            drawLine( iX1+iX, iY1+iY, iX2+iX, iY2+iY, ulStyle );
+            iX += iXStep;
+            iY += iYStep; 
+        } // else
+        
+    } // for
 }
 
 void drawLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle )
@@ -1083,3 +1483,4 @@ int getNormalizedSine(int x, int halfY, int maxX) {
       return (int) ( sin( x * factor) * halfY + halfY );
 }
 */
+#endif //__PYGMYLCDSHIELD

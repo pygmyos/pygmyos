@@ -20,6 +20,7 @@
 
 #include "pygmy_profile.h"
 
+#ifdef __PYGMYCOMMANDS
 u8 *globalCMDPrompt, *globalCMDError, *globalCMDUnsupported;
 #ifndef __PYGMY_MAXCOMMANDSPIPORTS
     #define __PYGMY_MAXCOMMANDSPIPORTS  2
@@ -48,7 +49,9 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"pinevent",   cmd_pinevent},
                                     {(u8*)"pinset",     cmd_pinset},
                                     {(u8*)"pinget",     cmd_pinget},
+                                    #ifdef __PYGMYANALOG
                                     {(u8*)"pinanalog",  cmd_pinanalog},
+                                    #endif // __PYGMYANALOG
                                     {(u8*)"pinpwm",     cmd_pinpwm},
                                     {(u8*)"pinconfig",  cmd_pinconfig},
                                     #ifdef __PYGMYSTREAMFILE
@@ -206,6 +209,7 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+#ifdef __PYGMYVOLTAGESHIELD
 u8 cmd_voltshield( u8 *ucBuffer )
 {
     //u16 uiSample;
@@ -252,13 +256,16 @@ u8 cmd_voltshield( u8 *ucBuffer )
 
     return( TRUE );
 }
+#endif // __PYGMYVOLTAGESHIELD
 
+#ifdef __PYGMYMODEMSHIELD
 u8 cmd_modem( u8 *ucBuffer )
 {
     //print( COM2, "%s\r", getNextSubString( ucBuffer, NEWLINE ) );
     
     return( cmdExecute( ucBuffer, PYGMYMODEMCMDS ) );
 }
+#endif // __PYGMYMODEMSHIELD
 
 u8 cmdNull( u8 *ucBuffer )
 {
@@ -847,4 +854,4 @@ u8 cmd_rfsend( u8 *ucBuffer )
 
 //------------------------------------End Basic RFCommands------------------------------------
 //--------------------------------------------------------------------------------------------
-
+#endif // __PYGMYCOMMANDS

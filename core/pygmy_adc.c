@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -20,6 +20,7 @@
 
 #include "pygmy_profile.h"
 
+#ifdef __PYGMYANALOG
 const u8 PYGMY_ADC_CHANNELS[] = { PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PB0, PB1, PC0, PC1, PC2, PC3, PC4, PC5, ADCTEMP, ADCREF };
 u16 uiGlobalADC1Channel, uiGlobalADC1[ 16 ], globalADCStatus = 0;
 
@@ -33,7 +34,7 @@ void ADC1_2_IRQHandler( void )
     u16 i;
 
     if( ADC1->SR & ADC_EOC ){
-        print( COM3, "( %d )", ADC1->DR );
+      
         //uiGlobalADC1[ uiGlobalADC1Channel++ ] = ADC1->DR;
         
     } // if
@@ -47,10 +48,7 @@ void DMAChannel1_IRQHandler( void )
     u16 i;
 
     if( DMA1->ISR & BIT3 ){
-        print( COM3, "\r" );
-        for( i = 0; i < 16; i++ ){
-            print( COM3, " %d", uiGlobalADC1[ i ]  );
-        } //for
+        // ToDo: Add DMA Handler code
     }
     //DMA1->IFCR = 0x0000000F;
 }
@@ -83,7 +81,6 @@ void adcInit( void ) //u32 ulScan )
     ADC1->CR2 = (ADC_DMA|ADC_EXTTRIG|ADC_EXTSEL_SWSTART|ADC_ADON); // Start ADC with Calibration
     //ADC1->CR2 = ADC_ADON;
     //while( !(ADC1->CR2 & ADC_CAL) ); // Wait for Calibration to complete
-    //print( COM3, "\rADC Ready..." );
     
     DMA1_CH1->CPAR = (volatile u32)(volatile u32*)ADC1->DR; // Peripheral Register Pointer
     DMA1_CH1->CMAR = (volatile u32)(volatile u32*)uiGlobalADC1; // Destination Memory Address
@@ -366,3 +363,4 @@ u8 adcAddChannelToRegularSequence( PYGMYADC *pygmyADC, u8 ucChannel )
     return( 1 + ulConversions );
 }
 */
+#endif // __PYGMYANALOG

@@ -617,7 +617,7 @@ u16 fileGetName( u16 uiFileEntry, u8 *ucName )
     
     flashReadBuffer( pygmyRootVolume.ActiveFiles + ( uiFileEntry * 16 ), ucBuffer, 16 );
     uiID = ucBuffer[ 14 ];
-    uiID = uiID << 8 | ucName[ 15 ];
+    uiID = uiID << 8 | ucBuffer[ 15 ];
     
     for( i = 0; i < 12; i++ ){
         if( !ucBuffer[ i ] || ucBuffer[ i ] == 0xFF ){

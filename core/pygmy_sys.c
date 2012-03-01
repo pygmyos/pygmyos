@@ -20,6 +20,9 @@
 
 
 #include <stdarg.h>
+#include <stdlib.h>
+#include <malloc.h>
+//#include "alloc.h"
 #include "pygmy_profile.h"
 
 
@@ -37,10 +40,51 @@ PYGMYMESSAGE        pygmyGlobalMessages[ PYGMY_MAXMESSAGES ];
 PYGMYSYSTEM         pygmyGlobalData;
 
 PYGMYCOMMANDQUEUE   *pygmyGlobalQueues[ PYGMY_MAXQUEUES ];
+#ifndef __PYGMY_SYS_HEAPLEN 
+    #ifdef __PYGMYNEBULA_HP
+        #define __PYGMY_SYS_HEAPLEN 92160
+    #else
+        #define __PYGMY_SYS_HEAPLEN 2048
+    #endif
+#endif
+//u8 globalHeap[ __PYGMY_SYS_HEAPLEN ];
+                           
+//--------------------------------------------------------------------------------------------
+//-------------------------------Pygmy OS Memory Allocation Wrappers--------------------------                           
+void *sysAllocate( u32 ulLen )
+{
+    return( malloc( ulLen ) );
+}
+
+void *sysReallocate( void *vPtr, u32 ulLen )
+{
+    return( realloc( vPtr, ulLen ) ); 
+}
+
+void sysFree( void *vPtr )
+{
+    free( vPtr );
+}
+
+void sysHeapInit( void )
+{
+    u32 *vPtr;
+
+    for( vPtr = (u32*)0x20002000; (u32)vPtr < 0x20016000; vPtr++ ){
+        *vPtr = 0x00000000;
+    } // for
+}
+
+//-------------------------------Pygmy OS Memory Allocation Wrappers--------------------------
+//--------------------------------------------------------------------------------------------
+  
+//--------------------------------------------------------------------------------------------
+//-----------------------------------Pygmy OS Basic Functions--------------------------------- 
 u8 sysInit( void )
 {
     u16 i;
 
+    //sysHeapInit();
     pygmyGlobalData.Status = 0;
     pygmyGlobalData.MCUID = DESC_STM32F103XLD;//descriptorGetID( );
     pygmyGlobalData.XTAL = 12000000;
@@ -443,7 +487,9 @@ void sysSetXTAL( u32 ulFreq )
 {
     pygmyGlobalData.XTAL = ulFreq;
 }
-
+//-----------------------------------Pygmy OS Basic Functions---------------------------------
+//--------------------------------------------------------------------------------------------
+ 
 //--------------------------------------------------------------------------------------------
 //----------------------------------Pygmy OS Command/Response---------------------------------
 #ifdef __PYGMYCOMMANDS
@@ -596,13 +642,42 @@ void *cmdListQueue( u16 uiIndex )
     return( pygmyGlobalQueues[ uiIndex ] );
 }
 
-#endif
+#endif // __PYGMYCOMMANDS
 //--------------------------------End Pygmy OS Command/Response-------------------------------
 //--------------------------------------------------------------------------------------------
 
 //--------------------------------------------------------------------------------------------
 //--------------------------------Pygmy OS Data Integrity Algorithm---------------------------
 
+u8 sysFlipU8( u8 ucData )
+{
+    return( sysFlipBits( ucData, 8 ) );
+}
+
+u16 sysFlipU16( u16 uiData )
+{
+    return( sysFlipBits( uiData, 16 ) );
+}
+
+u32 sysFlipU32( u32 ulData )
+{
+    return( sysFlipBits( ulData, 32 ) );
+}
+
+u32 sysFlipBits( u32 ulData, u8 ucBits )
+{
+    // ucBits is intended to be in 8 bit increments, not required though
+    u32 ulFlip;
+    u8 i;
+    
+    for( i = 0, ulFlip = 0; i < ucBits; i++ ){
+        ulFlip |= ( ulData & BIT0 );
+        ulFlip <<= 1;
+        ulData >>= 1;
+    } // for
+
+    return( ulFlip );
+}
 
 u8 sysCRC8( u8 *ucBuffer, u16 uiLen )
 {
@@ -629,6 +704,7 @@ u16 sysCRC16( u8 *ucBuffer, u16 uiLen )
     return( uiCRC );
 }
 
+#ifdef __PYGMYSTREAMS
 u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum )
 {
     static u32 ulAccumulator, ulMask, ulIndex;
@@ -689,7 +765,7 @@ void pdiaPrintString( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucBuffer )
         globalStreams[ ucStream ].Put( ucBuffer );
     }
 }
-
+#endif // __PYGMYSTREAMS
 //-----------------------------End Pygmy OS Data Integrity Algorithm--------------------------
 //--------------------------------------------------------------------------------------------
 
@@ -867,7 +943,7 @@ void taskList( PYGMYTASK *pygmyTask, u16 uiTask )
     pygmyTask->TimeStamp        = pygmyGlobalTasks[ uiTask ].TimeStamp;
     pygmyTask->Expire           = pygmyGlobalTasks[ uiTask ].Expire;
 }
-#endif
+#endif // __PYGMYTASKS
 
 void TaskException_Handler( void )
 {
@@ -1112,7 +1188,7 @@ u32 sysGetIDRevision( void )
 
 //--------------------------------------------------------------------------------------------
 //---------------------------------------Pygmy OS Print---------------------------------------
-
+#ifdef __PYGMYSTREAMS
 void println( u8 ucStream, u8 *ucBuffer, ... )
 {
     print( ucStream, ucBuffer );
@@ -1198,14 +1274,13 @@ void streamSetPrintFile( void *pygmyFile )
     pygmyGlobalData.File = pygmyFile;
 }
 
+#ifdef __PYGMYSTREAMFILE
 u8 putsFILE( u8 *ucBuffer )
 {
     return( filePutString( pygmyGlobalData.File, ucBuffer ) );
 }
-
-
-
-
+#endif // __PYGMYSTREAMFILE
+#endif // __PYGMYSTREAMS
 //-------------------------------------End Pygmy OS Print-------------------------------------
 //--------------------------------------------------------------------------------------------
 

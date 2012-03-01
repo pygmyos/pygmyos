@@ -20,6 +20,7 @@
 
 #include "pygmy_profile.h"
 
+#ifdef __PYGMYLCDSHIELD
 //********************************************************************
 //*************************Varitronix 128x128*************************
 //*************************Samsung S6B3306X11*************************
@@ -271,7 +272,8 @@ void lcdSetContrast( u8 ucContrast )
 
 u32 lcdGetPixel( u16 uiX, u16 uiY )
 {
-    u16 uiColor;
+    u16 uiColor, uiByte;
+    
     
     LCD_CS_LOW;
     LCD_A0_LOW;
@@ -283,7 +285,6 @@ u32 lcdGetPixel( u16 uiX, u16 uiY )
     LCD_DATA_WR( uiX );
     LCD_WR_LOW;
     LCD_WR_HIGH; 
-    //LCD_DATA_WR( uiX );
     LCD_WR_LOW;
     LCD_WR_HIGH;
    
@@ -296,25 +297,33 @@ u32 lcdGetPixel( u16 uiX, u16 uiY )
     LCD_DATA_WR( uiY );
     LCD_WR_LOW;
     LCD_WR_HIGH; 
-    //LCD_DATA_WR( uiY );
     LCD_WR_LOW;
     LCD_WR_HIGH;
-    
-    
+    //LCD_CS_HIGH;
+    LCD_RD_HIGH;
     LCD_A0_LOW;
     LCD_DATA_WR( LCD_RAMRD );
     LCD_WR_LOW;
     LCD_WR_HIGH;
-    
+    delay( 60 );
     LCD_A0_HIGH;
     LCD_DATA_RD_INIT;
+    
+    LCD_RD_LOW; // dummy read
+    LCD_RD_HIGH; // dummy read
     LCD_RD_LOW;
     LCD_RD_HIGH;
-    uiColor = LCD_DATA_RD << 8;
+    delay( 60 );
+    uiColor = LCD_DATA_RD; 
+    
     LCD_RD_LOW;
     LCD_RD_HIGH;
-    uiColor |= LCD_DATA_RD;
+    delay( 60 );
+    uiByte = LCD_DATA_RD;
+    //print( COM3, "(%X %X)", uiColor, uiByte );
+    uiColor = ( uiColor << 8) | uiByte;
     LCD_CS_HIGH;
+    //LCD_RD_LOW;
     LCD_DATA_WR_INIT;
 
     return( uiColor );
@@ -367,55 +376,6 @@ void lcdDrawPixel( u16 uiX, u16 uiY )
     LCD_WR_HIGH;
     LCD_CS_HIGH;
 }
-/*
-void lcdClearPixel( u16 uiX, u16 uiY )
-{
-    u16 uiColor;
-
-    if( uiX >= LCD_WIDTH || uiY >= LCD_HEIGHT ){
-        return;
-    } // if
-    
-    LCD_CS_LOW;
-    LCD_A0_LOW;
-    LCD_DATA_WR( LCD_CASET );
-    LCD_WR_LOW;
-    LCD_WR_HIGH;
-    
-    LCD_A0_HIGH;  
-    LCD_DATA_WR( uiX );
-    LCD_WR_LOW;
-    LCD_WR_HIGH; 
-    //LCD_DATA_WR( uiX );
-    LCD_WR_LOW;
-    LCD_WR_HIGH;
-   
-    LCD_A0_LOW;
-    LCD_DATA_WR( LCD_RASET );
-    LCD_WR_LOW;
-    LCD_WR_HIGH;
-    
-    LCD_A0_HIGH;  
-    LCD_DATA_WR( uiY );
-    LCD_WR_LOW;
-    LCD_WR_HIGH; 
-    //LCD_DATA_WR( uiY );
-    LCD_WR_LOW;
-    LCD_WR_HIGH;
-    LCD_CS_HIGH;
-    lcdWriteCommand( LCD_RAMWR );
-    LCD_CS_LOW;
-    LCD_A0_HIGH; 
-    LCD_DATA_WR( globalPixel[ 0 ] );
-    //LCD_DATA_WR( (u8)( ( pygmyGlobalColors.BackColor.R << 3 ) |  ( ( pygmyGlobalColors.BackColor.G >> 3 ) & 0x07 ) ) );
-    LCD_WR_LOW;
-    LCD_WR_HIGH;
-    LCD_DTA_WR( globalPixel[ 1 ] );
-    //LCD_DATA_WR( (u8)( ( ( pygmyGlobalColors.BackColor.G << 5 ) & 0xE0 ) | ( pygmyGlobalColors.BackColor.B & 0x1F ) ) );
-    LCD_WR_LOW;
-    LCD_WR_HIGH;
-    LCD_CS_HIGH;
-}*/
 
 void lcdSetDrawArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 )
 {
@@ -432,32 +392,6 @@ void lcdWriteScreenBuffer( void )
 {
    // Screen buffer internal to display
 }
-/*
-void *lcdGetFont( void )
-{
-    return( pygmyGlobalColors.Font );
-}
-
-void lcdSetFont( void *pygmyFont )
-{
-   pygmyGlobalColors.Font = pygmyFont;   
-}
-
-void lcdSetCursor( u16 uiX, u16 uiY )
-{
-    pygmyGlobalColors.Cursor.X = uiX;
-    pygmyGlobalColors.Cursor.Y = uiY;
-}
-
-u16 lcdGetCursorX( void )
-{
-    return( pygmyGlobalColors.Cursor.X );
-}
-
-u16 lcdGetCursorY( void )
-{
-    return( pygmyGlobalColors.Cursor.Y );
-}*/
 
 void lcdOn( void )
 {
@@ -474,58 +408,6 @@ void lcdSetBPP( u8 ucBPP )
     globalBPP = ucBPP;
 }
 
-
-
-/*u32 lcdColorToData( void *pygmyColor )
-{
-    // Function returns color in native display format
-    PYGMYCOLOR *pygmyColorPtr;
-    u32 ulColor;
-
-    pygmyColorPtr = (PYGMYCOLOR *)pygmyColor;
-    ulColor = ( ( pygmyColorPtr->R << 3 ) | ( ( pygmyColorPtr->G >> 3 ) & 0x07 ) );
-    ulColor |= ( ( ( pygmyColorPtr->G << 5 ) & 0xE0 ) | ( pygmyColorPtr->B & 0x1F ) );
-    
-    return( ulColor );
-}
-
-void lcdSetBackColor( u8 ucR, u8 ucG, u8 ucB )
-{
-    if( pygmyGlobalColors.BPP == PYGMY_PBM_8BPP ){
-        ucR *= 3;
-        ucG *= 2;
-        ucB *= 3;
-    } else if( pygmyGlobalColors.BPP == PYGMY_PBM_24BPP ){
-        ucR >>= 4;
-        ucG >>= 4;
-        ucB >>= 4;
-    } // else if
-    pygmyGlobalColors.BackColor.R = ucR;
-    pygmyGlobalColors.BackColor.G = ucG;
-    pygmyGlobalColors.BackColor.B = ucB;
-}
-
-void lcdSetColor( u8 ucR, u8 ucG, u8 ucB )
-{
-    if( pygmyGlobalColors.BPP == PYGMY_PBM_8BPP ){
-        ucR *= 3;
-        ucG *= 2;
-        ucB *= 3;
-    } else if( pygmyGlobalColors.BPP == PYGMY_PBM_24BPP ){
-        ucR >>= 4;
-        ucG >>= 4;
-        ucB >>= 4;
-    } // else if
-    pygmyGlobalColors.Color.R = ucR;
-    pygmyGlobalColors.Color.G = ucG;
-    pygmyGlobalColors.Color.B = ucB;
-}
-
-void lcdSetBPP( u8 ucBPP )
-{
-    globalBPP = ucBPP;
-}*/
-
 void lcdSetColor( u8 ucR, u8 ucG, u8 ucB )
 {
     if( globalBPP == PYGMY_PBM_8BPP ){
@@ -533,43 +415,25 @@ void lcdSetColor( u8 ucR, u8 ucG, u8 ucB )
         ucG *= 2;
         ucB *= 3;
     } else if( globalBPP == PYGMY_PBM_24BPP ){
-        ucR >>= 4;
-        ucG >>= 4;
-        ucB >>= 4;
+        ucR >>= 3;
+        ucG >>= 2;
+        ucB >>= 3;
     } // else if
     globalPixel[ 0 ] = (u8)( ( ucR << 3 ) | ( ( ucG >> 3 ) & 0x07 ) );
     globalPixel[ 1 ] = (u8)( ( ( ucG << 5 ) & 0xE0 ) | ( ucB & 0x1F ) ) ;
 }
 
-void lcdGetRBG( u32 ulPixel, u8 *ucR, u8 *ucG, u8 *ucB )
+void lcdGetRGB( u32 ulPixel, u8 ucBPP, u8 *ucR, u8 *ucG, u8 *ucB )
 {
-    u8 uiMSB, uiLSB;
-
-    uiMSB = ulPixel >> 16;
-    uiLCB = uiPixel 0x00FF;
-
-    *ucR = uiMSB >> 3;
-    *ucG = ( ( uiMSB >> 3 ) & 0x07 ) ) | ( ( uiLSB << 5 ) & 0xE0 );
-    *ucB = ( ucB & 0x1F ) );
+    if( ucBPP == 16 ){
+        
+    } else if( ucBPP == 24 ){
+        *ucR = (u8)((u16)( ulPixel & 0xF800 ) >> 8 );//11 );
+        *ucG = (u8)((u16)( ulPixel & 0x07E0 ) >> 3 );//5 );
+        *ucB = (u8)( ulPixel & 0x001F ) << 3;
+    } // else if
 }
 
-/*
-void *lcdGetBackColor( void )
-{
-    //pygmyColor->R = pygmyGlobal.Colors.BackColor.R;
-    //pygmyColor->G = pygmyGlobal.Colors.BackColor.G;
-    //pygmyColor->B = pygmyGlobal.Colors.BackColor.B;
-    return( &pygmyGlobalColors.BackColor );
-}
-
-void *lcdGetColor( void )
-{   
-    //pygmyColor->R = pygmyGlobal.Colors.Color.R;
-    //pygmyColor->G = pygmyGlobal.Colors.Color.G;
-    //pygmyColor->B = pygmyGlobal.Colors.Color.B;
-    return( &pygmyGlobalColors.Color );
-}
-*/
 void lcdClearArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 )
 { 
     u32 ulLen;
@@ -611,27 +475,5 @@ void lcdClearArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 )
 void lcdClear( void )
 {
     lcdClearArea( 0, 0, LCD_WIDTH, LCD_HEIGHT );
-    /*u32 ulLen;
-    u16 i;
-  
-    lcdWriteCommand( LCD_CASET );
-        lcdWriteData( 0 );
-        lcdWriteData( 127 );
-    lcdWriteCommand( LCD_RASET );
-        lcdWriteData( 0 );
-        lcdWriteData( 127 );
-    lcdWriteCommand( LCD_RAMWR );
-    LCD_CS_LOW;   
-    for( i = 0, ulLen = LCD_WIDTH * LCD_HEIGHT; i < ulLen; i++ ){
-        LCD_A0_HIGH;
-        LCD_DATA_WR( globalPixel[ 0 ] );
-        //LCD_DATA_WR( (u8)( ( pygmyGlobalColors.BackColor.R << 3 ) |  ( ( pygmyGlobalColors.BackColor.G >> 3 ) & 0x07 ) ) );
-        LCD_WR_LOW;
-        LCD_WR_HIGH;
-        LCD_DATA_WR( globalPixel[ 1 ] );
-        //LCD_DATA_WR( (u8)( ( ( pygmyGlobalColors.BackColor.G << 5 ) & 0xE0 ) | ( pygmyGlobalColors.BackColor.B & 0x1F ) ) );
-        LCD_WR_LOW;
-        LCD_WR_HIGH;    
-    } // for
-    LCD_CS_HIGH;*/
 }
+#endif // __PYGMYLCDSHIELD

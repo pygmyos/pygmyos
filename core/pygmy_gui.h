@@ -64,13 +64,22 @@
 #define PYGMY_PBM_24BPP				    0x0005
 #define PYGMY_PBM_32BPP				    0x0006
 
+#define PYGMY_VECTOR_MASK               (BIT7|BIT6|BIT5)
+#define PYGMY_VECTOR_END                0
+#define PYGMY_VECTOR_COLOR              BIT5
+#define PYGMY_VECTOR_POLY               BIT6
+#define PYGMY_VECTOR_ARC                (BIT6|BIT5)
+#define PYGMY_VECTOR_SPLINE             BIT7
+#define PYGMY_VECTOR_TEXT               (BIT7|BIT5)
+#define PYGMY_VECTOR_RASTER             (BIT7|BIT6)
+
 // Draw Style Defines
 #define VISIBLE           BIT0
 #define ACTIVE            BIT1
 #define DOT               BIT2
 #define DASH              BIT3
 #define BORDER            BIT4
-#define BORDER3D                BIT5
+#define BORDER3D          BIT5
 #define ROUNDED           BIT6
 #define CHAMFER           BIT7
 #define FILLED            BIT8
@@ -84,7 +93,25 @@
 #define CENTERED          BIT16
 #define RIGHTALIGN        BIT17
 #define SCROLL            BIT18
+#define CLICKABLE         BIT19
+#define CAPTION           BIT20
 // Object Style Defines
+enum {  TITLE = 1,
+        WINDOW,
+        TABSTRIP,
+        BUTTON,
+        LABEL,
+        TEXTBOX,
+        CHECKBOX,
+        RADIOBUTTON,
+        WHEEL,
+        SLIDER,
+        VSCROLLBAR,
+        HSCROLLBAR,
+        PROGRESS,
+        ALERT,
+        BUSY };
+/*      
 #define TITLE             BIT19
 #define WINDOW            BIT20
 #define BUTTON            BIT21
@@ -98,6 +125,7 @@
 #define ALERT             BIT29
 #define BUSY              BIT30
 #define TOOLBAR           BIT31
+*/
 //#define PYGMY_STYLE_BARGRAPH        BIT14
 //#define PYGMY_STYLE_LINEGRAPH       BIT15
 //#define PYGMY_STYLE_PIEGRAPH        BIT16
@@ -108,35 +136,32 @@
 typedef struct{
                 u16 X;
                 u16 Y;
-                u16 Properties;
+                u16 Status;
                 } PYGMYCURSOR;
 
 typedef struct{
                 u8 R;
                 u8 G;
                 u8 B;
+                u8 A;
                 } PYGMYCOLOR;
 
 typedef struct {
-                //u16 uiColor;
-                //u16 uiBackColor;
                 PYGMYCOLOR Color;
                 PYGMYCOLOR BackColor;
                 PYGMYFILE *File;
                 u16 Style;
                 u16 Height;
-                
-				//u8 *ucpFont;
-				//u8 ucName[14];
 				} PYGMYFONT;
 				
 typedef struct {
-                u16 uiX1;
-                u16 uiY1;
-                u16 uiX2;
-                u16 uiY2;
-                } PYGMYGUICANVAS;
-            
+                u16 X;
+                u16 Y;
+                u16 Width;
+                u16 Height;
+                } PYGMYCANVAS;
+
+/*            
 typedef struct {
                 u16             X1;
                 u16             X2;
@@ -152,28 +177,62 @@ typedef struct {
                 //void            *Draw;
                 
                 } PYGMYGUIOBJECT;
-
+*/
 typedef struct{
-                PYGMYFONT *Font;
+                PYGMYFONT *SmallFont;
+                PYGMYFONT *MediumFont;
+                PYGMYFONT *LargeFont;
                 PYGMYCOLOR Color;
                 PYGMYCOLOR BackColor;
-                PYGMYCURSOR Cursor;
+                PYGMYCOLOR AlphaColor;
                 u32 Style;
+                u8 Radius;
+                } PYGMYTHEME;
+            
+typedef struct{
+                //PYGMYFONT *Font;
+                //PYGMYCOLOR Color;
+                //PYGMYCOLOR BackColor;
+                //PYGMYCURSOR Cursor;
+                //u32 Style;
                 u32 Value;
                 u16 X;
                 u16 Y;
                 u16 Width;
                 u16 Height;
+                u32 Style;
+                u8 Type;
                 u8 *String;
-                void *Parent;
+                //void *Parent
+                void *Action;
                 } PYGMYWIDGET;
+//typedef PYGMYWIDGET *PYGMYWIDGETPTR[];
+typedef struct{
+                PYGMYCOLOR ClearColor;
+                PYGMYCOLOR AlphaColor;
+                PYGMYCOLOR BackColor;
+                PYGMYCOLOR Color;
+                u16 X;
+                u16 Y;
+                u16 Width;
+                u16 Height;
+                u16 Len;
+                //u16 Index;
+                PYGMYWIDGET *Widgets;
+                } PYGMYFORM;
             
 typedef struct{
+                PYGMYFONT *Font; // Active Font
+                PYGMYFONT *SmallFont;
+                PYGMYFONT *MediumFont;
+                PYGMYFONT *LargeFont;
                 PYGMYCOLOR AlphaColor;
                 PYGMYCOLOR BackColor;
                 PYGMYCOLOR Color;
                 PYGMYCURSOR Cursor;
-                PYGMYFONT *Font;
+                //PYGMYFONT *Font;
+                u32 Style;
+                u8 Radius;
                 u8 Contrast;
                 u8 BPP;
                 } PYGMYGUI;
@@ -189,8 +248,17 @@ typedef struct {
                 u16 Index;
                 PYGMYFILE File;
                 } PYGMYSPRITE;
-            
+
+void drawForms( void ); 
+void drawWidget( PYGMYWIDGET *pygmyWidget );
+void drawJPEG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY );            
+void drawPNG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY ); 
+void guiSetStyle( u32 ulStyle );
+u32 guiGetStyle( void );            
+void guiSetRadius( u8 ucRadius );
+u8 guiGetRadius( u8 ucRadius );            
 u8 guiSetFont( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont );
+void guiSetFonts( PYGMYFONT *fontSmall, PYGMYFONT *fontMedium, PYGMYFONT *fontLarge );
 u8 putsLCD( u8 *ucBuffer );
 void drawChar( u8 ucChar );
 void drawString( u8 *ucBuffer );
@@ -231,6 +299,7 @@ void drawPixel( u16 uiX, u16 uiY );
 void drawClearPixel( u16 uiX, u16 uiY );
 void drawBlendPixel( u16 uiX, u16 uiY );
 void drawLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle ); 
+void drawThickLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulStyle );
 void drawPoly( u16 *uiPoints, u16 uiLen, u32 ulStyle );
 void drawRect( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius );
 void drawFill( u16 x, u16 y );
@@ -245,7 +314,7 @@ void drawRadius( u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 u
 //void drawRadius( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiCenterX, u16 uiCenterY, u16 uiRadius );
 //void drawRadius( u16 uiX0, u16 uiY0, u16 uiStart, u16 uiRadius );            
 // ToDo: Finish the following functions:
-void drawObject( PYGMYGUIOBJECT *pygmyGUIObject );
+//void drawObject( PYGMYGUIOBJECT *pygmyGUIObject );
 void guiOutputBMHeader( PYGMYFILE *pygmyFile, u32 ulWidth, u32 ulHeight, u8 ucBPP );
 //void clearVideoArea( u8 *ucBuffer, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiColor );           
 //void drawVideoArea( u8 *ucBuffer, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 );

@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -42,6 +42,11 @@ const u8 PYGMY_TIMERPINS[] = {  PA8,  PA9,  PA10, PA11,     // TIM1
 PYGMYPWM globalPygmyPWM[ PYGMY_PWMCHANNELS ];
 u32 globalPygmyPWMFreq, globalPygmyPWMCR = 0;
 
+u8 pinGetIsRising( u8 ucPin )
+{
+    
+}
+                            
 u16 pinGetIRQPR( void )
 {
     return( globalIRQPR );

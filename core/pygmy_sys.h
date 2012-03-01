@@ -1233,6 +1233,10 @@ u8 putsLCD( u8 *ucBuffer );
 
 void clearRTCFlags( void );
 
+void *sysAllocate( u32 ulLen );
+void *sysReallocate( void *vPtr, u32 ulLen );
+void sysFree( void *vPtr );
+void sysHeapInit( void );
 u8 sysInit( void );
 u32 sysGetMainClock( void );
 void sysSetMainClock( u32 ulFreq );
@@ -1281,6 +1285,10 @@ u8 taskIsRunning( u8 *ucName, u16 uiID );
 void TaskException_Handler( void );
 
 u32 sysRandom( u32 ulFrom, u32 ulTo);
+u8 sysFlipU8( u8 ucData );
+u16 sysFlipU16( u16 uiData );
+u32 sysFlipU32( u32 ulData );
+u32 sysFlipBits( u32 ulData, u8 ucBits );
 u8 sysCRC8( u8 *ucBuffer, u16 uiLen );
 u16 sysCRC16( u8 *ucBuffer, u16 uiLen );
 u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum );

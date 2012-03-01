@@ -39,7 +39,7 @@ void lcdInit( void );
 u8 lcdGetContrast( void );
 void lcdSetContrast( u8 ucContrast );
 u32 lcdGetPixel( u16 uiX, u16 uiY );
-void lcdGetRBG( u32 ulPixel, u8 *ucR, u8 *ucG, u8 *ucB );
+void lcdGetRGB( u32 ulPixel, u8 ucBPP, u8 *ucR, u8 *ucG, u8 *ucB );
 void lcdDrawPixel( u16 uiX, u16 uiY );
 void lcdSetDrawArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 );
 void lcdWriteScreenBuffer( void );
