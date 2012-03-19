@@ -104,6 +104,32 @@ u8 convertStringToPin( u8 *ucBuffer )
     return( 0xFF );
 }
 
+void convertU16ToBuffer( u16 uiData, u8 *ucBuffer, u8 ucEndian )
+{
+    if( ucEndian == BIGENDIAN ){
+        *(ucBuffer++) = (u8)((u16) uiData >> 8 );
+        *(ucBuffer++) = (u8)uiData;
+    } else {
+        *(ucBuffer++) = (u8)uiData;
+        *(ucBuffer++) = (u8)((u16) uiData >> 8 );
+    } // else
+}
+
+void convertU32ToBuffer( u32 ulData, u8 *ucBuffer, u8 ucEndian )
+{
+    if( ucEndian == BIGENDIAN ){
+        *(ucBuffer++) = (u8)((u32) ulData >> 24 );
+        *(ucBuffer++) = (u8)((u32) ulData >> 16 );
+        *(ucBuffer++) = (u8)((u32) ulData >> 8 );
+        *(ucBuffer++) = (u8) ulData;
+    } else {
+        *(ucBuffer++) = (u8) ulData;
+        *(ucBuffer++) = (u8)((u32) ulData >> 8 );
+        *(ucBuffer++) = (u8)((u32) ulData >> 16 );
+        *(ucBuffer++) = (u8)((u32) ulData >> 24 );
+    } // else
+}
+
 u16 convertBufferToU16( u8 *ucBuffer )
 {
     u16 i;

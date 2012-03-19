@@ -69,8 +69,12 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                 
                                     {(u8*)"port",       cmd_port},
                                     
+                                    {(u8*)"rflist",     cmd_rflist},
+                                    {(u8*)"rfget",      cmd_rfget},
+                                    {(u8*)"rfput",      cmd_rfput},
                                     {(u8*)"rfopen",     cmd_rfopen},
                                     {(u8*)"rfsend",     cmd_rfsend},
+                                    {(u8*)"rfscan",     cmd_rfscan},
                                     #ifdef __PYGMYMODEMSHIELD
                                     {(u8*)"modem",      cmd_modem},
                                     #endif
@@ -301,7 +305,7 @@ u8 cmd_ps( u8 *ucBuffer )
     ucParam = getNextSubString( ucBuffer, WHITESPACE );
     if( ucParam ){
         if( isStringSame( ucParam, "-s" ) || isStringSame( ucParam, "--sockets" ) ){
-            rfListSockets();
+            //rfListSockets();
         } // if
     } // if
     print( STDIO, "\rTasks\r\r" );
@@ -381,9 +385,9 @@ u8 cmd_pinevent( u8 *ucBuffer )
     ucPin = convertStringToPin( ucParams[ 0 ] );
     if( ucLen > 1 && isStringSameIgnoreCase( ucParams[ 1 ], "off" ) ){
         // if second parameter is included and is "off"
-        pinInterrupt( cmdPinEvent, ucPin, 0 );
+        pinInterrupt( cmdPinEvent, ucPin, 0, 5 );
     } else{
-        pinInterrupt( cmdPinEvent, ucPin, TRIGGER_RISING|TRIGGER_FALLING );
+        pinInterrupt( cmdPinEvent, ucPin, TRIGGER_RISING|TRIGGER_FALLING, 5 );
     } // else
 
     return( TRUE );
@@ -523,48 +527,8 @@ u8 cmd_write( u8 *ucBuffer )
     return( 1 );
 }
 
-/*u8 cmd_ls( u8 *ucBuffer )
-{
-    u32 i, ii, ulAddress;
-    u8 ucName[ 16 ];
-
-    ulAddress = pygmyRootVolume.ActiveFiles + 64;// + ( uiFileEntry * 16 );
-    print( COM3, "\rReading address: %d", ulAddress);
-    for( ii = 0; ii < pygmyRootVolume.MaxFiles; ii++ ){
-        for( i = 0; i < 16; i++ ){
-            ucName[ i ] = flashReadByte( ulAddress + ( ii * 16 ) + i );
-            if( ucName[ i ] == 0xFF ){
-                ucName[ i ] = '\0';
-                if( !i ){
-                    break;
-                } else{
-                    print( COM3, "\r%d %s", ii, ucName );
-                    break;
-                } // else
-            } // if
-        } // for
-    } // for
-
-    return( 1 );
-}*/
 u8 cmd_ls( u8 *ucBuffer )
 {
-    /*u16 i, ii, uiLen, uiID;
-    u8 ucName[ 16 ];
-
-    for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
-        uiID = fileGetName( i, ucName );
-        if( uiID ){
-            print( STDIO, "\r%s", ucName ); 
-            uiLen = 16 - len( ucName );
-            for( ii = 0; ii < uiLen; ii++ ){
-                print( STDIO, " " );
-            } // for
-            print( STDIO, "%d", fileGetLength( uiID ) );
-        } // if
-    } // for
-    print( STDIO, "\rFree:           %d\r", fileGetFreeSpace() );
-  */
     filePrintList( STDIO );
     return( 1 );
 }
@@ -815,28 +779,70 @@ u8 cmd_psend( u8 *ucBuffer )
 
 //--------------------------------------Basic RF Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+u8 cmd_rflist( u8 *ucBuffer )
+{
+    rfListSockets();
+    
+    return( TRUE );
+}
+
 u8 cmd_rfscan( u8 *ucBuffer )
 {
+    print( COM3, "\rLocal ID: %X", rfGetID() );
+    //rfSendScanCommand( 0xFF );
+    return( TRUE );
+}
+
+u8 cmd_rfget( u8 *ucBuffer )
+{
+    u8 ucLen, *ucParams[ 2 ];
     
-    return( 0 );
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    if( ucLen > 1 ){
+        rfRequestFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
+        //rfListSockets();
+        return( TRUE );
+    } // if
+    
+    return( FALSE );
+}
+
+u8 cmd_rfput( u8 *ucBuffer )
+{
+    u8 ucLen, *ucParams[ 2 ];
+    
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    if( ucLen > 1 ){
+        rfSendFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
+        //rfListSockets();
+        return( TRUE );
+    } // if
+    
+    return( FALSE );
 }
 
 u8 cmd_rfopen( u8 *ucBuffer )
 {
     u32 ulID;
     u8 ucSocket;
+    u8 *ucParam;
 
-    ulID = rfGetID();
-    if( ulID == 0x41B40AA8 ){
-        ucSocket = rfOpenSocket( 0x1FC60435, RF_COMLINK );
-    } else {
-        ucSocket = rfOpenSocket( 0x41B40AA8, RF_COMLINK );
-    } // else
-    if( ucSocket == 0xFF ){
+    ucParam = getNextSubString( ucBuffer, WHITESPACE|NEWLINE|PUNCT );
+    if( !ucParam ){
         return( 0 );
     } // if
-    rfSendOpenCommand( ucSocket );
-
+    //ulID = rfGetID();
+    //ucSocket = rfOpenSocket( convertStringToInt( ucParam ), RF_FILETX );
+    //if( ulID == 0x41B40AA8 ){
+    //    ucSocket = rfOpenSocket( 0x1FC60435, RF_COMLINK );
+    //} else {
+    //    ucSocket = rfOpenSocket( 0x41B40AA8, RF_COMLINK );
+    //} // else
+    //if( ucSocket == 0xFF ){
+    //    return( 0 );
+    //} // if
+    //rfSendOpenCommand( ucSocket, "test.txt" );
+    rfSendFile( convertStringToInt( ucParam ), "test.txt" );
     return( 1 );
 }
 
@@ -846,7 +852,7 @@ u8 cmd_rfsend( u8 *ucBuffer )
     
     ucParam = getNextSubString( ucBuffer, NEWLINE );
     if( ucParam ){
-        rfPutString( ucParam );
+        //rfPutString( ucParam );
     } // if
 
     return( 1 );

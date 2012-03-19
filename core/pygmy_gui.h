@@ -66,7 +66,7 @@
 
 #define PYGMY_VECTOR_MASK               (BIT7|BIT6|BIT5)
 #define PYGMY_VECTOR_END                0
-#define PYGMY_VECTOR_COLOR              BIT5
+#define PYGMY_VECTOR_BRUSH              BIT5
 #define PYGMY_VECTOR_POLY               BIT6
 #define PYGMY_VECTOR_ARC                (BIT6|BIT5)
 #define PYGMY_VECTOR_SPLINE             BIT7

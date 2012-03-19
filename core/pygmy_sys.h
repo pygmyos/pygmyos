@@ -222,6 +222,7 @@ typedef volatile unsigned char  const       vuc8;
 
 typedef u8 ( *PYGMYFUNCPTR )( void );
 typedef void ( *PYGMYVOIDPTR )( void );
+typedef void ( *PYGMYEVENTFUNC ) ( void );
 typedef u8 ( *PYGMYCMDPTR )( u8 *ucParams );
 
 typedef struct {

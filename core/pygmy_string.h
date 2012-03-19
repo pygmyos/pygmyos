@@ -34,6 +34,8 @@ extern const PYGMYPAIR PYGMYNEBULAPINS[];
 //extern const u8 PYGMYHEXCHARS[];
 u8 *convertPinToString( u8 ucPin );
 u8 convertStringToPin( u8 *ucBuffer );
+void convertU16ToBuffer( u16 uiData, u8 *ucBuffer, u8 ucEndian );
+void convertU32ToBuffer( u32 ulData, u8 *ucBuffer, u8 ucEndian );
 u16 convertBufferToU16( u8 *ucBuffer );
 u32 convertBufferToU32( u8 *ucBuffer );
 s8 isSeparator( u8 ucChar );

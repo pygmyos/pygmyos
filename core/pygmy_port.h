@@ -2054,7 +2054,7 @@ u16 pinGetIRQPR( void );
 u8 pinGetIRQPin( u8 ucPin ); 
 u16 pinAnalog( u8 ucPin );            
 void pinConfig( u8 ucPin, u8 ucMode );
-void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode );
+void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode, u8 ucPriority );
 void pinEnablePortClock( u8 ucPin );
 GPIO *pinGetPort( u8 ucPin );
 void pinSet( u8 ucPin, u8 ucState);

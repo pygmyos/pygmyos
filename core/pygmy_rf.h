@@ -1,6 +1,6 @@
 /**************************************************************************
     PygmyOS ( Pygmy Operating System )
-    Copyright (C) 2011  Warren D Greenway
+    Copyright (C) 2011-2012  Warren D Greenway
 
     This file is part of PygmyOS.
 
@@ -179,30 +179,37 @@
 
 #define RF_MAXSOCKETS       32
 
-#define RF_OPEN             1    
-#define RF_CLOSE            2    
-#define RF_NEXT             3    
-#define RF_LAST             4   
-#define RF_SCAN             5 
-
-#define RF_CR_OPEN          BIT0 // Set = OPEN, cleared = CLOSED
-#define RF_CR_SCAN          BIT1 // Set = Scanning mode active
-#define RF_CR_NEXT          BIT2 // Set = NEXT, cleared = LAST
-#define RF_CR_PENDING       BIT3 // Set = Open Pending, cleared = OPEN complete
-
-#define RF_BLANK            0       // 
-#define RF_COMLINK          1       // Com Link
-#define RF_FILE             2       // File Transfer
-#define RF_AVSTREAM         3       // AV Streaming Data         
-#define RF_CONTROL          4       // Control/Movement
+#define RF_CMD_MASK         0xE0
+#define RF_SCAN             0
+#define RF_OPEN             0x20    
+#define RF_CLOSE            0x40
+#define RF_DATA             0x60
+#define RF_ACK              0x80
+#define RF_NACK             0xA0
+ 
+#define RF_TYPE_MASK        0x7F    
+#define RF_TX               0x80
+enum{   
+        RF_BLANK,           // 
+        RF_COMLINK,         // Com Link
+        RF_FILE,            // File TX Request
+        RF_AVSTREAM,        // AV Streaming Data         
+        RF_CONTROL,         // Control/Movement
+        RF_CMDLINE
+    };
 
 typedef struct {
+                PYGMYFILE File;
+                //PYGMYFUNC Action;
                 u32 StartTime;
                 u32 LastActive;
                 u32 DestID;
+                u32 SrcID;
+                u8 Command;
                 u8 Type;
                 u8 Chunk;
-                u8 CR;
+                u8 Len;
+                u8 Payload[ 32 ];
                 } PYGMYRFSOCKET;
 
 typedef struct {
@@ -216,7 +223,7 @@ typedef struct {
                 u8 Payload[ 25 ];
                 } PYGMYRFPACKET;
                 
- 
+/* 
 void rfRX( void );
 u32 rfGetID( void );  
             
@@ -231,13 +238,36 @@ void rfCloseSocket( u8 ucSocket );
 void rfListSockets( void );
 u8 rfOpenSocket( u32 ulDest, u8 ucType );
 void rfSendOpenSocket( u32 ulDest, u8 ucType );
-void rfSendOpenCommand( u8 ucSocket );
+void rfSendOpenCommand( u8 ucSocket, u8 *ucParams );
 void rfSendCloseCommand( u8 ucSocket );
 void rfSendNextCommand( u8 ucSocket );
 void rfSendLastCommand( u8 ucSocket );
             
 u8 rfReceiveFile( u8 *ucParams );        
 u8 rfSendFile( u8 *ucParams );
+u8 rfProcessSocket( PYGMYRFPACKET *pygmyPacket );
+*/
+
+u32 rfGetID( void );
+void rfRX( void );
+u8 rfSocketHandler( PYGMYRFPACKET *pygmyPacket );
+void rfInitSockets( void );
+void rfListSockets( void );
+PYGMYRFSOCKET *rfGetSocket( u32 ulDestID, u32 ulSrcID );
+void rfCopySocket( PYGMYRFSOCKET *fromSocket, PYGMYRFSOCKET *toSocket );
+void rfCloseSocket( PYGMYRFSOCKET *pygmySocket );
+PYGMYRFSOCKET *rfOpenSocketFromPacket( PYGMYRFPACKET *pygmyPacket );
+PYGMYRFSOCKET *rfOpenSocket( u32 ulDestID, u8 ucType );
+void rfFile( PYGMYRFSOCKET *pygmySocket, u8 *ucFileName, u8 ucTX );
+u8 rfSendFile( u32 ulDestID, u8 *ucFileName );
+u8 rfRequestFile( u32 ulDestID, u8 *ucFileName );
+u8 rfSaveData( PYGMYRFSOCKET *pygmySocket, PYGMYRFPACKET *pygmyPacket );
+void rfResend( PYGMYRFSOCKET *pygmySocket );
+void rfSendClose( PYGMYRFSOCKET *pygmySocket );
+void rfSendData( PYGMYRFSOCKET *pygmySocket );
+void rfSendAck( PYGMYRFSOCKET *pygmySocket );
+void rfSendNack( PYGMYRFSOCKET *pygmySocket );
+
 
 void rfFlushTX( void );
 void rfFlushRX( void );
@@ -249,15 +279,15 @@ u8 rfSetRX( void );
 void rfPutTXBuffer( u16 uiLen, u8 *ucBuffer );
 void rfPutString( u8 *ucBuffer );
 u8 rfGetRXPayloadLen( void );
-void rfGetRXPayload( u8 *ucBuffer );
+void rfGetRXPayload( void );
 void rfConfigAsTX( void );
 void rfConfigAsRX( void );
 void rfClearStatus( void );
 void rfWriteAddress( u8 ucReg, u8 *ucAddress );
-void rfSPIWriteByte( u8 ucByte );
-void rfSPIWriteWord( u16 uiWord );
-void rfSPIWriteLong( u32 ulLong );
-u8 rfSPIReadByte( void );
+//void rfSPIWriteByte( u8 ucByte );
+//void rfSPIWriteWord( u16 uiWord );
+//void rfSPIWriteLong( u32 ulLong );
+//u8 rfSPIReadByte( void );
 void rfTXPacket( void );
 void rfRXPacket( void );
 

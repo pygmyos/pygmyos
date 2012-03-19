@@ -548,11 +548,6 @@ u32 guiGetImage( PYGMYFILE *pygmyFile, u16 uiIndex )
 
 u16 drawSprite( PYGMYSPRITE *pygmySprite )
 {
-    // u16 *Coords;
-    // u16 Len;
-    // u16 ID;
-    // u16 Index;
-    // PYGMYFILE File;
     u16 i, uiEntries, uiWidth;
 
     uiEntries = guiGetEntries( &pygmySprite->File );
@@ -580,7 +575,7 @@ u16 drawVector( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY, s8 cScale, u16 uiIndex )
     for( ; !fileEOF( pygmyFile ); ){
         ucPoints = fileGetChar( pygmyFile );
         ucPacket = ucPoints & PYGMY_VECTOR_MASK;
-        if( ucPacket == PYGMY_VECTOR_COLOR ){
+        if( ucPacket == PYGMY_VECTOR_BRUSH ){
             if( ucBPP == PYGMY_PBM_1BPP ){
                 ucR = fileGetChar( pygmyFile );
                 ucG = ucR;
@@ -738,6 +733,56 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
 
 	return( uiWidth );
 }
+/*
+void drawVector( PYGMYFILE &pygmyFile, u16 uiX, u16 uiY )
+{
+    u32 i, ii, ulPixelIndex, ulLen;
+	u16 uiCount, uiPygmyInfo, uiPointX, uiPointY, uiWidth = 0, uiHeight = 0;
+	u8 ucPacket, ucLen, ucBPP, ucByte1, ucByte2, ucByte3, ucR, ucG, ucB;
+
+    ulPixelIndex = guiGetImage( pygmyFile, uiIndex );
+    fileSetPosition( pygmyFile, START, ulPixelIndex );
+  
+    uiPygmyInfo = fileGetWord( pygmyFile, BIGENDIAN );
+	
+	if( uiPygmyInfo & PYGMY_PBM_16BITD  ){		// Determine 8 or 16 bit Width and Height fields
+        uiWidth = fileGetWord( pygmyFile, BIGENDIAN );
+        uiHeight = fileGetWord( pygmyFile, BIGENDIAN );
+	} else{
+        uiWidth = fileGetChar( pygmyFile );
+        uiHeight = fileGetChar( pygmyFile );
+    } // else
+
+    for( i = 0; ; i++ ){
+        ucPacket = fileGetChar( pygmyFile );
+        ucLen = ucPacket & ~PYGMY_VECTOR_MASK;
+        ucPacket &= PYGMY_VECTOR_MASK;
+        if( ucPacket == PYGMY_VECTOR_END ){
+            break;
+        } else if( ucPacket == PYGMY_VECTOR_POLY ){
+            
+            for( ii = 0; ii < ucLen; ii++ ){
+                uiPointX1 = fileGetWord( pygmyFile, BIGENDIAN );
+                uiPointY1 = fileGetWord( pygmyFile, BIGENDIAN );
+                uiPointX2 = fileGetWord( pygmyFile, BIGENDIAN );
+                uiPointY2 = fileGetWord( pygmyFile, BIGENDIAN );
+                drawLine( uiPointX1, uiPointY1, uiPointX2, uiPointY2, VISIBLE );
+            } // for
+        } else if( ucPacket == PYGMY_VECTOR_ARC ){
+            
+        } else if( ucPacket == PYGMY_VECTOR_SPLINE ){
+        
+        } else if( ucPacket == PYGMY_VECTOR_RASTER ){
+        
+        } else if( ucPacket == PYGMY_VECTOR_TEXT ){
+        
+        } else if( ucPacket == PYGMY_VECTOR_FONT ){
+        
+        } // else if
+    } // for
+}
+*/
+
 
 void drawPixel( u16 uiX, u16 uiY )
 {

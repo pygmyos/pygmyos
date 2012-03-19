@@ -171,7 +171,7 @@ void filePutWord( PYGMYFILE *pygmyFile, u16 uiData, u8 ucEndian );
 void filePutLong( PYGMYFILE *pygmyFile, u32 ulData, u8 ucEndian );
 u8 filePutString( PYGMYFILE *pygmyFile, u8 *ucString );
 u8 filePutBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer );  
-void fileGetBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer );
+u16 fileGetBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer );
 u16 fileGetWord( PYGMYFILE *pygmyFile, u8 ucEndian );
 u32 fileGetLong( PYGMYFILE *pygmyFile, u8 ucEndian );
 u8 fileGetChar( PYGMYFILE *pygmyFile );

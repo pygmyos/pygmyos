@@ -66,6 +66,9 @@ u8 cmd_modem( u8 *ucBuffer );
 u8 cmd_humidity( u8 *ucBuffer );
 u8 cmd_port( u8 *ucBuffer );
 
+u8 cmd_rflist( u8 *ucBuffer );
+u8 cmd_rfget( u8 *ucBuffer );
+u8 cmd_rfput( u8 *ucBuffer );
 u8 cmd_rfscan( u8 *ucBuffer );
 u8 cmd_rfopen( u8 *ucBuffer );
 u8 cmd_rfsend( u8 *ucBuffer );

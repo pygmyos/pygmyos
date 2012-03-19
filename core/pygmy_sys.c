@@ -684,7 +684,7 @@ u8 sysCRC8( u8 *ucBuffer, u16 uiLen )
     u16 i;
     u8 ucCRC;
 
-    for( i = 0, ucCRC = 0; i < uiLen - 1; i++ ){
+    for( i = 0, ucCRC = 0; i < uiLen; i++ ){
         ucCRC += ucBuffer[ i ];
     } // for
     ucCRC = 1 + ( 0xFF ^ (u8)ucCRC );
@@ -696,11 +696,11 @@ u16 sysCRC16( u8 *ucBuffer, u16 uiLen )
 {
     u16 i, uiCRC;
 
-    for( i = 0, uiCRC = 0; i < uiLen - 1; i++ ){
+    for( i = 0, uiCRC = 0; i < uiLen; i++ ){
         uiCRC += ucBuffer[ i ];
     } // for
     uiCRC = 1 + ( 0xFFFF ^ (u16)uiCRC ); 
-
+    
     return( uiCRC );
 }
 
@@ -1254,9 +1254,11 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
                 sFormat[ i ] = 0; // terminate at new index
                 convertIntToString( va_arg( ap, u32 ), sFormat, ucIntBuffer );
                 globalStreams[ ucStream ].Put( ucIntBuffer );
+            } else if( *ucBuffer == 'f' ){
+            
             } else if( *ucBuffer == 't' ){
                 convertSecondsToSystemTime( va_arg( ap, s32 ), &pygmyTime );
-                print( ucStream, "%4d-%2d-%2d %2d:%2d:%2d", pygmyTime.Year,pygmyTime.Month,pygmyTime.Day,
+                print( ucStream, "%04d-%02d-%02d %02d:%02d:%02d", pygmyTime.Year,pygmyTime.Month,pygmyTime.Day,
                     pygmyTime.Hour,pygmyTime.Minute,pygmyTime.Second );
             }
         } else{

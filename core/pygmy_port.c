@@ -97,7 +97,7 @@ void pinConfig( u8 ucPin, u8 ucMode )
 }
 
 
-void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
+void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode, u8 ucPriority )
 {
     // This function configures a GPIO pin to generate interrupts
     // and wake events. This function does NOT enable the interrupt
@@ -114,18 +114,23 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
     switch( uiPin ){
         case 0:
             interruptEnable( EXTI0_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
         case 1:
             interruptEnable( EXTI1_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
         case 2:
             interruptEnable( EXTI2_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
         case 3:
             interruptEnable( EXTI3_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
         case 4:
             interruptEnable( EXTI4_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
         case 5:
         case 6:
@@ -133,6 +138,7 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
         case 8:
         case 9:
             interruptEnable( EXTI9_5_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
         case 10:
         case 11:
@@ -141,6 +147,7 @@ void pinInterrupt( PYGMYVOIDPTR pygmyFunc, u8 ucPin, u16 uiMode )
         case 14:
         case 15:
             interruptEnable( EXTI15_10_IRQ );
+            interruptSetPriority( EXTI0_IRQ, ucPriority );
             break;
     } // switch
     uiMask = ( 0x0001 << uiPin );

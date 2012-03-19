@@ -840,13 +840,18 @@ void filePutLong( PYGMYFILE *pygmyFile, u32 ulData, u8 ucEndian )
     } // else
 }
 
-void fileGetBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer )
+u16 fileGetBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer )
 {
     u16 i;
 
     for( i = 0; i < uiLen; i++ ){
         ucBuffer[ i ] = fileGetChar( pygmyFile );
+        if( fileIsEOF( pygmyFile ) ){
+            return( i );
+        } // if
     } // for
+
+    return( i );
 }
 
 u16 fileGetWord( PYGMYFILE *pygmyFile, u8 ucEndian )
