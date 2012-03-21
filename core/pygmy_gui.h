@@ -111,6 +111,27 @@ enum {  TITLE = 1,
         PROGRESS,
         ALERT,
         BUSY };
+    
+enum { BUTTON_LEFT = 1,
+       BUTTON_CENTER,
+       BUTTON_RIGHT };
+    
+enum {  MOUSE_MOVE = 1, // Primary
+        MOUSE_DOWN,
+        MOUSE_UP,
+        MOUSE_LEFT,
+        MOUSE_RIGHT,
+        MOUSE_CLICK,    // Primary
+        MOUSE_OVER,
+        GOTFOCUS,
+        LOSTFOCUS,
+        SELECTION,      // Primary
+        SELECTED,
+        MESSAGE, 
+        DRAW,           // Primary
+        CREATED,        // Primary
+        DESTROYED };    // Primary
+
 /*      
 #define TITLE             BIT19
 #define WINDOW            BIT20
@@ -137,6 +158,7 @@ typedef struct{
                 u16 X;
                 u16 Y;
                 u16 Status;
+                u8 Button;
                 } PYGMYCURSOR;
 
 typedef struct{
@@ -190,9 +212,10 @@ typedef struct{
                 } PYGMYTHEME;
             
 typedef struct{
-                //PYGMYFONT *Font;
-                //PYGMYCOLOR Color;
-                //PYGMYCOLOR BackColor;
+                PYGMYCOLOR Color;
+                PYGMYCOLOR BackColor;
+                PYGMYCOLOR FocusColor;
+                PYGMYCOLOR FocusBackColor;
                 //PYGMYCURSOR Cursor;
                 //u32 Style;
                 u32 Value;
@@ -204,7 +227,14 @@ typedef struct{
                 u8 Type;
                 u8 *String;
                 //void *Parent
-                void *Action;
+                PYGMYEVENTFUNC Draw;
+                PYGMYEVENTFUNC MouseMove;
+                PYGMYEVENTFUNC MouseClick;
+                PYGMYEVENTFUNC GotFocus;
+                PYGMYEVENTFUNC LostFocus;
+                PYGMYEVENTFUNC Selected;
+                PYGMYEVENTFUNC Created;
+                PYGMYEVENTFUNC Destroyed;
                 } PYGMYWIDGET;
 //typedef PYGMYWIDGET *PYGMYWIDGETPTR[];
 typedef struct{
@@ -212,13 +242,24 @@ typedef struct{
                 PYGMYCOLOR AlphaColor;
                 PYGMYCOLOR BackColor;
                 PYGMYCOLOR Color;
+                PYGMYCOLOR FocusColor;
+                PYGMYCOLOR FocusBackColor;
                 u16 X;
                 u16 Y;
                 u16 Width;
                 u16 Height;
                 u16 Len;
-                //u16 Index;
+                u16 Selected;
+                //u8 Event;
+                //u8 EventValue;
+                PYGMYCURSOR Mouse;
                 PYGMYWIDGET *Widgets;
+                PYGMYEVENTFUNC Created;
+                PYGMYEVENTFUNC Destroyed;
+                PYGMYEVENTFUNC MouseMove;
+                PYGMYEVENTFUNC MouseClick;
+                PYGMYEVENTFUNC Selection;
+                PYGMYEVENTFUNC Draw;
                 } PYGMYFORM;
             
 typedef struct{
@@ -226,15 +267,29 @@ typedef struct{
                 PYGMYFONT *SmallFont;
                 PYGMYFONT *MediumFont;
                 PYGMYFONT *LargeFont;
+                PYGMYCOLOR ActiveColor;
+                PYGMYCOLOR ClearColor;
                 PYGMYCOLOR AlphaColor;
                 PYGMYCOLOR BackColor;
                 PYGMYCOLOR Color;
+                PYGMYCOLOR FocusColor;
+                PYGMYCOLOR FocusBackColor;
                 PYGMYCURSOR Cursor;
-                //PYGMYFONT *Font;
+                PYGMYCURSOR Mouse;
                 u32 Style;
                 u8 Radius;
                 u8 Contrast;
                 u8 BPP;
+                u8 Event;
+                u8 EventValue;
+                PYGMYEVENTFUNC MouseClickLeft;
+                PYGMYEVENTFUNC MouseClickCenter;
+                PYGMYEVENTFUNC MouseClickRight;
+                PYGMYEVENTFUNC MouseUp;
+                PYGMYEVENTFUNC MouseDown;
+                PYGMYEVENTFUNC MouseLeft;
+                PYGMYEVENTFUNC MouseRight;
+                //PYGMYEVENTFUNC KeyStroke;
                 } PYGMYGUI;
     
 typedef struct {
@@ -253,6 +308,56 @@ void drawForms( void );
 void drawWidget( PYGMYWIDGET *pygmyWidget );
 void drawJPEG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY );            
 void drawPNG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY ); 
+     
+void colorSet( PYGMYCOLOR *pygmyColor, u8 ucR, u8 ucG, u8 ucB );
+void colorCopy( PYGMYCOLOR *colorFrom, PYGMYCOLOR *colorTo );
+void colorApply( PYGMYCOLOR *pygmyColor );    
+
+void fontSetColor( PYGMYFONT *pygmyFont, PYGMYCOLOR *pygmyColor );
+void fontSetBackColor( PYGMYFONT *pygmyFont, PYGMYCOLOR *pygmyColor );
+PYGMYFONT *fontGetActive( void );
+PYGMYFONT *fontGetSmall( void );
+PYGMYFONT *fontGetMedium( void );
+PYGMYFONT *fontGetLarge( void );
+void fontSetActive( PYGMYFONT *pygmyFont );
+void fontSetSmall( PYGMYFONT *pygmyFont );
+void fontSetMedium( PYGMYFONT *pygmyFont );
+void fontSetLarge( PYGMYFONT *pygmyFont );
+void fontSetAll( PYGMYFONT *pygmyFont );
+u8 fontLoad( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont );
+
+void formCurrentSetColor( u8 ucR, u8 ucG, u8 ucB );
+void formCurrentSetBackColor( u8 ucR, u8 ucG, u8 ucB );
+void formCurrentSetAlphaColor( u8 ucR, u8 ucG, u8 ucB );
+void formCurrentSetClearColor( u8 ucR, u8 ucG, u8 ucB );            
+u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight );
+void formRemove( void );
+void formDrawAll( void );
+u8 formAddWidget( PYGMYWIDGET *pygmyWidget );
+void formCallFocused( void );
+void formFocusNext( void );
+void formFocusPrevious( void );
+u8 formSetFocus( u16 uiSelected );
+PYGMYWIDGET *widgetGetCurrent( void );
+PYGMYWIDGET *widgetGetFocused( void );
+void widgetRun( PYGMYWIDGET *pygmyWidget );
+u8 widgetAddEventHandler( PYGMYWIDGET *pygmyWidget, void *pygmyFunc, u8 ucEvent );
+
+void eventGotFocus( void );
+void eventLostFocus( void );
+void eventMouseMove( void );
+void eventMouseMoveUp( void );
+void eventMouseMoveDown( void );
+void eventMouseMoveLeft( void );
+void eventMouseMoveRight( void );
+void eventMouseClickLeft( void );
+void eventMouseClickCenter( void );
+void eventMouseClickRight( void );
+void eventGotFocus( void );
+void eventLostFocus( void );
+void eventSelected( void );
+
+
 void guiSetStyle( u32 ulStyle );
 u32 guiGetStyle( void );            
 void guiSetRadius( u8 ucRadius );
@@ -262,8 +367,8 @@ void guiSetFonts( PYGMYFONT *fontSmall, PYGMYFONT *fontMedium, PYGMYFONT *fontLa
 u8 putsLCD( u8 *ucBuffer );
 void drawChar( u8 ucChar );
 void drawString( u8 *ucBuffer );
-void drawCircle( u16 uiX0, u16 uiY0, u16 uiRadius, u32 ulStyle );         
-void drawSine( u16 uiX0, u16 uiY0, u16 uiFrequency, s8 a );
+void drawCircle( PYGMYCOLOR *pygmyColor, u16 uiX0, u16 uiY0, u16 uiRadius, u32 ulStyle );         
+void drawSine( PYGMYCOLOR *pygmyColor, u16 uiX0, u16 uiY0, u16 uiFrequency, s8 a );
 void guiSetCursor( u16 uiX, u16 uiY );
 u16 guiGetCursorX( void );
 u16 guiGetCursorY( void );
@@ -273,6 +378,7 @@ void guiSetBackColor( u8 ucR, u8 ucG, u8 ucB );
 void guiSetAlphaColor( u8 ucR, u8 ucG, u8 ucB );
 void guiSetFontColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB );
 void guiSetFontBackColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB );
+void guiApplyClearColor( void );
             
 void guiApplyColor( void );
 void guiApplyBackColor( void );
@@ -281,8 +387,8 @@ void guiApplyFontBackColor( void );
 u16 guiGetCursorX( void );
 u16 guiGetCursorY( void );
 void *guiGetCursor( void );
-void guiClearArea( u16 uiX0, u16 uiY0, u16 uiX1, u16 uiY1 );
-void guiClearScreen( void );
+void guiClearArea( PYGMYCOLOR *pygmyColor, u16 uiX0, u16 uiY0, u16 uiX1, u16 uiY1 );
+void guiClearScreen( PYGMYCOLOR *pygmyColor );
 u16 guiGetEntries( PYGMYFILE *pygmyFile );           
 u16 guiGetHeader( PYGMYFILE *pygmyFile );
 u32 guiGetImage( PYGMYFILE *pygmyFile, u16 uiIndex );
@@ -295,14 +401,14 @@ void guiSpriteProcess( void );
 u16 drawSprite( PYGMYSPRITE *pygmySprite );
 u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex );
 void drawBitmap( u16 uiX, u16 uiY, PYGMYFILE *fileImage );            
-void drawPixel( u16 uiX, u16 uiY ); 
+void drawPixel( PYGMYCOLOR *pygmyColor, u16 uiX, u16 uiY ); 
 void drawClearPixel( u16 uiX, u16 uiY );
 void drawBlendPixel( u16 uiX, u16 uiY );
-void drawLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle ); 
-void drawThickLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulStyle );
-void drawPoly( u16 *uiPoints, u16 uiLen, u32 ulStyle );
-void drawRect( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius );
-void drawFill( u16 x, u16 y );
+void drawLine( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle ); 
+void drawThickLine( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulStyle );
+void drawPoly( PYGMYCOLOR *pygmyColor, u16 *uiPoints, u16 uiLen, u32 ulStyle );
+void drawRect( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius );
+void drawFill( PYGMYCOLOR *pygmyColor, u16 x, u16 y );
 u8 guiGetPixelOpening( u16 uiX, u16 uiY, u32 ulColor );
 //void drawRadius( u16 uiX0, u16 uiY0, u16 uiSectors, u16 uiRadius );
 //void drawRadius( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiRadius );
@@ -310,7 +416,7 @@ s16 guiGetStringLen( u8 *ucString );
 s16 guiGetArcX( s16 iDegree, s16 iRadius );            
 s16 guiGetArcY( s16 iDegree, s16 iRadius );
 //void drawRadius( u16 uiX, u16 uiY, u16 uiAngle1, u16 uiAngle2, u16 uiRadius );
-void drawRadius( u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 ulStyle );
+void drawRadius( PYGMYCOLOR *pygmyColor, u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 ulStyle );
 //void drawRadius( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiCenterX, u16 uiCenterY, u16 uiRadius );
 //void drawRadius( u16 uiX0, u16 uiY0, u16 uiStart, u16 uiRadius );            
 // ToDo: Finish the following functions:

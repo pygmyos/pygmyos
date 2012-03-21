@@ -366,11 +366,11 @@ void lcdDrawPixel( u16 uiX, u16 uiY )
     lcdWriteCommand( LCD_RAMWR );
     LCD_CS_LOW;
     LCD_A0_HIGH;  
-    LCD_DATA_WR( globalPixel[ 0 ] );
+    LCD_DATA_WR( globalPixel[ 1 ] );
     //LCD_DATA_WR( (u8)( ( pygmyGlobalColors.Color.R << 3 ) | ( ( pygmyGlobalColors.Color.G >> 3 ) & 0x07 ) ) );
     LCD_WR_LOW;
     LCD_WR_HIGH;
-    LCD_DATA_WR( globalPixel[ 1 ] );
+    LCD_DATA_WR( globalPixel[ 0 ] );
     //LCD_DATA_WR( (u8)( ( ( pygmyGlobalColors.Color.G << 5 ) & 0xE0 ) | ( pygmyGlobalColors.Color.B & 0x1F ) ) );
     LCD_WR_LOW;
     LCD_WR_HIGH;
@@ -408,17 +408,23 @@ void lcdSetBPP( u8 ucBPP )
     globalBPP = ucBPP;
 }
 
+u8 lcdGetBPP( void )
+{
+    return( globalBPP );
+}
+
 void lcdSetColor( u8 ucR, u8 ucG, u8 ucB )
 {
     if( globalBPP == PYGMY_PBM_8BPP ){
         ucR *= 3;
         ucG *= 2;
         ucB *= 3;
-    } else if( globalBPP == PYGMY_PBM_24BPP ){
+    } /*else if( globalBPP == PYGMY_PBM_24BPP ){
         ucR >>= 3;
         ucG >>= 2;
         ucB >>= 3;
     } // else if
+    */
     globalPixel[ 0 ] = (u8)( ( ucR << 3 ) | ( ( ucG >> 3 ) & 0x07 ) );
     globalPixel[ 1 ] = (u8)( ( ( ucG << 5 ) & 0xE0 ) | ( ucB & 0x1F ) ) ;
 }

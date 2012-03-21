@@ -46,6 +46,7 @@ void lcdWriteScreenBuffer( void );
 void lcdOn( void );
 void lcdOff( void );
 void lcdSetBPP( u8 ucBPP );
+u8 lcdGetBPP( void );
 void lcdSetColor( u8 ucR, u8 ucG, u8 ucB );
 void lcdClearArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 );
 void lcdClear( void );

@@ -85,6 +85,11 @@ void *guiGetCursor( void )
 {
     return( &globalGUI.Cursor );
 }
+/*
+void guiApplyClearColor( void )
+{
+    lcdSetColor( globalGUI.ClearColor.R, globalGUI.ClearColor.G, globalGUI.ClearColor.B );
+}
 
 void guiApplyColor( void )
 {
@@ -105,70 +110,139 @@ void guiApplyFontBackColor( void )
 {
     lcdSetColor( globalGUI.Font->BackColor.R, globalGUI.Font->BackColor.G, 
         globalGUI.Font->BackColor.B );
-}
+}*/
 
-void guiSetColor( u8 ucR, u8 ucG, u8 ucB )
+void colorSetRGB( PYGMYCOLOR *pygmyColor, u8 ucR, u8 ucG, u8 ucB )
 {
-    globalGUI.Color.R = ucR;
-    globalGUI.Color.G = ucG;
-    globalGUI.Color.B = ucB;
-    lcdSetColor( ucR, ucG, ucB );
+    pygmyColor->R = ucR;
+    pygmyColor->G = ucG;
+    pygmyColor->B = ucB;
 }
 
-void guiSetBackColor( u8 ucR, u8 ucG, u8 ucB )
+void colorCopy( PYGMYCOLOR *colorFrom, PYGMYCOLOR *colorTo )
 {
-    globalGUI.BackColor.R = ucR;
-    globalGUI.BackColor.G = ucG;
-    globalGUI.BackColor.B = ucB;
+    colorTo->R = colorFrom->R;
+    colorTo->G = colorFrom->G;
+    colorTo->B = colorFrom->B;
 }
 
-void guiSetAlphaColor( u8 ucR, u8 ucG, u8 ucB )
+void colorApply( PYGMYCOLOR *pygmyColor )
 {
-    globalGUI.AlphaColor.R = ucR;
-    globalGUI.AlphaColor.G = ucG;
-    globalGUI.AlphaColor.B = ucB;
+    lcdSetColor( pygmyColor->R, pygmyColor->G, pygmyColor->B );
 }
 
-void guiSetFontColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB )
+PYGMYCOLOR *colorGetRootColor( void )
 {
-    pygmyFont->Color.R = ucR;
-    pygmyFont->Color.G = ucG;
-    pygmyFont->Color.B = ucB;
+    return( &globalGUI.Color );
 }
 
-void guiSetFontBackColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB )
+PYGMYCOLOR *colorGetRootClearColor( void )
 {
-    pygmyFont->BackColor.R = ucR;
-    pygmyFont->BackColor.G = ucG;
-    pygmyFont->BackColor.B = ucB;
+    return( &globalGUI.ClearColor );
 }
 
+PYGMYCOLOR *colorGetRootFocusColor( void )
+{
+    return( &globalGUI.FocusColor );
+}
+
+PYGMYCOLOR *colorGetRootFocusBackColor( void )
+{
+    return( &globalGUI.FocusBackColor );
+}
+
+
+PYGMYCOLOR *colorGetRootAlphaColor( void )
+{
+    return( &globalGUI.AlphaColor );
+}
+
+PYGMYCOLOR *colorGetRootBackColor( void )
+{
+    return( &globalGUI.BackColor );
+}
+
+void fontSetColor( PYGMYFONT *pygmyFont, PYGMYCOLOR *pygmyColor )
+{
+    colorCopy( pygmyColor, &pygmyFont->Color );
+    print( COM3, "\rFont Color Changed To: " );
+    print( COM3, "0x%02X 0x%02X 0x%02X", globalGUI.Font->Color.R, globalGUI.Font->Color.G, globalGUI.Font->Color.B );
+}
+
+void fontSetBackColor( PYGMYFONT *pygmyFont, PYGMYCOLOR *pygmyColor )
+{
+    colorCopy( pygmyColor, &pygmyFont->BackColor );
+    print( COM3, "\rFont BackColor Changed To: " );
+    print( COM3, "0x%02X 0x%02X 0x%02X", globalGUI.Font->BackColor.R, globalGUI.Font->BackColor.G, 
+        globalGUI.Font->BackColor.B );
+}
+
+PYGMYFONT *fontGetActive( void )
+{
+    return( globalGUI.Font );
+}
+
+PYGMYFONT *fontGetSmall( void )
+{
+    return( globalGUI.SmallFont );
+}
+
+PYGMYFONT *fontGetMedium( void )
+{
+    return( globalGUI.MediumFont );
+}
+
+PYGMYFONT *fontGetLarge( void )
+{
+    return( globalGUI.LargeFont );
+}
+
+void fontSetActive( PYGMYFONT *pygmyFont )
+{
+    globalGUI.Font = pygmyFont;
+}
+
+void fontSetSmall( PYGMYFONT *pygmyFont )
+{
+    globalGUI.SmallFont = pygmyFont;
+}
+
+void fontSetMedium( PYGMYFONT *pygmyFont )
+{
+    globalGUI.MediumFont = pygmyFont;
+}
+
+void fontSetLarge( PYGMYFONT *pygmyFont )
+{
+    globalGUI.LargeFont = pygmyFont;
+}
+
+void fontSetAll( PYGMYFONT *pygmyFont )
+{
+    globalGUI.Font          = pygmyFont;
+    globalGUI.SmallFont     = pygmyFont;
+    globalGUI.MediumFont    = pygmyFont;
+    globalGUI.LargeFont     = pygmyFont;
+}
+
+/*
 void guiSetFonts( PYGMYFONT *fontSmall, PYGMYFONT *fontMedium, PYGMYFONT *fontLarge )
 {
     globalGUI.Font          = fontSmall;
     globalGUI.SmallFont     = fontSmall;
     globalGUI.MediumFont    = fontMedium;
     globalGUI.LargeFont     = fontLarge;
-}
+}*/
 
-u8 guiSetFont( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont )
+u8 fontLoad( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont )
 {
-	u32 ulImageStart, uiPygmyInfo;//, uiEntries;
+	u32 ulImageStart, uiPygmyInfo;
     
-    pygmyFont->Color.R         = globalGUI.Color.R;
-    pygmyFont->Color.G         = globalGUI.Color.G;
-    pygmyFont->Color.B         = globalGUI.Color.B;
-    pygmyFont->BackColor.R     = globalGUI.BackColor.R;
-    pygmyFont->BackColor.G     = globalGUI.BackColor.G;
-    pygmyFont->BackColor.B     = globalGUI.BackColor.B;
     globalGUI.Font                  = pygmyFont;
     globalGUI.Font->File            = pygmyFile;
-    globalGUI.Font->Color.R         = globalGUI.Color.R;
-    globalGUI.Font->Color.G         = globalGUI.Color.G;
-    globalGUI.Font->Color.B         = globalGUI.Color.B;
-    globalGUI.Font->BackColor.R     = globalGUI.BackColor.R;
-    globalGUI.Font->BackColor.G     = globalGUI.BackColor.G;
-    globalGUI.Font->BackColor.B     = globalGUI.BackColor.B;
+    globalGUI.Font->File            = pygmyFile;
+    colorCopy( colorGetRootColor(), &pygmyFont->Color );
+    colorCopy( colorGetRootBackColor(), &pygmyFont->BackColor );
     
     ulImageStart = guiGetImage( pygmyFile, 0 );
     if( !ulImageStart ){
@@ -208,15 +282,17 @@ u8 putsLCD( u8 *ucBuffer )
     return( TRUE );
 }
 
-void guiClearArea( u16 uiX0, u16 uiY0, u16 uiX1, u16 uiY1 )
+void guiClearArea( PYGMYCOLOR *pygmyColor, u16 uiX0, u16 uiY0, u16 uiX1, u16 uiY1 )
 {
-    guiApplyBackColor();
+    //guiApplyClearColor();
+    colorApply( pygmyColor );
     lcdClearArea( uiX0, uiY0, uiX1, uiY1 );
 }
 
-void guiClearScreen( void )
+void guiClearScreen( PYGMYCOLOR *pygmyColor )
 {
-    guiApplyBackColor();
+    //guiApplyBackColor();
+    colorApply( pygmyColor );
     lcdClear( );
 }
 
@@ -611,33 +687,28 @@ u16 drawVector( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY, s8 cScale, u16 uiIndex )
 u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
 {
 	u32 i, ii, ulPixelIndex, ulLen;
-	u16 uiCount, uiPygmyInfo, uiX = 0, uiY = 0, uiWidth = 0, uiHeight = 0;
-	u8 ucPacket, ucBPP, ucByte1, ucByte2, ucByte3, ucR, ucG, ucB;
+	u16 uiCount, uiPygmyHeader, uiPygmyInfo, uiX = 0, uiY = 0, uiWidth = 0, uiHeight = 0;
+	u8 ucPacket, ucStartBPP, ucBPP, ucByte1, ucByte2, ucByte3, ucR, ucG, ucB;
 
+    uiPygmyHeader = fileGetWord( pygmyFile, BIGENDIAN );
+    fileSetPosition( pygmyFile, START, 0 );
     ulPixelIndex = guiGetImage( pygmyFile, uiIndex );
     fileSetPosition( pygmyFile, START, ulPixelIndex );
     // Warning! ulPixelIndex is reused below
   
     uiPygmyInfo = fileGetWord( pygmyFile, BIGENDIAN );
-	//uiPygmyInfo = (u16) fileGetChar( pygmyFile ) * 0x0100;
-	//uiPygmyInfo |= fileGetChar( pygmyFile );
 	
 	if( uiPygmyInfo & PYGMY_PBM_16BITD  ){		// Determine 8 or 16 bit Width and Height fields
-		//uiWidth = fileGetChar( pygmyFile ) * 0x0100;
         uiWidth = fileGetWord( pygmyFile, BIGENDIAN );
         uiHeight = fileGetWord( pygmyFile, BIGENDIAN );
 	} else{
         uiWidth = fileGetChar( pygmyFile );
         uiHeight = fileGetChar( pygmyFile );
     } // else
-	//uiWidth |= fileGetChar( pygmyFile );
-	//if( uiPygmyInfo & PYGMY_PBM_16BITD ){		// Determine 8 or 16 bit Width and Height fields
-	//	uiHeight = fileGetChar( pygmyFile ) * 0x0100;
-	//} // if
-	//uiHeight |= fileGetChar( pygmyFile );
     
 	ulLen = (u32) (uiWidth * uiHeight);
     ucBPP = ( uiPygmyInfo & 0x000F ); 
+    ucStartBPP = lcdGetBPP();
     lcdSetBPP( ucBPP ); // Must be set BEFORE setting colors
     ucR = globalGUI.Color.R;
     ucG = globalGUI.Color.G;
@@ -707,19 +778,25 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
                 //} // if            
             } // if
             if( ucPacket & BIT6 ){
-                if( ( uiPygmyInfo & PYGMY_PBM_FONT ) && ( uiPygmyInfo & PYGMY_PBM_1BPP ) ){
-                    guiApplyFontColor(  );
+                if( ( uiPygmyHeader & PYGMY_PBM_FONT ) && ( ucBPP == PYGMY_PBM_1BPP ) ){
+                    colorApply( &globalGUI.Font->Color );
+                    //print( COM3, "\rFont && 1BPP" );
+                    //guiApplyFontColor(  );
+                    //guiApplyColor();
                 } else if( ucBPP != PYGMY_PBM_1BPP ){
                     lcdSetColor( ucR, ucG, ucB );
                 } else{
-                    guiApplyColor( );
+                    colorApply( colorGetRootColor() );
                 } // else
                 lcdDrawPixel( uiXPos+uiX, uiYPos+uiY );
             } else if( !( uiPygmyInfo & PYGMY_PBM_ALPHA  ) ){
-                if( ( uiPygmyInfo & PYGMY_PBM_FONT ) && ( uiPygmyInfo & PYGMY_PBM_1BPP ) ){
-                    guiApplyFontBackColor(  );
+                if( ( uiPygmyHeader & PYGMY_PBM_FONT ) && ( ucBPP == PYGMY_PBM_1BPP ) ){
+                    colorApply( &globalGUI.Font->BackColor );
+                    //guiApplyFontBackColor( );
+                    //guiApplyBackColor();
                 } else{
-                    guiApplyBackColor( );
+                    //guiApplyBackColor( );
+                    colorApply( colorGetRootBackColor() );
                 } // else
                 lcdDrawPixel( uiXPos+uiX, uiYPos+uiY );
             } // else
@@ -730,7 +807,7 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
         } // for
 	} // for
 	fileSetPosition( pygmyFile, START, 0 );
-
+    lcdSetBPP( ucStartBPP );
 	return( uiWidth );
 }
 /*
@@ -784,9 +861,10 @@ void drawVector( PYGMYFILE &pygmyFile, u16 uiX, u16 uiY )
 */
 
 
-void drawPixel( u16 uiX, u16 uiY )
+void drawPixel( PYGMYCOLOR *pygmyColor, u16 uiX, u16 uiY )
 {
-    guiApplyColor();
+    //guiApplyColor();
+    colorApply( pygmyColor );
     lcdDrawPixel( uiX, uiY );
 }
 
@@ -883,11 +961,40 @@ u8 widgetAdd( u8 ucType, u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight, u32 ulValu
 {
     
 }
-
+/*
 u8 widgetDelete( )
 {
 
 }
+
+void formCurrentSetColor( u8 ucR, u8 ucG, u8 ucB )
+{
+    globalForms[ globalFormsLen ].Color.R = ucR;
+    globalForms[ globalFormsLen ].Color.G = ucG;
+    globalForms[ globalFormsLen ].Color.B = ucB;
+}
+
+void formCurrentSetBackColor( u8 ucR, u8 ucG, u8 ucB )
+{
+    globalForms[ globalFormsLen ].BackColor.R = ucR;
+    globalForms[ globalFormsLen ].BackColor.G = ucG;
+    globalForms[ globalFormsLen ].BackColor.B = ucB;
+}
+
+void formCurrentSetAlphaColor( u8 ucR, u8 ucG, u8 ucB )
+{
+    globalForms[ globalFormsLen ].AlphaColor.R = ucR;
+    globalForms[ globalFormsLen ].AlphaColor.G = ucG;
+    globalForms[ globalFormsLen ].AlphaColor.B = ucB;
+}
+
+void formCurrentSetClearColor( u8 ucR, u8 ucG, u8 ucB )
+{
+    globalForms[ globalFormsLen ].ClearColor.R = ucR;
+    globalForms[ globalFormsLen ].ClearColor.G = ucG;
+    globalForms[ globalFormsLen ].ClearColor.B = ucB;
+}
+*/
 
 u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight )
 {
@@ -906,19 +1013,21 @@ u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight )
     globalForms[ globalFormsLen ].Len = 0;
     newWidget = sysAllocate( sizeof( PYGMYWIDGET ) );
     if( !newWidget ){
-        //print( COM3, "\rMemory Full!" );
+        print( COM3, "\rMemory Full!" );
         return( FALSE );
     } // if
-    globalForms[ globalFormsLen ].Widgets = newWidget;
-    globalForms[ globalFormsLen ].AlphaColor.R = globalGUI.AlphaColor.R;
-    globalForms[ globalFormsLen ].AlphaColor.G = globalGUI.AlphaColor.G;
-    globalForms[ globalFormsLen ].AlphaColor.B = globalGUI.AlphaColor.B;
-    globalForms[ globalFormsLen ].BackColor.R = globalGUI.BackColor.R;
-    globalForms[ globalFormsLen ].BackColor.G = globalGUI.BackColor.G;
-    globalForms[ globalFormsLen ].BackColor.B = globalGUI.BackColor.B;
-    globalForms[ globalFormsLen ].Color.R = globalGUI.Color.R;
-    globalForms[ globalFormsLen ].Color.G = globalGUI.Color.G;
-    globalForms[ globalFormsLen ].Color.B = globalGUI.Color.B;
+    globalForms[ globalFormsLen ].X             = uiX;
+    globalForms[ globalFormsLen ].Y             = uiY;
+    globalForms[ globalFormsLen ].Width         = uiWidth;
+    globalForms[ globalFormsLen ].Height        = uiHeight;
+    globalForms[ globalFormsLen ].Widgets       = newWidget;
+    globalForms[ globalFormsLen ].Selected      = 0;
+    colorCopy( &globalGUI.AlphaColor, &globalForms[ globalFormsLen ].AlphaColor );
+    colorCopy( &globalGUI.BackColor, &globalForms[ globalFormsLen ].BackColor );
+    colorCopy( &globalGUI.ClearColor, &globalForms[ globalFormsLen ].ClearColor );
+    colorCopy( &globalGUI.Color, &globalForms[ globalFormsLen ].Color );
+    colorCopy( &globalGUI.FocusColor, &globalForms[ globalFormsLen ].FocusColor );
+    colorCopy( &globalGUI.FocusBackColor, &globalForms[ globalFormsLen ].FocusBackColor );
     ++globalFormsLen;
     globalFormsStatus = 1;
     
@@ -943,6 +1052,218 @@ void formDrawAll( void )
     
 }
 
+void formAddEventHandler( void *pygmyFunc, u8 ucEvent, u8 ucPin, u8 ucTrigger )
+{
+    // Any pin interrupts or "low-level" events are handled by the form
+    // The form then generates widget level events as appropriate
+    u16 uiIndex = globalFormsLen - 1;
+    if( ucPin != NONE ){
+        // NONE is valid when event handler isn't pin driven
+        pinInterrupt( pygmyFunc, ucPin, ucTrigger, 1 );
+    } // if
+    if( ucEvent == CREATED ){
+        globalForms[ uiIndex ].Created = pygmyFunc;
+    } else if( ucEvent == DESTROYED ){
+        globalForms[ uiIndex ].Destroyed = pygmyFunc;
+    } else if( ucEvent == DRAW ){
+        globalForms[ uiIndex ].Draw = pygmyFunc;
+    } else if( ucEvent == SELECTION ){  
+        globalForms[ uiIndex ].Selection = pygmyFunc;
+    } else if( ucEvent == MOUSE_MOVE ){
+        globalForms[ uiIndex ].MouseMove = pygmyFunc;
+    } else if( ucEvent == MOUSE_CLICK ){
+        globalForms[ uiIndex ].MouseClick = pygmyFunc;
+    } // else if
+}
+
+PYGMYWIDGET *widgetGet( u8 *ucName )
+{
+
+    
+}
+
+PYGMYWIDGET *widgetGetFocused( void )
+{
+    // Returns widget with focus from current form
+    
+    return ( &globalForms[ globalFormsLen - 1 ].Widgets[ globalForms[ globalFormsLen - 1 ].Selected ] );
+}
+
+PYGMYWIDGET *widgetGetCurrent( void )
+{
+    // Returns last created widget on last created form
+    
+    return ( &globalForms[ globalFormsLen - 1 ].Widgets[ globalForms[ globalFormsLen - 1 ].Len - 1 ] );
+}
+
+void widgetRun( PYGMYWIDGET *pygmyWidget )
+{
+    if( pygmyWidget->Selected ){
+        pygmyWidget->Selected();
+    } // if
+}
+
+u8 widgetAddEventHandler( PYGMYWIDGET *pygmyWidget, void *pygmyFunc, u8 ucEvent )
+{
+    
+    if( ucEvent == DRAW ){
+        pygmyWidget->Draw = pygmyFunc;
+    } else if( ucEvent == GOTFOCUS ){
+        pygmyWidget->GotFocus = pygmyFunc;
+    } else if( ucEvent == LOSTFOCUS ){
+        pygmyWidget->LostFocus = pygmyFunc;
+    } else if( ucEvent == SELECTED ){
+        pygmyWidget->Selected = pygmyFunc;
+    } else if( ucEvent == CREATED ){
+        pygmyWidget->Created = pygmyFunc;
+    } else if( ucEvent == DESTROYED ){
+        pygmyWidget->Destroyed = pygmyFunc;
+    } // else if
+}
+
+void formEventHandler( u8 ucEvent )
+{
+    PYGMYWIDGET *pygmyWidget;
+    
+    print( COM3, "\rEvent 0x%02X ", ucEvent );
+    pygmyWidget = widgetGetFocused();
+    if( !pygmyWidget ){
+        print( COM3, "\rWidget Failed!" );
+        return;
+    } // if
+    if( ucEvent == DRAW ){
+        print( COM3, " DRAW" );
+        if( pygmyWidget->Draw ){
+            pygmyWidget->Draw();
+        } else{
+            print( COM3, " Generic" );
+            drawWidget( pygmyWidget );
+        } // else
+    } else if( ucEvent == MOUSE_MOVE ){
+        print( COM3, "MOUSE_MOVE" );
+        if( pygmyWidget->MouseMove ){
+            pygmyWidget->MouseMove();
+        } else{
+            print( COM3, " Generic" );
+            if( globalGUI.EventValue == MOUSE_UP || globalGUI.EventValue == MOUSE_LEFT ){
+                formFocusPrevious();
+            } else{
+                formFocusNext();
+            } // else
+        } // else
+    } else if( ucEvent == MESSAGE ){
+        print( COM3, "MESSAGE" );
+    
+    } else if( ucEvent == MOUSE_CLICK ){
+        print( COM3, "MOUSE_CLICK" );
+        if( pygmyWidget->MouseClick ){
+            pygmyWidget->MouseClick();
+        } else{
+            pygmyWidget->Style |= INVERT;
+            formEventHandler( DRAW );
+            delay( 500000 );
+            pygmyWidget->Style &= ~INVERT;
+            formEventHandler( DRAW );
+        } // else
+        formEventHandler( SELECTED );
+    } else if( ucEvent == GOTFOCUS ){
+        print( COM3, "GOTFOCUS" );
+        if( pygmyWidget->GotFocus ){
+            pygmyWidget->GotFocus();
+        } else{
+            print( COM3, " Generic" );
+            pygmyWidget->Style |= ACTIVE;
+            formEventHandler( DRAW );
+        } // else
+    } else if( ucEvent == LOSTFOCUS ){
+        print( COM3, "LOSTFOCUS" );
+        if( pygmyWidget->LostFocus ){
+            pygmyWidget->LostFocus();
+        } else{
+            print( COM3, " Generic" );
+            pygmyWidget->Style &= ~ACTIVE;
+            formEventHandler( DRAW );
+        } // else
+    } else if( ucEvent == SELECTED ){
+        print( COM3, "\rSELECTED" );
+        if( pygmyWidget->Selected ){
+            pygmyWidget->Selected();
+        } else{
+            print( COM3, " Generic" );
+        } // else
+    } else if( ucEvent == CREATED ){
+        print( COM3, "CREATED" );
+        if( pygmyWidget->Created ){
+            pygmyWidget->Created();
+        } else{
+            print( COM3, " Generic" );
+        } // else
+    } else if( ucEvent == DESTROYED ){
+        print( COM3, "DESTROYED" );
+        if( pygmyWidget->Destroyed ){
+            pygmyWidget->Destroyed();
+        } else{
+            print( COM3, " Generic" );
+        } // else
+    } // else if
+}
+
+void formCallFocused( void )
+{
+    if( globalForms[ globalFormsLen - 1 ].Widgets[ globalForms[ globalFormsLen - 1 ].Selected ].Selected ){
+        globalForms[ globalFormsLen - 1 ].Widgets[ globalForms[ globalFormsLen - 1 ].Selected ].Selected();
+    } // if
+}
+
+u8 formSetFocus( u16 uiSelected )
+{
+    // Not the same as the SELECTED event, this selects the active widget
+    // 
+    formEventHandler( LOSTFOCUS );
+    if( uiSelected <= globalForms[ globalFormsLen - 1 ].Len ){
+        globalForms[ globalFormsLen - 1 ].Selected = uiSelected;
+    } // if
+    formEventHandler( GOTFOCUS );
+
+    return( FALSE );
+}
+
+u16 formGetFocus( void )
+{
+    return( globalForms[ globalFormsLen - 1 ].Selected );
+}
+
+void formFocusNext( void )
+{
+    if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
+        return;
+    } // if
+    print( COM3, "\rFocusNext" );
+    formEventHandler( LOSTFOCUS );
+    
+    if( globalForms[ globalFormsLen - 1 ].Selected < ( globalForms[ globalFormsLen - 1 ].Len - 1 ) ){
+        ++globalForms[ globalFormsLen - 1 ].Selected;
+    } else{
+        globalForms[ globalFormsLen - 1 ].Selected = 0;
+    } // else
+    formEventHandler( GOTFOCUS );
+}
+
+void formFocusPrevious( void )
+{
+    if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
+        return;
+    } // if
+    print( COM3, "\rFocus Previous" );
+    formEventHandler( LOSTFOCUS );
+    if( globalForms[ globalFormsLen - 1 ].Selected > 0 ){
+        --globalForms[ globalFormsLen - 1 ].Selected;
+    } else{
+        globalForms[ globalFormsLen - 1 ].Selected = globalForms[ globalFormsLen - 1 ].Len - 1;
+    } // else
+    formEventHandler( GOTFOCUS );
+}
+
 u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
 {
     PYGMYWIDGET *newWidget;
@@ -957,17 +1278,31 @@ u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
     } // if
     globalForms[ uiIndex ].Widgets = newWidget;
     
-    
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Value    = pygmyWidget->Value;
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].X        = pygmyWidget->X;
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Y        = pygmyWidget->Y;
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Width    = pygmyWidget->Width;
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Height   = pygmyWidget->Height;
-    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Style    = pygmyWidget->Style;
+    if( globalForms[ uiIndex ].Len == 0 ){
+        globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Style    = pygmyWidget->Style | (ACTIVE);
+    } else{
+        globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Style    = pygmyWidget->Style;
+    } // else
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Type     = pygmyWidget->Type;
     globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].String   = pygmyWidget->String;
-    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Action   = pygmyWidget->Action;
-
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Created    = NULL;//pygmyWidget->Created;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Destroyed  = NULL;//pygmyWidget->Destroyed;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].MouseMove  = NULL;    
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].GotFocus  = NULL;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].LostFocus  = NULL;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].MouseClick = NULL;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Draw       = NULL;
+    //globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Deselected = NULL;//pygmyWidget->Deselected;
+    globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Selected   = NULL;//pygmyWidget->Selected;
+    colorCopy( &globalForms[ uiIndex ].Color, &globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].Color );
+    colorCopy( &globalForms[ uiIndex ].BackColor, &globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].BackColor );
+    colorCopy( &globalForms[ uiIndex ].FocusColor, &globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].FocusColor );
+    colorCopy( &globalForms[ uiIndex ].FocusBackColor, &globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].FocusBackColor );
     ++globalForms[ uiIndex ].Len;
     print( COM3, "\rWidgets: %d", globalForms[ uiIndex ].Len );
     return( TRUE );
@@ -977,14 +1312,20 @@ void drawForms( void )
 { 
     PYGMYCOLOR *pygmyColor;
     u16 i, ii;
-
+   
     for( i = 0; i < globalFormsLen; i++ ){
-        
-        guiClearArea( globalForms[ i ].X, globalForms[ i ].Y, 
+        print( COM3, "\rDrawing Form: %d", i );
+        print( COM3, "\r\tLen: %d", globalForms[ i ].Len );
+        print( COM3, "\r\tX,Y: %d,%d", globalForms[ i ].X, globalForms[ i ].Y );
+        print( COM3, "\r\tWidth,Height: %d,%d", globalForms[ i ].Width, globalForms[ i ].Height );
+        //colorCopy( &globalForms[ i ].ClearColor, &globalGUI.ClearColor );
+        //guiSetBackColor( globalForms[ i ].BackColor.R, globalForms[ i ].BackColor.G, globalForms[ i ].BackColor.B );
+        guiClearArea( &globalForms[ i ].ClearColor, globalForms[ i ].X, globalForms[ i ].Y, 
             globalForms[ i ].X + globalForms[ i ].Width, 
             globalForms[ i ].Y + globalForms[ i ].Height );
         for( ii = 0; ii < globalForms[ i ].Len; ii++ ){
             PYGMY_WATCHDOG_REFRESH;
+            print( COM3, "\r\tDrawing Widget %d %s", ii, globalForms[ i ].Widgets[ ii ].String );
             drawWidget( &globalForms[ i ].Widgets[ ii ] );
         } // for
     } // for
@@ -992,6 +1333,7 @@ void drawForms( void )
 
 void drawWidget( PYGMYWIDGET *pygmyWidget )
 {
+    PYGMYCOLOR pygmyColor, pygmyBackColor;
     u32 ulStyle;
     u16 uiX, uiY, uiPos, uiPoly[ 8 ];
     u8 ucRadius;
@@ -1002,41 +1344,83 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
     } // if
     //ulStyle = pygmyWidget->Style;
     print( COM3, "\rWidget: %s", pygmyWidget->String );
+    /*print( COM3, "\r\tColorR: 0x%02X", pygmyWidget->Color.R );
+    print( COM3, "\r\tColorG: 0x%02X", pygmyWidget->Color.G );
+    print( COM3, "\r\tColorB: 0x%02X", pygmyWidget->Color.B );
+    print( COM3, "\r\tBackColorR: 0x%02X", pygmyWidget->BackColor.R );
+    print( COM3, "\r\tBackColorG: 0x%02X", pygmyWidget->BackColor.G );
+    print( COM3, "\r\tBackColorB: 0x%02X", pygmyWidget->BackColor.B );
+    print( COM3, "\r\tFocusColorR: 0x%02X", pygmyWidget->FocusColor.R );
+    print( COM3, "\r\tFocusColorG: 0x%02X", pygmyWidget->FocusColor.G );
+    print( COM3, "\r\tFocusColorB: 0x%02X", pygmyWidget->FocusColor.B );
+    print( COM3, "\r\tFocusBackColorR: 0x%02X", pygmyWidget->FocusBackColor.R );
+    print( COM3, "\r\tFocusBackColorG: 0x%02X", pygmyWidget->FocusBackColor.G );
+    print( COM3, "\r\tFocusBackColorB: 0x%02X", pygmyWidget->FocusBackColor.B );*/
     ucRadius = globalGUI.Radius;
+    
     if( pygmyWidget->Style & INVERT ){
-        guiSetBackColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
-        guiSetColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
-    } else{
-        guiSetColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
-        guiSetBackColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
+        print( COM3, "\r\tInvert" );
+        if( pygmyWidget->Style & ACTIVE ){
+            print( COM3, "\r\tActive" );
+            colorCopy( &pygmyWidget->FocusColor, &pygmyBackColor );
+            colorCopy( &pygmyWidget->FocusBackColor, &pygmyColor );
+            //fontSetColor( fontGetActive(), &pygmyWidget->BackColor );
+        } else{
+            colorCopy( &pygmyWidget->Color, &pygmyBackColor );
+            colorCopy( &pygmyWidget->BackColor, &pygmyColor );
+            //fontSetColor( fontGetActive(), &pygmyBackColor );
+        } // else
+    } else{    
+        if( pygmyWidget->Style & ACTIVE ){
+            print( COM3, "\r\tActive" );
+            colorCopy( &pygmyWidget->FocusColor, &pygmyColor );
+            colorCopy( &pygmyWidget->FocusBackColor, &pygmyBackColor );
+            //fontSetColor( fontGetActive(), &pygmyWidget->BackColor );
+        } else{ 
+            colorCopy( &pygmyWidget->Color, &pygmyColor );
+            colorCopy( &pygmyWidget->BackColor, &pygmyBackColor );
+            //
+        } // else
     } // else
+    fontSetColor( fontGetActive(), &pygmyColor );
+    fontSetBackColor( fontGetActive(), &pygmyBackColor );
     if( pygmyWidget->Style & BORDER ){
-        guiApplyColor();
-        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
+        print( COM3, "\r\tBorder" );
+        
+        drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style & ~FILLED, ucRadius );
     } // if 
     if( pygmyWidget->Type == BUTTON || pygmyWidget->Type == LABEL ){
+        if ( pygmyWidget->Type == BUTTON ){
+            print( COM3, "\r\tButton" );
+        } else{
+            print( COM3, "\r\tLabel" );
+        } // else
         if( pygmyWidget->Style & FILLED ){
-            guiApplyBackColor();
-            drawRect( pygmyWidget->X+1, pygmyWidget->Y+1, pygmyWidget->X + ( pygmyWidget->Width - 1 ),
+            print( COM3, "\r\tFilled with:" );
+            print( COM3, " R: 0x%02X", pygmyBackColor.R );
+            print( COM3, " G: 0x%02X", pygmyBackColor.G );
+            print( COM3, " B: 0x%02X", pygmyBackColor.B );
+            drawRect( &pygmyBackColor, pygmyWidget->X+1, pygmyWidget->Y+1, pygmyWidget->X + ( pygmyWidget->Width - 1 ),
                 pygmyWidget->Y + ( pygmyWidget->Height - 1 ), pygmyWidget->Style, ucRadius );
         } // if
         
         if( pygmyWidget->Style & CENTERED ){
-            
+            print( COM3, "\rCentered" );
             uiY = ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
             uiX = 2 + ( ( pygmyWidget->Width - ( ( globalGUI.Font->Height - 7 ) * len( pygmyWidget->String ) ) ) / 2 );
             print( COM3, "\ruiX: %d", uiX );  
         } // if
     } else if( pygmyWidget->Type == CHECKBOX ){
-        guiApplyColor();
-        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
+        print( COM3, "\r\tCheckbox" );
+        //guiApplyColor();
+        drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
         if( pygmyWidget->Value ){ // Draw Check if not zero
-            drawLine( pygmyWidget->X+1, pygmyWidget->Y+(pygmyWidget->Height/2), pygmyWidget->X+(pygmyWidget->Height/2),
+            drawLine( &pygmyWidget->Color, pygmyWidget->X+1, pygmyWidget->Y+(pygmyWidget->Height/2), pygmyWidget->X+(pygmyWidget->Height/2),
                 pygmyWidget->Y + ( pygmyWidget->Height - 1 ), pygmyWidget->Style );
             
-            drawLine( pygmyWidget->X+(pygmyWidget->Height/2), pygmyWidget->Y + ( pygmyWidget->Height - 1 ), 
+            drawLine( &pygmyColor, pygmyWidget->X+(pygmyWidget->Height/2), pygmyWidget->Y + ( pygmyWidget->Height - 1 ), 
                 pygmyWidget->X+(pygmyWidget->Height - 1), pygmyWidget->Y - 1, pygmyWidget->Style );
         } // if
         uiX = 2 + pygmyWidget->Height;
@@ -1046,35 +1430,37 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
         print( COM3, "\rFont Height: %d", globalGUI.Font->Height );
         print( COM3, "\ruiX: %d uiY: %d", uiX, uiY );
     } else if( pygmyWidget->Type == VSCROLLBAR ){
-        guiApplyColor();
-        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
+        print( COM3, "\r\tVScroll" );
+        //guiApplyColor();
+        drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
-        drawRect( pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
+        drawRect( &pygmyColor, pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
     } else if( pygmyWidget->Type == HSCROLLBAR ){
-        guiApplyColor();
-        drawRect( pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
+        print( COM3, "\r\tHScroll" );
+        //guiApplyColor();
+        drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
-        drawRect( pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
+        drawRect( &pygmyColor, pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
         // Left Arrow
-        drawLine( pygmyWidget->X + 2, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+        drawLine( &pygmyColor, pygmyWidget->X + 2, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
             pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
             pygmyWidget->Style );
-        drawLine( pygmyWidget->X + 2, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+        drawLine( &pygmyColor, pygmyWidget->X + 2, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
             pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
             pygmyWidget->Style );
-        drawLine( pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
+        drawLine( &pygmyColor, pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
             pygmyWidget->X + ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
             pygmyWidget->Style );
         // Right Arrow
-        drawLine( pygmyWidget->X + ( pygmyWidget->Width - 4 ), pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+        drawLine( &pygmyColor, pygmyWidget->X + ( pygmyWidget->Width - 4 ), pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
             pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
             pygmyWidget->Style );
-        drawLine( pygmyWidget->X + pygmyWidget->Width - 4, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
+        drawLine( &pygmyColor, pygmyWidget->X + pygmyWidget->Width - 4, pygmyWidget->Y + ( pygmyWidget->Height / 2 ),
             pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
             pygmyWidget->Style );
-        drawLine( pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
+        drawLine( &pygmyColor, pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( pygmyWidget->Height - ( ucRadius / 2 ) ),
             pygmyWidget->X + pygmyWidget->Width - ( pygmyWidget->Height - 4 ), pygmyWidget->Y + ( ucRadius / 2 ),
             pygmyWidget->Style );
         if( pygmyWidget->Value ){
@@ -1082,22 +1468,23 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
         } else{
             uiPos = pygmyWidget->Height;
         } // else
-        drawRect( uiPos - ( pygmyWidget->Height / 2 ), pygmyWidget->Y, uiPos + ( pygmyWidget->Height / 2 ), 
+        drawRect( &pygmyColor, uiPos - ( pygmyWidget->Height / 2 ), pygmyWidget->Y, uiPos + ( pygmyWidget->Height / 2 ), 
             pygmyWidget->Y + pygmyWidget->Height, pygmyWidget->Style, ucRadius );
-        drawLine( uiPos, pygmyWidget->Y + 4, uiPos, pygmyWidget->Y + ( pygmyWidget->Height - 4 ), pygmyWidget->Style );
-        drawLine( uiPos - 4, pygmyWidget->Y + 6, uiPos - 4, pygmyWidget->Y + ( pygmyWidget->Height - 6 ), pygmyWidget->Style );
-        drawLine( uiPos + 4, pygmyWidget->Y + 6, uiPos + 4, pygmyWidget->Y + ( pygmyWidget->Height - 6 ), pygmyWidget->Style );
+        drawLine( &pygmyColor, uiPos, pygmyWidget->Y + 4, uiPos, pygmyWidget->Y + ( pygmyWidget->Height - 4 ), pygmyWidget->Style );
+        drawLine( &pygmyColor, uiPos - 4, pygmyWidget->Y + 6, uiPos - 4, pygmyWidget->Y + ( pygmyWidget->Height - 6 ), pygmyWidget->Style );
+        drawLine( &pygmyColor, uiPos + 4, pygmyWidget->Y + 6, uiPos + 4, pygmyWidget->Y + ( pygmyWidget->Height - 6 ), pygmyWidget->Style );
     } 
     if( pygmyWidget->Style & CAPTION ){
         if( pygmyWidget->String ){ 
             guiSetCursor( pygmyWidget->X + uiX, pygmyWidget->Y + uiY  );
-            if( !(pygmyWidget->Style & INVERT) ){
+            /*if( !(pygmyWidget->Style & INVERT) ){
                 guiSetBackColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
                 guiSetColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
             } else{
                 guiSetColor( globalGUI.Font->Color.B, globalGUI.Font->Color.G, globalGUI.Font->Color.R );
                 guiSetBackColor( globalGUI.Font->BackColor.B, globalGUI.Font->BackColor.G, globalGUI.Font->BackColor.R );
             } // else
+            */
             #ifdef __PYGMYSTREAMLCD
                 print( LCD, pygmyWidget->String );
             #endif
@@ -1107,21 +1494,131 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
                 print( LCD, "%d", pygmyWidget->Value );
             #endif
         } // else
-    } // if
-        //drawLine( pygmyWidget->X, pygmyWidget->Y, pygmyWidget
-    //} // if
+    } 
+}
+/*
+void eventGotFocus( void )
+{
+    PYGMYWIDGET *pygmyWidget;
+    
+    pygmyWidget = widgetGetFocused();
+    pygmyWidget->Style |= INVERT;
+    formEventHandler( DRAW );
 }
 
+void eventLostFocus( void )
+{
+    PYGMYWIDGET *pygmyWidget;
+    
+    pygmyWidget = widgetGetFocused();
+    pygmyWidget->Style &= ~INVERT;
+    formEventHandler( DRAW );
+}*/
 
+void eventMouseMove( void )
+{
+    // Generic Event Handler for Forms
+    formEventHandler( MOUSE_MOVE );
+}
 
-void drawFill( u16 x, u16 y )
+void eventMouseMoveUp( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    if( globalGUI.Mouse.Y > 0 ){
+        --globalGUI.Mouse.Y;
+    } //
+    globalGUI.Event = MOUSE_MOVE;
+    globalGUI.EventValue = MOUSE_UP;
+    formEventHandler( MOUSE_MOVE );
+}
+
+void eventMouseMoveDown( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    if( globalGUI.Mouse.Y < lcdGetHeight() - 1 ){
+        ++globalGUI.Mouse.Y;
+    } // if
+    globalGUI.Event = MOUSE_MOVE;
+    globalGUI.EventValue = MOUSE_DOWN;
+    formEventHandler( MOUSE_MOVE );
+}
+
+void eventMouseMoveLeft( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    if( globalGUI.Mouse.X > 0 ){
+        --globalGUI.Mouse.X;
+    } // if
+    globalGUI.Event = MOUSE_MOVE;
+    globalGUI.EventValue = MOUSE_LEFT;
+    formEventHandler( MOUSE_MOVE );
+}
+
+void eventMouseMoveRight( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    if( globalGUI.Mouse.X < lcdGetWidth() ){
+        ++globalGUI.Mouse.X;
+    } // if
+    globalGUI.Event = MOUSE_MOVE;
+    globalGUI.EventValue = MOUSE_RIGHT;
+    formEventHandler( MOUSE_MOVE );
+}
+
+void eventMouseClickLeft( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    globalGUI.Event = MOUSE_CLICK;
+    globalGUI.EventValue = BUTTON_LEFT;
+    formEventHandler( MOUSE_CLICK );
+}
+
+void eventMouseClickCenter( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    globalGUI.Event = MOUSE_CLICK;
+    globalGUI.EventValue = BUTTON_CENTER;
+    formEventHandler( MOUSE_CLICK );
+}
+
+void eventMouseClickRight( void )
+{
+    // Generic Event Handler for Mouse/Pointer
+    globalGUI.Event = MOUSE_CLICK;
+    globalGUI.EventValue = BUTTON_RIGHT;
+    formEventHandler( MOUSE_CLICK );
+}
+
+void eventGotFocus( void )
+{
+    // Generic Event Handler for Widgets
+    //widgetRun( widgetGetFocused() );
+    globalGUI.Event = GOTFOCUS;
+    formEventHandler( GOTFOCUS );
+}
+
+void eventLostFocus( void )
+{
+    // Generic Event Handler for Widgets
+    globalGUI.Event = LOSTFOCUS;
+    formEventHandler( LOSTFOCUS );
+}
+
+void eventSelected( void )
+{
+    // Generic Event Handler for Forms/Widgets
+    globalGUI.Event = SELECTED;
+    formEventHandler( SELECTED );
+}
+
+void drawFill( PYGMYCOLOR *pygmyColor, u16 x, u16 y )
 {
     if( lcdGetPixel(x,y) != 0 ){
         lcdDrawPixel(x,y);
-        drawFill(x+1,y);
-        drawFill(x-1,y);
-        drawFill(x,y+1);
-        drawFill(x,y-1);
+        drawFill( pygmyColor, x+1,y);
+        drawFill(pygmyColor, x-1,y);
+        drawFill(pygmyColor, x,y+1);
+        drawFill(pygmyColor, x,y-1);
     } // if
 }
 
@@ -1214,45 +1711,44 @@ u8 guiGetPixelOpening( u16 uiX, u16 uiY, u32 ulColor )
     return( ucPixels );
 }
 
-void drawRect( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius )
+void drawRect( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius )
 {      
     u16 i, ii;
 
-    guiApplyColor();
-
+    colorApply( pygmyColor );
     if( ulStyle & FILLED ){
         if( uiRadius && ( ulStyle & ( ROUNDED | CHAMFER ) ) ){
             for( i = iY1+uiRadius; i < ( iY2 - uiRadius) + 1; i++ ){
-                drawLine( iX1, i, iX2, i, ulStyle ); 
+                drawLine( pygmyColor, iX1, i, iX2, i, ulStyle ); 
             } // for
             for( i = 0, ii = 0; i < uiRadius; i++ ){
-                drawLine( iX1 + uiRadius - ii, iY1 + i, iX2 - uiRadius + ii, iY1 + i, ulStyle );
-                drawLine( iX1 + uiRadius - ii, iY2 - i, iX2 - uiRadius + ii, iY2 - i, ulStyle );
+                drawLine( pygmyColor, iX1 + uiRadius - ii, iY1 + i, iX2 - uiRadius + ii, iY1 + i, ulStyle );
+                drawLine( pygmyColor, iX1 + uiRadius - ii, iY2 - i, iX2 - uiRadius + ii, iY2 - i, ulStyle );
                 if( ulStyle & CHAMFER ){
                     ++ii;
                 } // if
             } // for 
         } else{
             for( i = iY1; i < iY2; i++ ){
-                drawLine( iX1 + 1, i, iX2 - 1, i, ulStyle );
+                drawLine( pygmyColor, iX1 + 1, i, iX2 - 1, i, ulStyle );
             } // for
         } // else    
     } 
     if( ( ulStyle & CHAMFER ) ){
-        drawLine( iX2-uiRadius, iY1, iX2, iY1+uiRadius, ulStyle ); // top right
-        drawLine( iX2-uiRadius, iY2, iX2, iY2-uiRadius, ulStyle ); // bottom right
-        drawLine( iX1+uiRadius, iY2, iX1, iY2-uiRadius, ulStyle ); // bottom left
-        drawLine( iX1, iY1+uiRadius, iX1+uiRadius, iY1, ulStyle ); // top left
+        drawLine( pygmyColor, iX2-uiRadius, iY1, iX2, iY1+uiRadius, ulStyle ); // top right
+        drawLine( pygmyColor, iX2-uiRadius, iY2, iX2, iY2-uiRadius, ulStyle ); // bottom right
+        drawLine( pygmyColor, iX1+uiRadius, iY2, iX1, iY2-uiRadius, ulStyle ); // bottom left
+        drawLine( pygmyColor, iX1, iY1+uiRadius, iX1+uiRadius, iY1, ulStyle ); // top left
     } else if( ( ulStyle & ROUNDED ) ){ 
-        drawRadius( iX1+uiRadius, iY1+uiRadius, BIT0, uiRadius, ulStyle );
-        drawRadius( iX2-uiRadius, iY1+uiRadius, BIT1, uiRadius, ulStyle );
-        drawRadius( iX1+uiRadius, iY2-uiRadius, BIT3, uiRadius, ulStyle );
-        drawRadius( iX2-uiRadius, iY2-uiRadius, BIT2, uiRadius, ulStyle );
+        drawRadius( pygmyColor, iX1+uiRadius, iY1+uiRadius, BIT0, uiRadius, ulStyle );
+        drawRadius( pygmyColor, iX2-uiRadius, iY1+uiRadius, BIT1, uiRadius, ulStyle );
+        drawRadius( pygmyColor, iX1+uiRadius, iY2-uiRadius, BIT3, uiRadius, ulStyle );
+        drawRadius( pygmyColor, iX2-uiRadius, iY2-uiRadius, BIT2, uiRadius, ulStyle );
     } // else if
-        drawLine( iX1+uiRadius, iY1, iX2-uiRadius, iY1, ulStyle ); // top
-        drawLine( iX1+uiRadius, iY2, iX2-uiRadius, iY2, ulStyle ); // bottom
-        drawLine( iX1, iY1+uiRadius, iX1, iY2-uiRadius, ulStyle ); // left
-        drawLine( iX2, iY1+uiRadius, iX2, iY2-uiRadius, ulStyle ); // right
+        drawLine( pygmyColor, iX1+uiRadius, iY1, iX2-uiRadius, iY1, ulStyle ); // top
+        drawLine( pygmyColor, iX1+uiRadius, iY2, iX2-uiRadius, iY2, ulStyle ); // bottom
+        drawLine( pygmyColor, iX1, iY1+uiRadius, iX1, iY2-uiRadius, ulStyle ); // left
+        drawLine( pygmyColor, iX2, iY1+uiRadius, iX2, iY2-uiRadius, ulStyle ); // right
     
 }
 
@@ -1263,7 +1759,7 @@ void drawPixelInArea( u16 uiX0, u16 uiY0, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2
     }
 }
 
-void drawRadius( u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 ulStyle )
+void drawRadius( PYGMYCOLOR *pygmyColor, u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 ulStyle )
 {
     s16 f = 1 - uiRadius;
     s16 ddF_x = 1;
@@ -1271,7 +1767,8 @@ void drawRadius( u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 u
     u16 uiX = 0;
     u16 uiY = uiRadius;
     
-    guiApplyColor();
+    colorApply( pygmyColor );
+    //guiApplyColor();
     /*if( ulStyle & FILLED ){
         drawLine( uiCenterX - uiRadius, uiCenterY, uiCenterX + uiRadius, uiCenterY, ulStyle );
         drawLine( uiCenterX, uiCenterY - uiRadius, uiCenterX, uiCenterY + uiRadius, ulStyle );
@@ -1293,20 +1790,20 @@ void drawRadius( u16 uiCenterX, u16 uiCenterY, u16 uiCorner, u16 uiRadius, u32 u
         f += ddF_x;  
         if( ulStyle & FILLED ){
             if( uiCorner & BIT0 ){
-                drawLine( uiCenterX, uiCenterY-uiY, uiCenterX - uiX, uiCenterY - uiY, ulStyle ); // 7
-                drawLine( uiCenterX, uiCenterY-uiX, uiCenterX - uiY, uiCenterY - uiX, ulStyle ); // 6
+                drawLine( pygmyColor, uiCenterX, uiCenterY-uiY, uiCenterX - uiX, uiCenterY - uiY, ulStyle ); // 7
+                drawLine( pygmyColor, uiCenterX, uiCenterY-uiX, uiCenterX - uiY, uiCenterY - uiX, ulStyle ); // 6
             } // if
             if( uiCorner & BIT1 ){
-                drawLine( uiCenterX, uiCenterY-uiY, uiCenterX + uiX, uiCenterY - uiY, ulStyle ); // 0
-                drawLine( uiCenterX, uiCenterY-uiX, uiCenterX + uiY, uiCenterY - uiX, ulStyle ); // 1
+                drawLine( pygmyColor, uiCenterX, uiCenterY-uiY, uiCenterX + uiX, uiCenterY - uiY, ulStyle ); // 0
+                drawLine( pygmyColor, uiCenterX, uiCenterY-uiX, uiCenterX + uiY, uiCenterY - uiX, ulStyle ); // 1
             }
             if( uiCorner & BIT2 ){
-                drawLine( uiCenterX, uiCenterY+uiY, uiCenterX + uiX, uiCenterY + uiY, ulStyle ); // 3
-                drawLine( uiCenterX, uiCenterY+uiX, uiCenterX + uiY, uiCenterY + uiX, ulStyle ); // 2
+                drawLine( pygmyColor, uiCenterX, uiCenterY+uiY, uiCenterX + uiX, uiCenterY + uiY, ulStyle ); // 3
+                drawLine( pygmyColor, uiCenterX, uiCenterY+uiX, uiCenterX + uiY, uiCenterY + uiX, ulStyle ); // 2
             } // if
             if( uiCorner & BIT3 ){
-                drawLine( uiCenterX, uiCenterY+uiY, uiCenterX - uiX, uiCenterY + uiY, ulStyle ); // 4
-                drawLine( uiCenterX, uiCenterY+uiX, uiCenterX - uiY, uiCenterY + uiX, ulStyle ); // 5
+                drawLine( pygmyColor, uiCenterX, uiCenterY+uiY, uiCenterX - uiX, uiCenterY + uiY, ulStyle ); // 4
+                drawLine( pygmyColor, uiCenterX, uiCenterY+uiX, uiCenterX - uiY, uiCenterY + uiX, ulStyle ); // 5
             } // if
         } else{
             if( uiCorner & BIT0 ){
@@ -1356,18 +1853,18 @@ void drawObject( PYGMYGUIOBJECT *pygmyGUIObject )
    
 }*/
 
-void drawPoly( u16 *uiPoints, u16 uiLen, u32 ulStyle )
+void drawPoly( PYGMYCOLOR *pygmyColor, u16 *uiPoints, u16 uiLen, u32 ulStyle )
 {
     u16 i, uiX, uiY;
 
     for( i = 0; i < uiLen-2; ){
         uiX = uiPoints[ i++ ];
         uiY = uiPoints[ i++ ];
-        drawLine( uiX, uiY, uiPoints[ i ], uiPoints[ i + 1 ], ulStyle );
+        drawLine( pygmyColor, uiX, uiY, uiPoints[ i ], uiPoints[ i + 1 ], ulStyle );
     } // i
 }
 
-void drawThickLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulStyle )
+void drawThickLine( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulStyle )
 {
     s16 iXStep, iYStep, iX, iY;
     u8 i;
@@ -1382,10 +1879,10 @@ void drawThickLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulSt
     
     for( i = 0, iX = 0, iY = 0; i < ucThickness; i++ ){
         if( i % 2 ){
-            drawLine( iX1-iX, iY1-iY, iX2-iX, iY2-iY, ulStyle );
+            drawLine( pygmyColor, iX1-iX, iY1-iY, iX2-iX, iY2-iY, ulStyle );
             
         } else{
-            drawLine( iX1+iX, iY1+iY, iX2+iX, iY2+iY, ulStyle );
+            drawLine( pygmyColor, iX1+iX, iY1+iY, iX2+iX, iY2+iY, ulStyle );
             iX += iXStep;
             iY += iYStep; 
         } // else
@@ -1393,13 +1890,13 @@ void drawThickLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u8 ucThickness, u32 ulSt
     } // for
 }
 
-void drawLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle )
+void drawLine( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle )
 {   
     s16 dy = iY2 - iY1;
     s16 dx = iX2 - iX1;
     s16 stepx, stepy, iStepSkip, iToggle, fraction;
 
-    guiApplyColor();
+    colorApply( pygmyColor );
     iStepSkip = 1;
     iToggle = 1;
     if( ulStyle & DOT ){
@@ -1469,9 +1966,9 @@ void drawLine( s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle )
     } // else
 } 
 
-void drawCircle( u16 uiX0, u16 uiY0, u16 uiRadius, u32 ulStyle )
+void drawCircle( PYGMYCOLOR *pygmyColor, u16 uiX0, u16 uiY0, u16 uiRadius, u32 ulStyle )
 {
-    drawRadius( uiX0, uiY0, BIT0|BIT1|BIT2|BIT3, uiRadius, ulStyle );
+    drawRadius( pygmyColor, uiX0, uiY0, BIT0|BIT1|BIT2|BIT3, uiRadius, ulStyle );
     
     /*s16 f = 1 - uiRadius;
     s16 ddF_x = 1;
@@ -1506,7 +2003,7 @@ void drawCircle( u16 uiX0, u16 uiY0, u16 uiRadius, u32 ulStyle )
 }
 
 
-void drawSine( u16 uiX0, u16 uiY0, u16 uiFrequency, s8 a )
+void drawSine( PYGMYCOLOR *pygmyColor, u16 uiX0, u16 uiY0, u16 uiFrequency, s8 a )
 {
     /*s16 i;
     s16 y = uiY0;
