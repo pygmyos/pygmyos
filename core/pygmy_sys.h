@@ -1268,7 +1268,7 @@ u8 cmdGetRetriesRemaining( PYGMYCOMMANDQUEUE *pygmyCmdQueue );
 void *cmdListQueue( u16 uiIndex );
 
 u16 msgGetIndex( u8 *ucName, u16 uiID );
-u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue );
+u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u32 ulValue );
 u8 msgGet( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg );
 u8 msgIs( u8 *ucName, u16 uiID );
 u8 msgDelete( u8 *ucName, u16 uiID );
@@ -1306,6 +1306,7 @@ u32 getIDCode( void );
 u32 getIDRevision( void );
 
 //void enableXTAL( void );
+void delayms( u32 ulDelay );
 void delay( u32 ulDelay );
 void mcoEnable( u8 ucSource );
 void mcoDisable( void );

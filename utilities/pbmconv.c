@@ -464,9 +464,9 @@ void loadBitmap( FILE *fileImage, IMAGE_BM *image )
     printf( "\nLoaded BM Height: %d Width: %d BPP: %d Offset: %d Pad: %d", image->Height, image->Width, image->BPP, uiData, uiPadding );
     for( i = 0; i < image->Height; i++ ){
         for( ii = 0; ii < image->Width; ii++ ){
-            image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 0 ] = fgetc( fileImage );
-            image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 1 ] = fgetc( fileImage );
             image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 2 ] = fgetc( fileImage );
+            image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 1 ] = fgetc( fileImage );
+            image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 0 ] = fgetc( fileImage );
             //printf( "\nLoaded pixel R: %d G: %d B: %d",image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 0 ], 
             //    image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 1 ],image->Buffer[ ( ((image->Height-1)-i) * image->Width ) + ii ][ 2 ]); 
         } // for  

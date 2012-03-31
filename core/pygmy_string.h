@@ -28,6 +28,7 @@
 #define SEPARATORS         BIT3
 #define QUOTES             BIT4
 #define COMMA              BIT5
+#define ALPHA              BIT6
 
 extern const PYGMYPAIR PYGMYNEBULAPINS[];
 //extern const u8 PYGMYBASE64CHARS[];
@@ -58,12 +59,13 @@ u8 replaceChars( u8 *ucBuffer, u8 *ucChars, u8 ucChar );
 u8 *seekStringInString(  u8 *ucString, u8 *ucBuffer );
 u16 getAllSubStrings( u8 *ucBuffer, u8 *ucStrings[], u16 uiLen, u8 ucMode );
 u8 *getNextSubString( u8 *ucBuffer, u8 ucMode );
-//u8 *getNextSubString( u8 *ucBuffer );
-u8 convertIntToString( s64 ulData, u8 *ucFormat, u8 *ucBuffer );
+void convertFloatToString( double fData, u8 *ucFormat, u8 *ucBuffer );
+void convertIntToString( s64 ulData, u8 *ucFormat, u8 *ucBuffer );
 void copyString( u8 *ucFrom, u8 *ucTo );
-void appendStringToString( u8 *ucFrom, u8 *ucTo );
+void appendString( u8 *ucFrom, u8 *ucTo );
 u8 convertCharToUpper( u8 ucChar );
 u8 convertCharToLower( u8 ucChar );
+double convertStringToFloat( u8 *ucBuffer );
 s32 convertStringToInt( u8 *ucBuffer );
 u8 convertCharToInt( u8 ucChar );
 s32 seekStringInBuffer( u8 *ucString, u8 *ucBuffer, u32 ulLen  );

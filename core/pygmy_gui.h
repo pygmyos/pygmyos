@@ -326,6 +326,7 @@ void fontSetLarge( PYGMYFONT *pygmyFont );
 void fontSetAll( PYGMYFONT *pygmyFont );
 u8 fontLoad( PYGMYFILE *pygmyFile, PYGMYFONT *pygmyFont );
 
+void formFreeAll( void );
 void formCurrentSetColor( u8 ucR, u8 ucG, u8 ucB );
 void formCurrentSetBackColor( u8 ucR, u8 ucG, u8 ucB );
 void formCurrentSetAlphaColor( u8 ucR, u8 ucG, u8 ucB );
@@ -334,12 +335,14 @@ u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight );
 void formRemove( void );
 void formDrawAll( void );
 u8 formAddWidget( PYGMYWIDGET *pygmyWidget );
+u16 formGetWidgetCount( void );
 void formCallFocused( void );
 void formFocusNext( void );
 void formFocusPrevious( void );
 u8 formSetFocus( u16 uiSelected );
 PYGMYWIDGET *widgetGetCurrent( void );
 PYGMYWIDGET *widgetGetFocused( void );
+PYGMYWIDGET *widgetGet( u8 *ucName );
 void widgetRun( PYGMYWIDGET *pygmyWidget );
 u8 widgetAddEventHandler( PYGMYWIDGET *pygmyWidget, void *pygmyFunc, u8 ucEvent );
 
@@ -373,17 +376,19 @@ void guiSetCursor( u16 uiX, u16 uiY );
 u16 guiGetCursorX( void );
 u16 guiGetCursorY( void );
 void *guiGetCursor( void );
+/*
 void guiSetColor( u8 ucR, u8 ucG, u8 ucB );
 void guiSetBackColor( u8 ucR, u8 ucG, u8 ucB );
 void guiSetAlphaColor( u8 ucR, u8 ucG, u8 ucB );
 void guiSetFontColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB );
 void guiSetFontBackColor( PYGMYFONT *pygmyFont, u8 ucR, u8 ucG, u8 ucB );
 void guiApplyClearColor( void );
-            
+*/
+/*            
 void guiApplyColor( void );
 void guiApplyBackColor( void );
 void guiApplyFontColor( void );
-void guiApplyFontBackColor( void );
+void guiApplyFontBackColor( void );*/
 u16 guiGetCursorX( void );
 u16 guiGetCursorY( void );
 void *guiGetCursor( void );

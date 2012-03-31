@@ -85,32 +85,6 @@ void *guiGetCursor( void )
 {
     return( &globalGUI.Cursor );
 }
-/*
-void guiApplyClearColor( void )
-{
-    lcdSetColor( globalGUI.ClearColor.R, globalGUI.ClearColor.G, globalGUI.ClearColor.B );
-}
-
-void guiApplyColor( void )
-{
-    lcdSetColor( globalGUI.Color.R, globalGUI.Color.G, globalGUI.Color.B );
-}
-
-void guiApplyBackColor( void )
-{
-    lcdSetColor( globalGUI.BackColor.R, globalGUI.BackColor.G, globalGUI.BackColor.B );
-}
-
-void guiApplyFontColor( void )
-{
-    lcdSetColor( globalGUI.Font->Color.R, globalGUI.Font->Color.G, globalGUI.Font->Color.B );
-}
-
-void guiApplyFontBackColor( void )
-{
-    lcdSetColor( globalGUI.Font->BackColor.R, globalGUI.Font->BackColor.G, 
-        globalGUI.Font->BackColor.B );
-}*/
 
 void colorSetRGB( PYGMYCOLOR *pygmyColor, u8 ucR, u8 ucG, u8 ucB )
 {
@@ -998,15 +972,20 @@ void formCurrentSetClearColor( u8 ucR, u8 ucG, u8 ucB )
 
 u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight )
 {
-    PYGMYFORM *pygmyForms;
+    PYGMYFORM *pygmyForms = NULL;
     PYGMYWIDGET *newWidget;
 
+    print( COM3, "\rCreating Form..." );
     if( globalFormsStatus ){
-        pygmyForms = sysReallocate( globalForms, sizeof( PYGMYFORM ) * globalFormsLen ); 
+        print( COM3, "\r\tReallocating Form Data" );
+        pygmyForms = sysReallocate( globalForms, sizeof( PYGMYFORM ) * globalFormsLen + 1 ); 
     } else{
+        print( COM3, "\r\tAllocating Form Data" );
         pygmyForms = sysAllocate( sizeof( PYGMYFORM ) );
+        globalFormsStatus = 1;
     } // else
     if( !pygmyForms ){
+        print( COM3, "\rMemory Fail on Form Creation!" );
         return( 0 );
     } // if
     globalForms = pygmyForms;
@@ -1028,23 +1007,26 @@ u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight )
     colorCopy( &globalGUI.Color, &globalForms[ globalFormsLen ].Color );
     colorCopy( &globalGUI.FocusColor, &globalForms[ globalFormsLen ].FocusColor );
     colorCopy( &globalGUI.FocusBackColor, &globalForms[ globalFormsLen ].FocusBackColor );
-    ++globalFormsLen;
-    globalFormsStatus = 1;
+    ++globalFormsLen; 
     
     return( 1 );
 }
 
 void formRemove( void )
 {
-    PYGMYFORM *pygmyForms;
+    PYGMYFORM *pygmyForms = NULL;
 
     if( globalFormsLen ){
+        if( globalForms[ globalFormsLen - 1 ].Widgets ){
+            sysFree( globalForms[ globalFormsLen - 1 ].Widgets );
+        } // if
         pygmyForms = sysReallocate( globalForms, sizeof( PYGMYFORM ) * ( globalFormsLen - 1 ) );
+        if( pygmyForms ){
+            globalForms = pygmyForms;
+            --globalFormsLen;
+        } // if
     } // if
-    if( pygmyForms ){
-        globalForms = pygmyForms;
-        --globalFormsLen;
-    } // if
+    
 }
 
 void formDrawAll( void )
@@ -1078,8 +1060,15 @@ void formAddEventHandler( void *pygmyFunc, u8 ucEvent, u8 ucPin, u8 ucTrigger )
 
 PYGMYWIDGET *widgetGet( u8 *ucName )
 {
-
+    u16 i;
     
+    for( i = 0; i < globalForms[ globalFormsLen - 1 ].Len; i++ ){
+        if( isStringSame( globalForms[ globalFormsLen - 1 ].Widgets[ i ].String, ucName ) ){
+            return( &globalForms[ globalFormsLen - 1 ].Widgets[ i ] );
+        } // if
+    } // for
+
+    return( NULL );
 }
 
 PYGMYWIDGET *widgetGetFocused( void )
@@ -1233,25 +1222,67 @@ u16 formGetFocus( void )
     return( globalForms[ globalFormsLen - 1 ].Selected );
 }
 
+u16 formGetWidgetCount( void )
+{
+    return( globalForms[ globalFormsLen - 1 ].Len );
+}
+
 void formFocusNext( void )
 {
-    if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
-        return;
-    } // if
+    u16 i, uiSelected;
+
+    //if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
+    //    return;
+    //} // if
     print( COM3, "\rFocusNext" );
-    formEventHandler( LOSTFOCUS );
-    
-    if( globalForms[ globalFormsLen - 1 ].Selected < ( globalForms[ globalFormsLen - 1 ].Len - 1 ) ){
-        ++globalForms[ globalFormsLen - 1 ].Selected;
-    } else{
-        globalForms[ globalFormsLen - 1 ].Selected = 0;
-    } // else
-    formEventHandler( GOTFOCUS );
+    uiSelected = globalForms[ globalFormsLen - 1 ].Selected;
+    for( i = 0; i < globalForms[ globalFormsLen - 1 ].Len && i < 255; i++ ){
+        if( uiSelected < ( globalForms[ globalFormsLen - 1 ].Len ) ){
+            ++uiSelected;
+        } else{
+            uiSelected = 0;
+        } // else
+        if( globalForms[ globalFormsLen - 1 ].Widgets[ uiSelected ].Type == BUTTON ){
+            formEventHandler( LOSTFOCUS );
+            globalForms[ globalFormsLen - 1 ].Selected = uiSelected;
+            /*if( globalForms[ globalFormsLen - 1 ].Selected < ( globalForms[ globalFormsLen - 1 ].Len - 1 ) ){
+                ++globalForms[ globalFormsLen - 1 ].Selected;
+            } else{
+                globalForms[ globalFormsLen - 1 ].Selected = 0;
+            } // else
+            */
+            formEventHandler( GOTFOCUS );
+            return;
+        } // if
+    } // for
 }
 
 void formFocusPrevious( void )
 {
-    if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
+    u16 i, uiSelected;
+
+    uiSelected = globalForms[ globalFormsLen - 1 ].Selected;
+    for( i = 0; i < globalForms[ globalFormsLen - 1 ].Len && i < 255; i++ ){
+        if( uiSelected > 0 ){
+            --uiSelected;
+        } else{
+            uiSelected = globalForms[ globalFormsLen - 1 ].Len - 1;
+        } // else
+        if( globalForms[ globalFormsLen - 1 ].Widgets[ uiSelected ].Type == BUTTON ){
+            formEventHandler( LOSTFOCUS );
+            globalForms[ globalFormsLen - 1 ].Selected = uiSelected;
+            /*if( globalForms[ globalFormsLen - 1 ].Selected < ( globalForms[ globalFormsLen - 1 ].Len - 1 ) ){
+                ++globalForms[ globalFormsLen - 1 ].Selected;
+            } else{
+                globalForms[ globalFormsLen - 1 ].Selected = 0;
+            } // else
+            */
+            formEventHandler( GOTFOCUS );
+            return;
+        } // if
+    } // for
+
+    /*if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
         return;
     } // if
     print( COM3, "\rFocus Previous" );
@@ -1261,7 +1292,7 @@ void formFocusPrevious( void )
     } else{
         globalForms[ globalFormsLen - 1 ].Selected = globalForms[ globalFormsLen - 1 ].Len - 1;
     } // else
-    formEventHandler( GOTFOCUS );
+    formEventHandler( GOTFOCUS );*/
 }
 
 u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
@@ -1308,7 +1339,25 @@ u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
     return( TRUE );
 }
 
-void drawForms( void )
+void formFreeAll( void )
+{
+    u16 i;
+
+    if( globalForms ){
+        print( COM3, "\rFreeing form data" );
+        for( i = 0; i < globalFormsLen; i++ ){
+            if( globalForms[ i ].Widgets ){
+                sysFree( globalForms[ i ].Widgets );
+            } // if
+        } // form
+        sysFree( globalForms );
+    } // if
+    globalForms = NULL;
+    globalFormsStatus = 0;
+    globalFormsLen = 0;
+}
+
+void drawCurrentForm( void )
 { 
     PYGMYCOLOR *pygmyColor;
     u16 i, ii;
@@ -1331,6 +1380,28 @@ void drawForms( void )
     } // for
 }
 
+void drawForms( void )
+{ 
+    PYGMYCOLOR *pygmyColor;
+    u16 i, ii;
+   
+    for( i = 0; i < globalFormsLen; i++ ){
+        //print( COM3, "\rDrawing Form: %d", i );
+        //print( COM3, "\r\tLen: %d", globalForms[ i ].Len );
+        //print( COM3, "\r\tX,Y: %d,%d", globalForms[ i ].X, globalForms[ i ].Y );
+        //print( COM3, "\r\tWidth,Height: %d,%d", globalForms[ i ].Width, globalForms[ i ].Height );
+        
+        guiClearArea( &globalForms[ i ].ClearColor, globalForms[ i ].X, globalForms[ i ].Y, 
+            globalForms[ i ].X + globalForms[ i ].Width, 
+            globalForms[ i ].Y + globalForms[ i ].Height );
+        for( ii = 0; ii < globalForms[ i ].Len; ii++ ){
+            PYGMY_WATCHDOG_REFRESH;
+            //print( COM3, "\r\tDrawing Widget %d %s", ii, globalForms[ i ].Widgets[ ii ].String );
+            drawWidget( &globalForms[ i ].Widgets[ ii ] );
+        } // for
+    } // for
+}
+
 void drawWidget( PYGMYWIDGET *pygmyWidget )
 {
     PYGMYCOLOR pygmyColor, pygmyBackColor;
@@ -1342,20 +1413,8 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
         print( COM3, "\rWidget not visible" );
         return;
     } // if
-    //ulStyle = pygmyWidget->Style;
-    print( COM3, "\rWidget: %s", pygmyWidget->String );
-    /*print( COM3, "\r\tColorR: 0x%02X", pygmyWidget->Color.R );
-    print( COM3, "\r\tColorG: 0x%02X", pygmyWidget->Color.G );
-    print( COM3, "\r\tColorB: 0x%02X", pygmyWidget->Color.B );
-    print( COM3, "\r\tBackColorR: 0x%02X", pygmyWidget->BackColor.R );
-    print( COM3, "\r\tBackColorG: 0x%02X", pygmyWidget->BackColor.G );
-    print( COM3, "\r\tBackColorB: 0x%02X", pygmyWidget->BackColor.B );
-    print( COM3, "\r\tFocusColorR: 0x%02X", pygmyWidget->FocusColor.R );
-    print( COM3, "\r\tFocusColorG: 0x%02X", pygmyWidget->FocusColor.G );
-    print( COM3, "\r\tFocusColorB: 0x%02X", pygmyWidget->FocusColor.B );
-    print( COM3, "\r\tFocusBackColorR: 0x%02X", pygmyWidget->FocusBackColor.R );
-    print( COM3, "\r\tFocusBackColorG: 0x%02X", pygmyWidget->FocusBackColor.G );
-    print( COM3, "\r\tFocusBackColorB: 0x%02X", pygmyWidget->FocusBackColor.B );*/
+    //print( COM3, "\rWidget: %s", pygmyWidget->String );
+    
     ucRadius = globalGUI.Radius;
     
     if( pygmyWidget->Style & INVERT ){
@@ -1385,17 +1444,19 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
     fontSetColor( fontGetActive(), &pygmyColor );
     fontSetBackColor( fontGetActive(), &pygmyBackColor );
     if( pygmyWidget->Style & BORDER ){
-        print( COM3, "\r\tBorder" );
+        //print( COM3, "\r\tBorder" );
         
         drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style & ~FILLED, ucRadius );
     } // if 
     if( pygmyWidget->Type == BUTTON || pygmyWidget->Type == LABEL ){
-        if ( pygmyWidget->Type == BUTTON ){
+        /*if ( pygmyWidget->Type == BUTTON ){
             print( COM3, "\r\tButton" );
         } else{
             print( COM3, "\r\tLabel" );
-        } // else
+            //guiClearArea( colorGetRootClearColor(), pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
+            //    pygmyWidget->Y+pygmyWidget->Height );
+        } // else*/
         if( pygmyWidget->Style & FILLED ){
             print( COM3, "\r\tFilled with:" );
             print( COM3, " R: 0x%02X", pygmyBackColor.R );
@@ -1410,9 +1471,12 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
             uiY = ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
             uiX = 2 + ( ( pygmyWidget->Width - ( ( globalGUI.Font->Height - 7 ) * len( pygmyWidget->String ) ) ) / 2 );
             print( COM3, "\ruiX: %d", uiX );  
-        } // if
+        } else{
+            uiX = 0;
+            uiY = ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
+        } // else
     } else if( pygmyWidget->Type == CHECKBOX ){
-        print( COM3, "\r\tCheckbox" );
+        //print( COM3, "\r\tCheckbox" );
         //guiApplyColor();
         drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
@@ -1426,11 +1490,11 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
         uiX = 2 + pygmyWidget->Height;
         uiY = 2 + ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
         
-        print( COM3, "\rWidget Height: %d", pygmyWidget->Height );
-        print( COM3, "\rFont Height: %d", globalGUI.Font->Height );
-        print( COM3, "\ruiX: %d uiY: %d", uiX, uiY );
+        //print( COM3, "\rWidget Height: %d", pygmyWidget->Height );
+        //print( COM3, "\rFont Height: %d", globalGUI.Font->Height );
+        //print( COM3, "\ruiX: %d uiY: %d", uiX, uiY );
     } else if( pygmyWidget->Type == VSCROLLBAR ){
-        print( COM3, "\r\tVScroll" );
+        //print( COM3, "\r\tVScroll" );
         //guiApplyColor();
         drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );

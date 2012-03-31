@@ -419,12 +419,12 @@ void lcdSetColor( u8 ucR, u8 ucG, u8 ucB )
         ucR *= 3;
         ucG *= 2;
         ucB *= 3;
-    } /*else if( globalBPP == PYGMY_PBM_24BPP ){
+    } else if( globalBPP == PYGMY_PBM_24BPP ){
         ucR >>= 3;
         ucG >>= 2;
         ucB >>= 3;
     } // else if
-    */
+    
     globalPixel[ 0 ] = (u8)( ( ucR << 3 ) | ( ( ucG >> 3 ) & 0x07 ) );
     globalPixel[ 1 ] = (u8)( ( ( ucG << 5 ) & 0xE0 ) | ( ucB & 0x1F ) ) ;
 }
@@ -466,11 +466,11 @@ void lcdClearArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 )
     LCD_CS_LOW;   
     for( i = 0, ulLen = ( uiX2 - uiX1 ) * ( 1 + ( uiY2 - uiY1 ) ); i < ulLen; i++ ){
         LCD_A0_HIGH;
-        LCD_DATA_WR( globalPixel[ 0 ] );
+        LCD_DATA_WR( globalPixel[ 1 ] );
         //LCD_DATA_WR( (u8)( ( pygmyGlobalColors.BackColor.R << 3 ) |  ( ( pygmyGlobalColors.BackColor.G >> 3 ) & 0x07 ) ) );
         LCD_WR_LOW;
         LCD_WR_HIGH;
-        LCD_DATA_WR( globalPixel[ 1 ] );
+        LCD_DATA_WR( globalPixel[ 0 ] );
         //LCD_DATA_WR( (u8)( ( ( pygmyGlobalColors.BackColor.G << 5 ) & 0xE0 ) | ( pygmyGlobalColors.BackColor.B & 0x1F ) ) );
         LCD_WR_LOW;
         LCD_WR_HIGH;    

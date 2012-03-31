@@ -20,6 +20,8 @@
 
 #include "pygmy_profile.h"
 
+extern u8 globalHumidity[];
+
 #ifdef __PYGMYCOMMANDS
 u8 *globalCMDPrompt, *globalCMDError, *globalCMDUnsupported;
 #ifndef __PYGMY_MAXCOMMANDSPIPORTS
@@ -155,6 +157,20 @@ void cmdGetsCOM5( void )
     streamSetSTDIO( pygmySTDIO ); 
 }
 #endif // __PYGMYSTREAMCOM5
+
+#ifdef __PYGMYSTREAMSOCKET
+void cmdGetsSocket( void )
+{
+    u8 pygmySTDIO, *ucBuffer;
+    
+    ucBuffer = sysGetPrintSocketBuffer( );
+    print( COM3, ucBuffer );
+    pygmySTDIO = streamGetSTDIO();
+    streamSetSTDIO( SOCKET );
+    cmdExecute( ucBuffer, (PYGMYCMD*)PYGMYSTDCOMMANDS );
+    streamSetSTDIO
+}
+#endif // __PYGMYSTREAMSOCKET
 
 void cmdInit( void )
 {
@@ -298,6 +314,7 @@ u8 cmd_poke( u8 *ucBuffer )
 u8 cmd_ps( u8 *ucBuffer )
 {
     PYGMYCOMMANDQUEUE *pygmyQueue;
+    PYGMYMESSAGE pygmyMsg;
     PYGMYTASK pygmyTask;
     u16 i, ii;
     u8 *ucParam;
@@ -306,7 +323,18 @@ u8 cmd_ps( u8 *ucBuffer )
     if( ucParam ){
         if( isStringSame( ucParam, "-s" ) || isStringSame( ucParam, "--sockets" ) ){
             //rfListSockets();
-        } // if
+        } else if( isStringSame( ucParam, "-m" ) || isStringSame( ucParam, "--messages" ) ){
+            print( COM3, "\rMessages\r" );
+            for( i = 0; i < PYGMY_MAXTASKS; i++ ){
+                msgList( &pygmyMsg, i );
+                if( pygmyMsg.DestID != PYGMY_BLANKID || pygmyMsg.DestName[ 0 ] ){
+                    print( COM3, "\rMessage To: %s", pygmyMsg.DestName );
+                    print( COM3, "\r\tMessage: %s", pygmyMsg.Message );
+                    print( COM3, "\r\tValue: 0x%08X", pygmyMsg.Value );
+                    print( COM3, "\r\tTime: %t", pygmyMsg.TimeStamp );
+                } // if
+            } // for    
+        } // else if
     } // if
     print( STDIO, "\rTasks\r\r" );
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
@@ -734,37 +762,25 @@ u8 cmd_port( u8 *ucBuffer )
 
 u8 cmd_humidity( u8 *ucBuffer )
 {
-    PYGMYSPIPORT pygmySPI;
-    u16 uiPressure, uiTemp;
-
-    pinConfig( A4, OUT );
-    pinSet( A4, HIGH );
-    spiConfig( &pygmySPI, D0, D1, D3, D2 );
-    pinSet( D0, LOW );
-    spiWriteByte( &pygmySPI, 0x24 ); // Start Conversion
-    delay( 100 );
-    spiWriteByte( &pygmySPI, 0x00 ); // 
-    pinSet( D0, HIGH );
-
-    delay( 100 );
-
-    pinSet( D0, LOW );
-    spiWriteByte( &pygmySPI, 0x80 );
-    delay( 100 );
-    uiPressure = spiReadByte( &pygmySPI );
-    spiWriteByte( &pygmySPI, 0x82 );
-    delay( 100 );
-    uiPressure |= spiReadByte( &pygmySPI );
-    spiWriteByte( &pygmySPI, 0x84 );
-    delay( 100 );
-    uiTemp = (u16)spiReadByte( &pygmySPI )<<8;
-    spiWriteByte( &pygmySPI, 0x86 );
-    delay( 100 );
-    uiTemp |= spiReadByte( &pygmySPI );
-    pinSet( D0, HIGH );
+    u8 ucLen, *ucParams[ 2 ];
     
-    print( COM3, "\rPressure %d Temp %d\r> ", uiPressure, uiTemp );
-    pinSet( A4, LOW );
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    if( ucLen > 1 ){
+        socketSendControl( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
+    
+        return( TRUE );
+    } // if
+    
+    /*PYGMYFILE pygmyFile;
+    u8 ucBuf[ 20 ];
+    
+    if( fileOpen( &pygmyFile, "humidity.txt", WRITE ) ){
+        convertIntToString( humidityRead(), "%d", ucBuf );
+        filePutString( &pygmyFile, ucBuf );
+        fileClose( &pygmyFile );
+    } // if*/
+
+    return( FALSE );
 }
 
 u8 cmd_psend( u8 *ucBuffer )
@@ -781,14 +797,17 @@ u8 cmd_psend( u8 *ucBuffer )
 //--------------------------------------------------------------------------------------------
 u8 cmd_rflist( u8 *ucBuffer )
 {
-    rfListSockets();
+    socketList();
     
     return( TRUE );
 }
 
 u8 cmd_rfscan( u8 *ucBuffer )
 {
-    print( COM3, "\rLocal ID: %X", rfGetID() );
+    copyString( "Clicked...", globalHumidity );
+    drawForms();
+    
+    print( COM3, "\rLocal ID: %X", socketGetID() );
     //rfSendScanCommand( 0xFF );
     return( TRUE );
 }
@@ -799,7 +818,7 @@ u8 cmd_rfget( u8 *ucBuffer )
     
     ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
     if( ucLen > 1 ){
-        rfRequestFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
+        socketRequestFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
         //rfListSockets();
         return( TRUE );
     } // if
@@ -813,7 +832,7 @@ u8 cmd_rfput( u8 *ucBuffer )
     
     ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
     if( ucLen > 1 ){
-        rfSendFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
+        socketSendFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
         //rfListSockets();
         return( TRUE );
     } // if
@@ -831,31 +850,32 @@ u8 cmd_rfopen( u8 *ucBuffer )
     if( !ucParam ){
         return( 0 );
     } // if
-    //ulID = rfGetID();
-    //ucSocket = rfOpenSocket( convertStringToInt( ucParam ), RF_FILETX );
-    //if( ulID == 0x41B40AA8 ){
-    //    ucSocket = rfOpenSocket( 0x1FC60435, RF_COMLINK );
-    //} else {
-    //    ucSocket = rfOpenSocket( 0x41B40AA8, RF_COMLINK );
-    //} // else
-    //if( ucSocket == 0xFF ){
-    //    return( 0 );
-    //} // if
-    //rfSendOpenCommand( ucSocket, "test.txt" );
-    rfSendFile( convertStringToInt( ucParam ), "test.txt" );
+    socketOpenCommandLine( convertStringToInt( ucParam ) );
+    
+
     return( 1 );
 }
 
 u8 cmd_rfsend( u8 *ucBuffer )
 {
-    u8 *ucParam;
+    PYGMYSOCKET *pygmySocket;
+    u32 ulSocket;
+    u8 ucLen, *ucParams[ 2 ];
     
-    ucParam = getNextSubString( ucBuffer, NEWLINE );
-    if( ucParam ){
-        //rfPutString( ucParam );
+    ucParams[ 0 ] = getNextSubString( ucBuffer, WHITESPACE );
+    ucParams[ 1 ] = getNextSubString( NULL, NEWLINE );
+    if( ucParams[ 1 ] ){
+        ulSocket = convertStringToInt( ucParams[ 0 ] );
+        pygmySocket = socketGet( ulSocket, ulSocket );
+        ucLen = len( ucParams[ 1 ] );
+        ucParams[ 1 ][ ucLen ] = '\r';
+        ucParams[ 1 ][ ucLen + 1 ] = '\0';
+        socketSendDataFromString( pygmySocket, ucParams[ 1 ] );
+     
+        return( TRUE );
     } // if
-
-    return( 1 );
+    
+    return( FALSE );
 }
 
 //------------------------------------End Basic RFCommands------------------------------------

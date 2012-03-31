@@ -86,7 +86,7 @@ u8 sysInit( void )
 
     //sysHeapInit();
     pygmyGlobalData.Status = 0;
-    pygmyGlobalData.MCUID = DESC_STM32F103XLD;//descriptorGetID( );
+    pygmyGlobalData.MCUID = DESC_STM32F103XLD;//descriptorGetID( );//
     pygmyGlobalData.XTAL = 12000000;
     
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
@@ -119,6 +119,13 @@ u8 sysInit( void )
     #ifdef __PYGMYSTREAMS
         streamInit();
         
+        #ifdef __PYGMYSTREAMSOCKET
+            #ifdef __PYGMYCOMMANDS
+                streamSetGet( SOCKET, cmdGetsSOCKET );
+            #endif // __PYGMYCOMMANDS
+            streamSetRXBuffer( SOCKET, globalSocketBuffer, globalSocketBufferLen );
+            streamSetPut( SOCKET, putsSOCKET );
+        #endif
         #ifdef __PYGMYSTREAMUSB
         
         #endif
@@ -977,7 +984,7 @@ u8 msgDelete( u8 *ucName, u16 uiID )
 {
     u16 i;
     
-    i = getMessageIndex( ucName, uiID );
+    i = msgGetIndex( ucName, uiID );
     if( i != PYGMY_NOMESSAGE ){
         pygmyGlobalMessages[ i ].DestID         = PYGMY_BLANKID; 
         pygmyGlobalMessages[ i ].DestName       = NULL;
@@ -1007,7 +1014,6 @@ u16 msgGetIndex( u8 *ucName, u16 uiID )
     for( i = 0; i < PYGMY_MAXMESSAGES; i++ ){
         if( ( uiID && pygmyGlobalMessages[ i ].DestID == uiID ) || 
             ( ucName[ 0 ] && isStringSame( ucName, pygmyGlobalMessages[ i ].DestName ) ) ) {
-            
             return( i );
         } // if
     } // for
@@ -1021,6 +1027,7 @@ u8 msgGet( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg )
 
     i = msgGetIndex( ucName, uiID );
     if( i != PYGMY_NOMESSAGE ){
+        
         pygmyMsg->DestName          = pygmyGlobalMessages[ i ].DestName;
         pygmyMsg->Message           = pygmyGlobalMessages[ i ].Message;
         pygmyMsg->Value             = pygmyGlobalMessages[ i ].Value;
@@ -1033,7 +1040,7 @@ u8 msgGet( u8 *ucName, u16 uiID, PYGMYMESSAGE *pygmyMsg )
     return( 0 );
 }
 
-u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue )
+u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u32 ulValue )
 {
     u16 i;
     
@@ -1046,8 +1053,9 @@ u8 msgSend( u8 *ucName, u16 uiID, u8 *ucMessage, u16 uiValue )
             } // else
             pygmyGlobalMessages[ i ].DestName   = ucName;
             pygmyGlobalMessages[ i ].Message    = ucMessage;
-            pygmyGlobalMessages[ i ].Value      = uiValue;
+            pygmyGlobalMessages[ i ].Value      = ulValue;
             pygmyGlobalMessages[ i ].TimeStamp  = timeGet();
+            
             return( 1 );
         } // if
     } // for
@@ -1061,9 +1069,12 @@ u16 msgProcess( void )
     u16 i, ii;
 
     ulTime = timeGet();
+    //print( COM3, "\rProcessing Messages" );
     for( i = 0; i < PYGMY_MAXMESSAGES; i++ ){                       // Cycle through messages to check for any unserviced
+        //print( COM3, "." );
         if (  pygmyGlobalMessages[ i ].DestID && !( pygmyGlobalMessages[ i ].DestID & PYGMY_SERVICEDID ) ){// Serviced ID set after task notified
             // Check to make sure message hasn't gone stale, delete if it has
+            
             if( pygmyGlobalMessages[ i ].TimeStamp + 5 == ulTime ){
                 msgDelete( pygmyGlobalMessages[ i ].DestName, pygmyGlobalMessages[ i ].DestID );
                 //deleteMessage( &pygmyGlobalMessages[ i ] );
@@ -1210,7 +1221,7 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
         if( *ucBuffer == '%' ){ // Found format specifier
             // first collect precision, if any
             for( i = 0; i < 12 && ( isNumeric( *(++ucBuffer) ) || *ucBuffer == '-' 
-                || *ucBuffer == '+' ); i++ ){
+                || *ucBuffer == '+' || *ucBuffer == '.' ); i++ ){
                 sFormat[ i ] = *ucBuffer;
             } // for
             sFormat[ i ] = 0; // Terminate format string
@@ -1242,20 +1253,24 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
                         ii -= uiLen;
                     } else{
                         ii = 0;
-                    }
+                    } // if
                     for( i = 0; i < ii; i++ ){
                          globalStreams[ ucStream ].Put( ucValue );
                     } // for
                     globalStreams[ ucStream ].Put( sValue );
                 } // else
             } else if( *ucBuffer == 'i' || *ucBuffer == 'd' ||
-                *ucBuffer == 'x' || *ucBuffer == 'X' || *ucBuffer == 'o' ){
+                *ucBuffer == 'x' || *ucBuffer == 'X' || *ucBuffer == 'o' || *ucBuffer == 'f' ){
                 sFormat[ i++ ] = *ucBuffer; // PrintInteger requires format char
                 sFormat[ i ] = 0; // terminate at new index
-                convertIntToString( va_arg( ap, u32 ), sFormat, ucIntBuffer );
+                if( *ucBuffer == 'f' ){
+                    convertFloatToString( va_arg( ap, double ), sFormat, ucIntBuffer );
+                } else{
+                    convertIntToString( va_arg( ap, u32 ), sFormat, ucIntBuffer ); // was u32
+                } // else
                 globalStreams[ ucStream ].Put( ucIntBuffer );
-            } else if( *ucBuffer == 'f' ){
-            
+            //} else if( *ucBuffer == 'f' ){
+                
             } else if( *ucBuffer == 't' ){
                 convertSecondsToSystemTime( va_arg( ap, s32 ), &pygmyTime );
                 print( ucStream, "%04d-%02d-%02d %02d:%02d:%02d", pygmyTime.Year,pygmyTime.Month,pygmyTime.Day,
@@ -1311,25 +1326,36 @@ void setMainClock( u32 ulClock )
     SYSTICK->CTRL = 0x07;   // Enable system timer  
 }
 
+#pragma push_options
+#pragma optimize ("O0")
+void delayms( u32 ulDelay )
+{
+    delay( ulDelay( ulDelay * 1000 ) );
+}
+
 void delay( u32 ulDelay )
 {
     // This function uses a general purpose timer to provide an accurate microsecond delay
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
     
     TIMER *pygmyTimer;
+    u32 i;
     
     if( pygmyGlobalData.DelayTimer == PYGMY_TIMER1 ){
         // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
         // multipurpose timers and must share Timer1. In this case, Timer1
         // should not be used for PWM output.
-        //PYGMY_RCC_TIMER1_ENABLE;
+        
+        
+        PYGMY_RCC_TIMER1_ENABLE;
         TIM1->CR1 = 0;                          // Disable before configuring timer
+        ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
         if( ulDelay > 0x0000FFFF ){
             TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
             ulDelay &= 0x0000FFFF;
         } // 
-        ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
+        //ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
         if( ulDelay < 60 ){
             ulDelay = 60;
         } // 
@@ -1342,14 +1368,16 @@ void delay( u32 ulDelay )
         TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
     } else {
+        //
         pygmyTimer = sysGetTimer( pygmyGlobalData.DelayTimer );
-        
+        PYGMY_RCC_TIMER9_ENABLE;
         pygmyTimer->CR1 = 0;                          // Disable before configuring timer
+        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
         if( ulDelay > 0x0000FFFF ){
             pygmyTimer->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
             ulDelay &= 0x0000FFFF;
         } // 
-        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
+        //ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
         if( ulDelay < 60 ){ 
             // Minimum number of cycles supported
             ulDelay = 60;
@@ -1361,9 +1389,11 @@ void delay( u32 ulDelay )
         pygmyTimer->ARR =  ulDelay - 60; // Auto Reload Register
         pygmyTimer->SR = 0;
         pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
-        while( ( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
+        while(( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
+           
     } // else
 }
+#pragma pop_options
 
 void *sysGetTimer( u8 ucTimer )
 {

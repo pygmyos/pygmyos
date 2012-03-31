@@ -17,8 +17,12 @@
     You should have received a copy of the GNU Lesser General Public License
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
-
+#include <math.h>
+#include <float.h>
 #include "pygmy_profile.h"
+
+#define EPSILON 1.0e-7
+#define floatIsEqual(a, b) (fabs((a)-(b)) < EPSILON)
 
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
@@ -380,14 +384,15 @@ u8 *getNextSubString( u8 *ucBuffer, u8 ucMode )
             continue;
             } // if
         ucBuffer = ucIndex;
-        //for( ; *ucIndex && !Pygmy_TestWhiteSpace( *ucIndex ) && !Pygmy_TestPunctuation( *ucIndex ) ; ){
+        
         for( ; *ucIndex ; ){
             if( ( (ucMode & WHITESPACE) && isWhitespace( *ucIndex ) ) || 
                 ( (ucMode & PUNCT) && isPunctuation( *ucIndex ) ) ||
                 ( (ucMode & SEPARATORS) && isSeparator( *ucIndex ) ) ||
                 ( (ucMode & QUOTES) && isQuote( *ucIndex ) ) ||
                 ( (ucMode & NEWLINE) && isNewline( *ucIndex ) ) ||
-                ( (ucMode & COMMA) && *ucIndex == ',' ) ){
+                ( (ucMode & COMMA) && *ucIndex == ',' ) ||
+                ( (ucMode & ALPHA) && isAlpha( *ucIndex ) ) ){
                 break;
             } // if
             ++ucIndex;
@@ -478,7 +483,97 @@ s32 seekStringInBuffer( u8 *ucString, u8 *ucBuffer, u32 ulLen  )
     return( 0 );
 }
 
-u8 convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
+double convertStringToFloat( u8 *ucBuffer )
+{
+    // supports 20 chars precision for numerator and denominator plus terminator
+    // ucBuffer must be copied before modifying, ucBuffer may be const
+    double dNum, dDenom, dSign = 1.0;
+    u8 i, ucNum[21], ucDenom[21]; 
+
+    if( *ucBuffer == '-' ){
+        dSign = -1.0;
+        ++ucBuffer;
+    } else if( *ucBuffer == '+' ){
+        ++ucBuffer;
+    } // else if
+
+    for( i = 0; i < 21 && *ucBuffer && *ucBuffer != '.'; i++ ){
+        ucNum[ i ] = *(ucBuffer++);
+    } // for
+    ucNum[ i ] = '\0'; // Null Terminate
+    if( *ucBuffer == '.' ){
+        ++ucBuffer;
+    } // if
+    for( i = 0; i < 21 && *ucBuffer; i++ ){
+        ucDenom[ i ] = *(ucBuffer++);
+    } // for
+    ucDenom[ i ] = '\0'; // Null Terminate
+    dNum    = (double)convertStringToInt( ucNum );
+    dDenom  = (double)convertStringToInt( ucDenom );
+    
+    for( ; i; i-- ){
+        dDenom /= 10.0;
+    } // for
+    dNum = ( dNum + dDenom ) * dSign; 
+
+    return( dNum );
+}
+
+void convertFloatToString( double fData, u8 *ucFormat, u8 *ucBuffer )
+{
+    // Function only supports decimal floating point representations
+    double dNum, dDenom;
+	s32 lNum; 
+    u32 lDenom;
+	u8 ucPlaces, ucRPlaces, ucTmpFormat[16], ucIntFormat[8], ucLen, *ucParams[ 2 ];
+
+    dDenom = modf( fData, &dNum ); 
+    // First split float 
+    lNum = (s32)fData;
+    dDenom = fabs( modf( fData, &dNum ) ); 
+    // Next generate format strings for integer representation of numerator"%4.4f"
+    copyString( ucFormat, ucTmpFormat );
+    copyString( "%", ucIntFormat );
+    ucFormat = ucTmpFormat;
+    if( *ucFormat == '%' ){
+        ucFormat += 1;
+    } // if
+    ucLen = getAllSubStrings( ucFormat, ucParams, 2, PUNCT|ALPHA );
+    if( ucLen ){
+        appendString( ucParams[ 0 ], ucIntFormat );
+    } // if
+    appendString( "d", ucIntFormat );
+    // Output numerator
+    convertIntToString( lNum, ucIntFormat, ucBuffer );
+    appendString( ".", ucBuffer );
+    // Find places for denomiator and scale
+    if( ucLen == 2 ){
+        copyString( ucParams[ 1 ], ucIntFormat+2 );
+        ucPlaces = convertStringToInt( ucParams[ 1 ] );
+        ucLen = ucPlaces;
+    } else{
+        ucLen = DBL_DIG;
+    } // else
+    for( ucRPlaces = 0, lDenom = 0; ucRPlaces < ucLen; ucRPlaces++ ){
+        dDenom *= 10;
+        dDenom = modf( dDenom, &dNum );
+        if( floatIsEqual( dDenom, 0 ) ){
+            break;  
+        } // if
+        lDenom = ( lDenom * 10 ) + (u32)dNum;
+    } // for
+    if( ucLen == DBL_DIG ){
+        ucRPlaces = ucPlaces;
+    } // if
+    // Modify format string for denominator 
+    copyString( "%0", ucIntFormat );
+    convertIntToString( ucRPlaces, "%d", ucIntFormat+2 );
+    appendString( "d", ucIntFormat );
+    // Output denominator
+    convertIntToString( lDenom, ucIntFormat, ucBuffer+len( ucBuffer ) );
+}
+
+void convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
 {
     u8 ucTmpFormat[ 9 ];
     s64 i, iType, iLen, iMagnitude, iValue;
@@ -498,7 +593,7 @@ u8 convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
     if( *ucFormat == '%' ){
         ++ucFormat;
     } // if
-    //if( !isAlphaOrNumeric( *ucFormat ) || *ucFormat == '0' ){
+   
     if( *ucFormat == '0' ){
         ucPadding = *ucFormat;
         ++ucFormat;

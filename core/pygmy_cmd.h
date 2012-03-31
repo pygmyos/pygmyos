@@ -23,6 +23,7 @@
 #pragma once
 
 extern const PYGMYCMD STDCOMMANDS[];
+extern const PYGMYCMD PYGMYSTDCOMMANDS[];
 
 void cmdGetsCOM1( void );
 void cmdGetsCOM2( void );
