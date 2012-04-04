@@ -23,7 +23,7 @@
 u8 globalHumidityCR = 0;
 u8 globalHumidityPin, globalHumidityPower;
 
-float humidityRead( void )
+float hih5030Read( void )
 {
     float fReading;
 
@@ -34,33 +34,16 @@ float humidityRead( void )
     if( globalHumidityPower != 0 && pinGet( globalHumidityPower ) == LOW ){
         pinSet( globalHumidityPower, HIGH );
     } // if
-    delay( 60 );
-    //fReading = pinAnalog( globalHumidityPin );
-    //fReading = 3.3 * ((0.00636*fReading) + 0.1515);
-    //fReading = (( (float)pinAnalog( globalHumidityPin ) - 0.518) / 3.3) * 100;
+    delayms( 1 );
     fReading = (((double)pinAnalog( globalHumidityPin ) / (float)3300) * 3.3);
-
-            // Define the voltage the sensor returns at 0% humidity.
-    float zeroVoltage = 0.528;
-
-            /* It has been observed that some sensors are consistently 
-             * inaccurate and off by a certain voltage than what they 
-             * should be.  Use this variable to compensate for what the 
-             * voltage should be if needed. */
-    float calibrationVoltage = 0.00;
-
-            /* Determine the maxium voltage of the sensor with 
-                temperature compensation. */
+    // Define the voltage the sensor returns at 0% humidity.
     float maxVoltage = (2.1582 - (0.004426 * 75.0));
-
-            /* Determine the temperature compensated relative humidity 
-                as a percentage. */
-    fReading = ((fReading + calibrationVoltage - zeroVoltage) / maxVoltage) * 100;
+    fReading = ((fReading - 0.528) / maxVoltage) * 100;
 
     return( fReading );
 }
 
-void humidityInit( u8 ucAnalogPin, u8 ucPowerPin )
+void hih5030Init( u8 ucAnalogPin, u8 ucPowerPin )
 {
     globalHumidityCR = 1;
     globalHumidityPin = ucAnalogPin;
@@ -72,7 +55,7 @@ void humidityInit( u8 ucAnalogPin, u8 ucPowerPin )
     } // if
 }
 
-void humidityDisable( void )
+void hih5030Disable( void )
 {
     if( globalHumidityPower != 0 ){
         pinSet( globalHumidityPower, LOW );

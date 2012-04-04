@@ -568,6 +568,7 @@ u8 spiReadByte( PYGMYSPIPORT *pygmySPI );
             
 void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 uiSpeed );
 void i2cDelay( PYGMYI2CPORT *pygmyI2C );
+void i2cStretch( PYGMYI2CPORT *pygmyI2C );
 void i2cStart( PYGMYI2CPORT *pygmyI2C );
 void i2cStop( PYGMYI2CPORT *pygmyI2C );
 void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit );

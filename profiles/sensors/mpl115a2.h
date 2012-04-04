@@ -40,8 +40,12 @@
 #define MPL115A2_START_TEMP         0x11
 #define MPL115A2_START_PRESSURE     0x10
 
-u8 pressureInit( u8 ucSCL, u8 ucSDA, u8 ucSHUTDOWN, u8 ucRES );
-void pressureEnable( void );
-void pressureDisable( void );
-void pressureReset( void );
-float pressureReadkPa( void );
+u8 mpl115a2Init( u8 ucSCL, u8 ucSDA, u8 ucSHUTDOWN, u8 ucRES );
+u8 mpl115a2IsEnabled( void );
+void mpl115a2Enable( void );
+void mpl115a2Disable( void );
+void mpl115a2Reset( void );
+u8 mpl115a2GetChar( u8 ucAddress );
+u8 mpl115a2PutChar( u8 ucAddress, u8 ucChar );
+float mpl115a2ReadkPa( void );
+float mpl115a2ReadTemp( void );

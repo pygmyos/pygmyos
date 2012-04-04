@@ -74,3 +74,4 @@ u8 cmd_rfscan( u8 *ucBuffer );
 u8 cmd_rfopen( u8 *ucBuffer );
 u8 cmd_rfsend( u8 *ucBuffer );
 
+u8 cmd_eeprom( u8 *ucBuffer );

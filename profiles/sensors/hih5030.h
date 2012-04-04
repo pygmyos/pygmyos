@@ -18,7 +18,7 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-float humidityRead( void );
-void humidityInit( u8 ucAnalogPin, u8 ucPowerPin );
-void humidityDisable( void );
+float hih5030Read( void );
+void hih5030Init( u8 ucAnalogPin, u8 ucPowerPin );
+void hih5030Disable( void );
 

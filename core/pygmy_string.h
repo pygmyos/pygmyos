@@ -39,6 +39,7 @@ void convertU16ToBuffer( u16 uiData, u8 *ucBuffer, u8 ucEndian );
 void convertU32ToBuffer( u32 ulData, u8 *ucBuffer, u8 ucEndian );
 u16 convertBufferToU16( u8 *ucBuffer );
 u32 convertBufferToU32( u8 *ucBuffer );
+u8 isPrintable( u8 ucChar );
 s8 isSeparator( u8 ucChar );
 s8 isMathChar( u8 ucChar );
 s8 isQuoteChar( u8 ucChar );

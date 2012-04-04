@@ -17,6 +17,7 @@
 ***************************************************************************/
 
 #pragma once
+#include "pygmy_profile.h"
 
 #define AT24HC02B_ADDR0         0x50
 #define AT24HC02B_ADDR1         0x51
@@ -28,11 +29,15 @@
 #define AT24HC02B_ADDR7         0x57
 
 void eepromOpen( u8 ucAddress, u8 ucSCL, u8 ucSDA, u8 ucWP );
+void eepromEnableWP( void );
+void eepromDisableWP( void );
 void eepromErase( void );
-void eepromPutChar( u16 uiAddress, u8 ucChar );
-void eepromPutString( u16 uiAddress, u8 *ucBuffer );
-void eepromPutString( u16 uiAddress, u8 *ucBuffer );
-void eepromPutBuffer( u16 uiAddress, u8 *ucBuffer, u16 uiLen );
-u8 eepromGetChar( u16 uiAddress );
-void eepromGetBuffer( u16 uiAddress, u8 *ucBuffer, u16 uiLen );
+u8 *eepromQueryBus( void );
+u8 eepromGetAddress( void );
+void eepromPollAck( void );
+u8 eepromPutChar( u8 ucAddress, u8 ucChar );
+u8 eepromPutString( u8 ucAddress, u8 *ucBuffer );
+u8 eepromPutBuffer( u8 ucAddress, u8 *ucBuffer, u8 ucLen );
+u8 eepromGetChar( u8 ucAddress );
+void eepromGetBuffer( u8 ucAddress, u8 *ucBuffer, u8 ucLen );
 

@@ -20,7 +20,7 @@
 #include "profiles/eeprom/at24hc02b.h"
 
 PYGMYI2CPORT globalI2CEEPROM;
-u8 globalEEPROMWP;
+u8 globalEEPROMWP = 0;
 
 void eepromOpen( u8 ucAddress, u8 ucSCL, u8 ucSDA, u8 ucWP )
 {
@@ -30,9 +30,26 @@ void eepromOpen( u8 ucAddress, u8 ucSCL, u8 ucSDA, u8 ucWP )
         pinSet( globalEEPROMWP, HIGH );
     } // if
     i2cConfig( &globalI2CEEPROM, ucSCL, ucSDA, ucAddress, I2CSPEEDFAST );
-    //delay( 5000 );
-    //print( COM3, "\rEEPROM Ready" );
-    //i2cResetBus( &globalI2CEEPROM );
+    // Clear bus
+    i2cStart( &globalI2CEEPROM );
+    i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address );
+    i2cWriteByte( &globalI2CEEPROM, 0xFF );
+    i2cWriteByte( &globalI2CEEPROM, 0 );
+    i2cStop( &globalI2CEEPROM );
+}
+
+void eepromEnableWP( void )
+{
+    if( globalEEPROMWP != NONE ){
+        pinSet( globalEEPROMWP, HIGH );
+    } // if
+}
+
+void eepromDisableWP( void )
+{
+    if( globalEEPROMWP != NONE ){
+        pinSet( globalEEPROMWP, LOW );
+    } // if
 }
 
 void eepromErase( void )
@@ -40,68 +57,118 @@ void eepromErase( void )
     u16 i;
     u8 ucChar = 0xFF;
 
-    for( i = 0; i < 256; i++ ){
-        i2cWriteBuffer( &globalI2CEEPROM, (u8)i, &ucChar, 1 );
-        delay( 5000 );
+    for( i = 0; i < 0xFF; i++ ){
+        eepromPutChar( i, 0x00 );
+        if( !( i % 4 ) ){ 
+            print( STDIO, "." );
+        } // if
     } // for
 }
 
-void eepromPutChar( u16 uiAddress, u8 ucChar )
+u8 *eepromQueryBus( void )
 {
-    u16 i;
-    
-    i2cStart( &globalI2CEEPROM );
-    i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address );
-    i2cWriteByte( &globalI2CEEPROM, (u8)uiAddress );
-    i2cWriteByte( &globalI2CEEPROM, ucChar );
-    i2cStop( &globalI2CEEPROM );
-    //u8 *ucPtr;
-    
-    //ucPtr = ucChar;
-    //print( COM3, "\rWriting %c", ucChar );
-    //i2cWriteBuffer( &globalI2CEEPROM, (u8)uiAddress, &ucChar, 1 );
-    //print( COM3, " Waiting..." );
-    delay( 5000 );
-    //print( COM3, "Done." );
-}
+    static u8 ucEEPROM[ 8 ];
+    u8 i;
 
-void eepromPutString( u16 uiAddress, u8 *ucBuffer )
-{   
-    print( COM3, "\rWriting to EEPROM:" );
-    for( ; *ucBuffer; uiAddress++, ucBuffer++ ){
-        eepromPutChar( uiAddress, *(ucBuffer) );
-        print( COM3, " (%c %c)", *ucBuffer, eepromGetChar( uiAddress ) );
+    for( i = 0; i < 8; i++ ){
+        i2cStart( &globalI2CEEPROM );
         
-        //i2cWriteBuffer( &globalI2CEEPROM, (u8)uiAddress, ucBuffer, 1 );
-        //delay( 5000 );
+        if( i2cWriteByte( &globalI2CEEPROM, ( ( 0x50 + i ) << 1 ) | 1 ) ){
+            //print( COM3, "\rWB NACK" );
+            ucEEPROM[ i ] = 0; // NACK is high, if no ACK ( low ) read, then device not present
+        } else{
+            //print( COM3, "\rWB ACK" );
+            ucEEPROM[ i ] = 0x50 | i;
+        } // else
+        i2cStop( &globalI2CEEPROM );
     } // for
+
+    return( ucEEPROM );
 }
 
-void eepromPutBuffer( u16 uiAddress, u8 *ucBuffer, u16 uiLen )
+u8 eepromGetAddress( void )
 {
-    u16 i;
-
-    for( i = 0; i < uiLen; i++ ){
-        eepromPutChar( (u8)(uiAddress+i), *(ucBuffer++) );
-        //i2cWriteBuffer( &globalI2CEEPROM, (u8)(uiAddress+i), ucBuffer+i, i );
-        //delay( 5000 );
-    } // for
-}
-
-u8 eepromGetChar( u16 uiAddress )
-{
-    u16 i;
     u8 ucChar;
 
-    //i2cReadBuffer( &globalI2CEEPROM, (u8)uiAddress, &ucChar, 1 );
-
     i2cStart( &globalI2CEEPROM );
-    i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address );
-    
-    i2cWriteByte( &globalI2CEEPROM, (u8)uiAddress );
-    i2cStart( &globalI2CEEPROM );
+    //i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address | 1 ); // Read
     i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address | 1 ); // Read
     ucChar = i2cReadByte( &globalI2CEEPROM ); // Clock Out Byte
+    i2cWriteBit( &globalI2CEEPROM, 1 ); // High NACK to end sequence
+    i2cStop( &globalI2CEEPROM );
+
+    return( ucChar );
+}
+
+void eepromPollAck( void )
+{
+    u16 i;
+    u8 ucAck;
+
+    for( i = 0; i < 0xFFFF; i++  ){
+        i2cDelay( &globalI2CEEPROM );
+        i2cStart( &globalI2CEEPROM );
+        ucAck = i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address );
+        i2cStop( &globalI2CEEPROM );
+        if( !ucAck ){
+            //print( COM3, "\rFound Ack" );
+            break;
+        } // if
+    } // for
+}
+
+u8 eepromPutChar( u8 ucAddress, u8 ucChar )
+{
+    u8 i, ucRetry, ucAck;
+
+    PYGMY_WATCHDOG_REFRESH;
+    i2cStart( &globalI2CEEPROM );
+    i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address );
+    i2cWriteByte( &globalI2CEEPROM, ucAddress );
+    i2cWriteByte( &globalI2CEEPROM, ucChar );
+    i2cStop( &globalI2CEEPROM );
+    eepromPollAck();
+    //delayms( 5 );
+    
+    return( TRUE );
+}
+
+u8 eepromPutString( u8 ucAddress, u8 *ucBuffer )
+{   
+    for( ; *ucBuffer; ucAddress++, ucBuffer++  ){
+        if( !eepromPutChar( ucAddress, *ucBuffer ) ){
+            return( FALSE );
+        } // if
+    } // for
+    
+    return( TRUE );
+}
+
+u8 eepromPutBuffer( u8 ucAddress, u8 *ucBuffer, u8 ucLen )
+{
+    u8 i;
+
+    for( i = 0; i < ucLen; i++ ){
+        if( !eepromPutChar( ucAddress + i, *ucBuffer ) ){
+            return( FALSE );   
+        } // else
+    } // for
+    
+    return( TRUE );
+}
+
+u8 eepromGetChar( u8 ucAddress )
+{
+    u8 ucChar;
+
+    PYGMY_WATCHDOG_REFRESH;
+    i2cStart( &globalI2CEEPROM );
+    i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address );
+    i2cWriteByte( &globalI2CEEPROM, ucAddress );
+    //i2cStop( &globalI2CEEPROM );
+    i2cStart( &globalI2CEEPROM );
+    i2cWriteByte( &globalI2CEEPROM, globalI2CEEPROM.Address | 1 ); // Read
+    ucChar = i2cReadByte( &globalI2CEEPROM ); // Clock in Byte
     
     i2cWriteBit( &globalI2CEEPROM, 1 ); // High NACK to end sequence
     i2cStop( &globalI2CEEPROM );
@@ -109,7 +176,15 @@ u8 eepromGetChar( u16 uiAddress )
     return( ucChar );
 }
 
-void eepromGetBuffer( u16 uiAddress, u8 *ucBuffer, u16 uiLen )
+void eepromGetBuffer( u8 ucAddress, u8 *ucBuffer, u8 ucLen )
 {
-    i2cReadBuffer( &globalI2CEEPROM, (u8)uiAddress, ucBuffer, uiLen );
+    u8 i;
+
+    if( ucLen > 255 ){
+        return;
+    } // if
+    for( i = 0; i < ucLen; i++ ){
+        ucBuffer[ i ] = eepromGetChar( ucAddress + i );
+    } // for
+    //i2cReadBuffer( &globalI2CEEPROM, ucAddress, ucBuffer, ucLen );
 }

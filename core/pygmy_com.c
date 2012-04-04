@@ -495,6 +495,8 @@ void I2C3_ER_IRQHandler( void )
 
 void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 uiCR )
 {
+    u32 ulSpeed;
+
     pinConfig( ucSCL, PULLUP );
     pinConfig( ucSDA, PULLUP );
     
@@ -505,42 +507,68 @@ void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 ui
                         
     pygmyI2C->PinSCL    = PYGMY_BITMASKS[ ucSCL % 16 ];
     pygmyI2C->PinSDA    = PYGMY_BITMASKS[ ucSDA % 16 ];
-    //pygmyI2C->Speed     = uiSpeed;
+    
     pygmyI2C->Address   = ucAddress << 1;
     if( uiCR ){
         pygmyI2C->CR    = uiCR;
     } else{
         pygmyI2C->CR    = I2CSPEEDFAST;
     } // else
+    
+    // This function assumes a 50 MHz maximum GPIO speed!
+    ulSpeed = sysGetMainClock();
+    if( ulSpeed > 50000000 ){
+        ulSpeed  = 50000000;
+    } // if
+    if( pygmyI2C->CR & I2CSPEEDSTANDARD ){
+        ulSpeed /= ( 100000 * 4 );
+    } else if( pygmyI2C->CR & I2CSPEEDFAST ){
+        ulSpeed /= ( 400000 * 4 );
+    } else if( pygmyI2C->CR & I2CSPEEDFASTPLUS ){
+        ulSpeed /= ( 1000000 * 4 );
+    } else if( pygmyI2C->CR & I2CSPEEDHIGH ){
+        ulSpeed /= ( 3400000 * 4 );
+    } else{ 
+        // Low Speed Default
+        ulSpeed /= ( 10000 * 4 );
+    } // else
+    pygmyI2C->Speed     = ulSpeed;
 }
 
 void i2cDelay( PYGMYI2CPORT *pygmyI2C ) 
 { 
-    u16 uiDelay; 
-    
-    //uiDelay = sysGetMainClock( ) / 
-    // ToDo: Add delay calculation code
-    //delay( pygmyI2C->Speed );
+    u16 i;
+
+    for( i = 0; i < pygmyI2C->Speed; i++ ){
+        asm( "nop" );
+    } // if
 }
  
+void i2cStretch( PYGMYI2CPORT *pygmyI2C )
+{
+    u32 i;
+
+    //pinSet( MCO, LOW );
+    for( i = 0; i < 0xFFFF; i++ ){
+        if( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ){
+            break;
+        } // if
+    } // for
+    
+    //pinSet( MCO, HIGH );
+}
  
 void i2cStart( PYGMYI2CPORT *pygmyI2C )
 {
     u16 i;
     
-    // if already started then restart
-    //if ( pygmyI2C->Status ) {
-        // float SDA  
-        pinConfig( pygmyI2C->SDA, PULLUP );
-        i2cDelay( pygmyI2C );
-        // allow clock stretching
-        pinConfig( pygmyI2C->SCL, PULLUP );
-        for( i = 0; i < 0xFFFF; i++ ){
-            if( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ){
-                break;
-            } // if
-        } // for
-    //}
+    // Allow SDA to float
+    pinConfig( pygmyI2C->SDA, PULLUP );
+    i2cDelay( pygmyI2C );
+    // allow clock stretching
+    pinConfig( pygmyI2C->SCL, PULLUP );
+    i2cStretch( pygmyI2C );   
+   
     if ( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
         // ToDo: Handle loss of arbitration
     } //
@@ -551,8 +579,6 @@ void i2cStart( PYGMYI2CPORT *pygmyI2C )
     
     pygmyI2C->PortSCL->ODR &= ~pygmyI2C->PinSCL; // set state before setting to output
     pinConfig( pygmyI2C->SCL, OUT );
-    
-    //pygmyI2C->Status = 1; // mark transaction as started
 }
  
 void i2cStop( PYGMYI2CPORT *pygmyI2C )
@@ -562,20 +588,22 @@ void i2cStop( PYGMYI2CPORT *pygmyI2C )
     pygmyI2C->PortSDA->ODR &= ~pygmyI2C->PinSDA; // set state before setting to output 
     pinConfig( pygmyI2C->SDA, OUT ); // set to output to drive low
     i2cDelay( pygmyI2C );
-    // allow clock stretching   
+    // Allow for SCL stretching   
     pinConfig( pygmyI2C->SCL, PULLUP );
-    for( i = 0; i < 0xFFFF; i++ ){
+    /*for( i = 0; i < 0xFFFF; i++ ){
         if( !( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ) ){
             break;
         } // if
     } // for 
-    // while SCL is high, allow SDA to float high and check state
+    print( COM3, "\rSCL: %d", i );*/
+    i2cStretch( pygmyI2C );
+    // Allow SDA to float and check state
     pinConfig( pygmyI2C->SDA, PULLUP );
     if ( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
+        print( COM3, "\rBus error!" );
         // ToDo: Handle loss of arbitration
     } // 
-    i2cDelay( pygmyI2C );
-    //pygmyI2C->Status = 0; // Transaction terminated
+    //i2cDelay( pygmyI2C );
 }
  
 void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit )
@@ -592,13 +620,15 @@ void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit )
     i2cDelay( pygmyI2C );
     // allow clock stretching 
     pinConfig( pygmyI2C->SCL, PULLUP );
-    for( i = 0; i < 0xFFFF; i++ ){
-        if( !( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ) ){
+    /*for( i = 0; i < 0xFFFF; i++ ){
+        //if( !( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ) ){
+        if( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ){
             break;
         } // if
     } // for
-    // once SCL is high data is valid ( clocked in ) 
-    // If SDA should be 1, check that SDA isn't being driven by another node
+    print( COM3, "\rSCL: %d", i );*/
+    i2cStretch( pygmyI2C );
+    // If SDA should be 1, check that it isn't being push/pulled by another device
     
     if ( ucBit ){  
         pinConfig( pygmyI2C->SDA, PULLUP );  
@@ -619,21 +649,23 @@ u8 i2cReadBit( PYGMYI2CPORT *pygmyI2C )
     u8 ucBit;
 
     pinConfig( pygmyI2C->SDA, PULLUP );
-    i2cDelay( pygmyI2C );
     // allow clock stretching 
+    i2cDelay( pygmyI2C );
     pinConfig( pygmyI2C->SCL, PULLUP );
-    for( i = 0; i < 0xFFFF; i++ ){
-        if( !( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ) ){
-            break;
-        } // if
-    } // for
     
-    // data clock in with SCL high
+    i2cStretch( pygmyI2C );
+    
+    // Clock in whenSCL high
+    
+    //print( COM3, "\rTest ACK" );
     if( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ){
+        //print( COM3, "\rReadBit NACK" );
         ucBit = 1;
     } else{
+        //print( COM3, "\rACK" );
         ucBit = 0;
     } // else
+    
     i2cDelay( pygmyI2C );
     pygmyI2C->PortSCL->ODR &= ~pygmyI2C->PinSCL; // set state before setting to output
     pinConfig( pygmyI2C->SCL, OUT );
@@ -689,6 +721,7 @@ u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte )
     if( ucAck ){
         // ToDo: Add code to handle Ack error
     } // if
+
     return( ucAck );
 }
  
@@ -703,13 +736,23 @@ u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C )
     } // for
     i2cWriteBit( pygmyI2C, 0 ); // Low ACK
     //pinConfig( pygmyI2C->SDA, PULLUP );
-
+    //PYGMY_WATCHDOG_REFRESH;
     return( ucByte );
 }
 
 void i2cResetBus( PYGMYI2CPORT *pygmyI2C )
 {
-    i2cWriteByte( pygmyI2C, 0 );
+    u8 i;
+
+    //pinSet( MCO, LOW );
+    i2cStart( pygmyI2C );
+    for ( i = 0; i < 8; i++ ){
+        i2cWriteBit( pygmyI2C, 1 );
+    } // for
+    i2cReadBit( pygmyI2C );
+    i2cStart( pygmyI2C );
+    i2cStop( pygmyI2C );
+    //pinSet( MCO, HIGH );
 }
 
 //--------------------------------------I2C Software Interface-------------------------------------

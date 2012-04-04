@@ -156,6 +156,15 @@ u32 convertBufferToU32( u8 *ucBuffer )
     return( ii );
 }
 
+u8 isPrintable( u8 ucChar )
+{
+    if( ucChar > 31 && ucChar < 127 ){
+        return( TRUE );
+    } // if
+
+    return( FALSE );
+}
+
 s8 isCharInString( u8 ucChar, u8 *ucChars )
 {
     for( ; *ucChars; ) {

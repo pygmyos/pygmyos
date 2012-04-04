@@ -86,7 +86,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     #ifdef __PYGMYVOLTAGESHIELD
                                     {(u8*)"voltshield", cmd_voltshield},
                                     #endif
-                                    
+                                    {(u8*)"eeprom",     cmd_eeprom},
                                     {(u8*)"", cmdNull} // No Commands after NULL
                                     }; 
 
@@ -880,4 +880,72 @@ u8 cmd_rfsend( u8 *ucBuffer )
 
 //------------------------------------End Basic RFCommands------------------------------------
 //--------------------------------------------------------------------------------------------
+
+u8 cmd_eeprom( u8 *ucBuffer )
+{
+    u8 i, ucChar, ucLen, ucMemory[ 128 ], *ucParams[ 4 ], *ucEeproms;
+    
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 6, WHITESPACE );
+    if( !ucLen ){
+        return( FALSE );
+    } // if
+    if( isStringSame( ucParams[ 0 ], "list" ) ){
+        if( ucLen == 3 ){
+            eepromOpen( 0x50, convertStringToPin( ucParams[ 1 ] ), 
+                convertStringToPin( ucParams[ 2 ] ), NONE );
+        } else if( ucLen == 4 ){
+            eepromOpen( convertStringToInt( ucParams[ 1 ] ), convertStringToPin( ucParams[ 2 ] ), 
+                convertStringToPin( ucParams[ 3 ] ), NONE );
+        } else{
+            return( FALSE );
+        } // else
+        
+        print( STDIO, "\rEEPROMs:" );
+        ucEeproms = eepromQueryBus();
+        for( i = 0; i < 8; i++ ){
+            if( ucEeproms[ i ] ){
+                print( STDIO, "\r0x%02X", ucEeproms[ i ] );
+            } // if
+        } // for
+    } else if( isStringSame( ucParams[ 0 ], "open" ) ){
+        if( ucLen < 4 ){
+            return( FALSE );
+        } // if
+        eepromOpen( convertStringToInt( ucParams[ 1 ] ), convertStringToPin( ucParams[ 2 ] ), 
+            convertStringToPin( ucParams[ 3 ] ), NONE );
+    } else if( isStringSame( ucParams[ 0 ], "write" ) ){
+        if( ucLen < 3 ){
+            return( FALSE );
+        } // if
+        eepromPutString( convertStringToInt( ucParams[ 1 ] ), ucParams[ 2 ] );
+        for( i = 0; i < ucLen - 3; i++ ){
+            eepromPutString( convertStringToInt( ucParams[ 1 ] ), " " );
+            eepromPutString( convertStringToInt( ucParams[ 1 ] ), ucParams[ 2 + i ] );
+        } // for
+    } else if( isStringSame( ucParams[ 0 ], "read" ) ){
+        i = 0;
+        if( ucLen == 2 ){
+            ucLen = convertStringToInt( ucParams[ 1 ] );
+        } else if( ucLen == 3 ){
+            i = convertStringToInt( ucParams[ 1 ] );
+            ucLen = convertStringToInt( ucParams[ 2 ] );
+        } else{
+            ucLen = 255;
+        } // else
+        //eepromGetBuffer( 0, ucMemory, 256 );
+        for( ; i < ucLen; i++ ){
+            ucChar = eepromGetChar( i );
+            if( isPrintable( ucChar ) ){
+                print( STDIO, "%c", ucChar );
+            } // if
+        } // for
+    } else if( isStringSame( ucParams[ 0 ], "erase" ) ){
+        eepromErase( );
+    } else{
+        return( FALSE );
+    } // else
+
+    return( TRUE );
+}
+
 #endif // __PYGMYCOMMANDS

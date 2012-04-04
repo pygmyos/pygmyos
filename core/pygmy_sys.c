@@ -1330,7 +1330,7 @@ void setMainClock( u32 ulClock )
 #pragma optimize ("O0")
 void delayms( u32 ulDelay )
 {
-    delay( ulDelay( ulDelay * 1000 ) );
+    delay( ulDelay * 1000 );
 }
 
 void delay( u32 ulDelay )
