@@ -84,7 +84,6 @@ u8 sysInit( void )
 {
     u16 i;
 
-    //sysHeapInit();
     pygmyGlobalData.Status = 0;
     pygmyGlobalData.MCUID = DESC_STM32F103XLD;//descriptorGetID( );//
     pygmyGlobalData.XTAL = 12000000;
@@ -207,6 +206,12 @@ u8 sysInit( void )
 	return( 0 );
 }
 
+float sysGetADCVoltage( void )
+{
+    return( 3.3 );
+}
+
+/*
 void sysSetPipe( u8 ucPortFrom, u8 ucPortTo )
 {
     // ToDo: Finish stream piping
@@ -218,7 +223,7 @@ void sysSetPipe( u8 ucPortFrom, u8 ucPortTo )
     #endif // __PYGMYCOMMANDS
     
     streamSetPut( COM3, putsUSART3 );
-}
+}*/
 
 void sysEnableComClock( u8 ucPort )
 {
@@ -711,7 +716,6 @@ u16 sysCRC16( u8 *ucBuffer, u16 uiLen )
     return( uiCRC );
 }
 
-#ifdef __PYGMYSTREAMS
 u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum )
 {
     static u32 ulAccumulator, ulMask, ulIndex;
@@ -744,6 +748,7 @@ u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum )
     return( ucFrameComplete );
 }
 
+#ifdef __PYGMYSTREAMS
 void pdiaPrintInteger( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucFormat, u32 ulData )
 {
     u8 ucBuffer[ 20 ];

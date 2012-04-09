@@ -18,25 +18,7 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-// Warning!!! All addresses defined below are left shifted i nibble ( 4 bits )
-#define DIGIPOT_WIPER0          0x00
-#define DIGIPOT_WIPER1          0x10 
-#define DIGIPOT_TCON0           0x40
-#define DIGIPOT_STATUS          0x50
-#define DIGIPOT_WIPER2          0x60
-#define DIGIPOT_WIPER3          0x70
-#define DIGIPOT_TCON1           0xA0
+void scriptLoad( u8 *ucName );
+u8 *scriptLoadLine( void );
+u16 scriptAddChar( u8 ucChar, u16 uiLen, u16 uiPos, u8 *ucBuffer );
 
-// Warning!!! All commands defined below are left shifted 2 bits
-#define DIGIPOT_CMD_WRITE       0x00
-#define DIGIPOT_CMD_INC         0x04
-#define DIGIPOT_CMD_DEC         0x08
-#define DIGIPOT_CMD_READ        0x0C
-
-#define DIGIPOT_BASEADDRESS     0x2C 
-
-u8 digipotPutChar( PYGMYI2CPORT *pygmyI2C, u8 ucAddress, u8 ucChar );
-u8 digipotIncWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper );
-u8 digipotDecWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper );
-u8 digipotSetWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper, u16 uiPos );
-u16 digipotGetWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper );

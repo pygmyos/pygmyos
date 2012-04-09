@@ -582,7 +582,7 @@ u8 pinAddSoftPWM( u8 ucPin, u32 ulFreq, u8 ucDutyCycle )
         globalPygmyPWM[ i ].DownCount = globalPygmyPWMFreq / ( ulFreq * ( 100 / ( 100 - ucDutyCycle ) ) );
         if( ( globalPygmyPWM[ i ].UpCount + globalPygmyPWM[ i ].DownCount ) > globalPygmyPWMFreq ){
             // main counter has insufficient resolution
-            print( COM3, "\rInsufficient resolution" );
+            // print( COM3, "\rInsufficient resolution" ); // Debug Output
             return( 0 );
         } // if
         globalPygmyPWM[ i ].CR = PYGMY_PWM_EN;

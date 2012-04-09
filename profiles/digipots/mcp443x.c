@@ -46,6 +46,22 @@
 
 u8 const PYGMYDIGIPOTWIPERS[] = { DIGIPOT_WIPER0, DIGIPOT_WIPER1, DIGIPOT_WIPER2, DIGIPOT_WIPER3 };
 
+/*u8 digipotPutChar( PYGMYI2CPORT *pygmyI2C, u8 ucAddress, u8 ucChar )
+{
+    u8 i, ucRetry, ucAck;
+
+    PYGMY_WATCHDOG_REFRESH;
+    i2cStart( pygmyI2C );
+    i2cWriteByte( pygmyI2C, pygmyI2C->Address );
+    i2cWriteByte( pygmyI2C, ucAddress );
+    i2cWriteByte( pygmyI2C, ucChar );
+    i2cStop( pygmyI2C );
+    //eepromPollAck();
+    //delayms( 5 );
+    
+    return( TRUE );
+}*/
+
 u8 digipotIncWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper )
 {
     u8 ucCmd;
@@ -68,7 +84,7 @@ u8 digipotDecWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper )
         return( FALSE );
     } // if
     ucCmd = PYGMYDIGIPOTWIPERS[ ucWiper ] | DIGIPOT_CMD_DEC;
-    
+    //i2cPutChar( pygmyI2C, ucCmd
     i2cWriteBuffer( pygmyI2C, ucCmd, NULL, 0 );
     
     return( TRUE );
@@ -76,15 +92,21 @@ u8 digipotDecWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper )
 
 u8 digipotSetWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper, u16 uiPos )
 {
-    u8 ucCmd, ucData[ 1 ];
+    u8 ucCmd, ucMSB;//, ucData[ 1 ];
 
     if( ucWiper > 3 ){
         return( FALSE );
     } // if
-    ucCmd = PYGMYDIGIPOTWIPERS[ ucWiper ] | DIGIPOT_CMD_WRITE | ( uiPos & BIT8 );
-    ucData[ 0 ] = (u8)uiPos;
-    i2cWriteBuffer( pygmyI2C, ucCmd, ucData, 1 );
-    
+    if( uiPos & BIT8 ){
+        ucMSB = 1;
+    } else{
+        ucMSB = 0;
+    } // else
+    ucCmd = PYGMYDIGIPOTWIPERS[ ucWiper ] | DIGIPOT_CMD_WRITE | ucMSB;//;
+    //ucData[ 0 ] = (u8)uiPos;
+    //i2cWriteBuffer( pygmyI2C, ucCmd, ucData, 1 );
+    print( COM3, "\rSetting wiper%d: 0x%02X 0x%02X", ucWiper, ucCmd, (u8)uiPos );
+    i2cPutChar( pygmyI2C, ucCmd, (u8)uiPos );
     return( TRUE );
 
 }
@@ -100,6 +122,7 @@ u16 digipotGetWiper( PYGMYI2CPORT *pygmyI2C, u8 ucWiper )
     ucCmd = PYGMYDIGIPOTWIPERS[ ucWiper ] | DIGIPOT_CMD_READ;
     i2cReadBuffer( pygmyI2C, ucCmd, ucData,  2 );
     uiWiperPos = ((u16)ucData[ 0 ] << 9 ) | ucData[ 1 ];
-
+    
+    print( COM3, "\rCmd1 %d", ucCmd );
     return( uiWiperPos );
 }

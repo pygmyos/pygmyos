@@ -18,11 +18,10 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#include "pygmy_profile.h"
 
 #pragma once
-
-
+#include "pygmy_profile.h"
+#include "pygmy_file.h"
 
 #define RF_NOP                        0xFF 
 #define RF_READ                       0x00 // 5 LSb are Address Bits
@@ -177,15 +176,7 @@
 #define RF_CLASS3            (BIT7|BIT6)
 */
 
-#define RF_MAXSOCKETS       32
-
-#define RF_CMD_MASK         0xE0
-#define RF_SCAN             0
-#define RF_OPEN             0x20    
-#define RF_CLOSE            0x40
-#define RF_DATA             0x60
-#define RF_ACK              0x80
-#define RF_NACK             0xA0
+//#define RF_MAXSOCKETS       32
  
 #define RF_TYPE_MASK        0x7F    
 #define RF_TX               0x80
@@ -196,102 +187,8 @@ enum{   RF_250KBPS = 1,
         RF_2MBPS
     };
 
-enum{   
-        RF_BLANK,           // 
-        RF_COMLINK,         // Com Link
-        RF_FILE,            // File TX Request
-        RF_AVSTREAM,        // AV Streaming Data         
-        RF_CONTROL,         // Control/Movement
-        RF_CMDLINE
-    };
 
-typedef struct {
-                PYGMYFILE File;
-                //PYGMYFUNC Action;
-                u32 StartTime;
-                u32 LastActive;
-                u32 ExpireTime;
-                u32 DestID;
-                u32 SrcID;
-                u8 Command;
-                u8 Type;
-                u8 Chunk;
-                u8 Len;
-                u8 Retry;
-                u8 MaxRetries;
-                u8 PayloadLen;
-                u8 *Buffer;     // Socket Code assumes Buffer is dynamically allocated
-                u8 BufferLen;
-                u8 BufferIndex;
-                u8 *Name;       // Socket Code assumes Name is dynamically allocated
-                u8 Payload[ 32 ];
-                u8 CR;
-                } PYGMYSOCKET;
-
-typedef struct {
-                u32 DestID; // socket is LSB nibble
-                u32 SrcID; // socket is LSB nibble
-                u16 CRC;
-                u8 Command;
-                u8 Len;
-                u8 Chunk;
-                u8 Type;
-                u8 Payload[ 25 ];
-                } PYGMYPACKET;
-                
-/* 
 void rfRX( void );
-u32 rfGetID( void );  
-            
-void rfProcessPacket( u8 *ucBuffer, u8 ucLen );
-u8 rfLoadPacket( u8 *ucBuffer, PYGMYRFPACKET *pygmyPacket );        
-void rfSendPacket( PYGMYRFPACKET *pygmyPacket );            
-//u8 rfGetSocket( u32 uiID );
-            
-u8 rfFindSocket( u32 ulDest );
-void rfInitSockets( void );
-void rfCloseSocket( u8 ucSocket );
-void rfListSockets( void );
-u8 rfOpenSocket( u32 ulDest, u8 ucType );
-void rfSendOpenSocket( u32 ulDest, u8 ucType );
-void rfSendOpenCommand( u8 ucSocket, u8 *ucParams );
-void rfSendCloseCommand( u8 ucSocket );
-void rfSendNextCommand( u8 ucSocket );
-void rfSendLastCommand( u8 ucSocket );
-            
-u8 rfReceiveFile( u8 *ucParams );        
-u8 rfSendFile( u8 *ucParams );
-u8 rfProcessSocket( PYGMYRFPACKET *pygmyPacket );
-*/
-
-void threadSocketMonitor( void );
-u32 socketGetID( void );
-void rfRX( void );
-u8 socketHandler( u8 *ucBuffer );//PYGMYPACKET *pygmyPacket );
-void socketInit( void );
-void socketList( void );
-PYGMYSOCKET *socketGet( u32 ulDestID, u32 ulSrcID );
-void socketCopy( PYGMYSOCKET *fromSocket, PYGMYSOCKET *toSocket );
-void socketClose( PYGMYSOCKET *pygmySocket );
-PYGMYSOCKET *socketOpenFromPacket( PYGMYPACKET *pygmyPacket );
-PYGMYSOCKET *socketOpen( u32 ulDestID, u8 ucType );
-void socketFile( PYGMYSOCKET *pygmySocket, u8 *ucFileName, u8 ucTX );
-u8 socketSendFile( u32 ulDestID, u8 *ucFileName );
-u8 socketRequestFile( u32 ulDestID, u8 *ucFileName );
-u8 socketSaveData( PYGMYSOCKET *pygmySocket, PYGMYPACKET *pygmyPacket );
-void socketResend( PYGMYSOCKET *pygmySocket );
-void socketSendClose( PYGMYSOCKET *pygmySocket );
-void socketSendData( PYGMYSOCKET *pygmySocket );
-void socketSendAck( PYGMYSOCKET *pygmySocket );
-void socketSendNack( PYGMYSOCKET *pygmySocket );
-void socketSendDataFromString( PYGMYSOCKET *pygmySocket, u8 *ucString );
-u8 socketSendControl( u32 ulDestID, u8 *ucTaskName );
-u8 socketRequestControl( u32 ulDestID, u8 *ucTaskName );
-void socketControl( PYGMYSOCKET *pygmySocket, u8 *ucTaskName, u8 ucTX );
-u8 socketRequestCommandLine( u32 ulDestID );
-u8 socketOpenCommandLine( u32 ulDestID );
-void socketCommandLine( PYGMYSOCKET *pygmySocket, u8 ucTX );
-
 void rfSetTXPower( u8 ucDataRate, u8 ucPower );
 void rfFlushTX( void );
 void rfFlushRX( void );

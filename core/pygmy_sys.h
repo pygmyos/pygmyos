@@ -1234,6 +1234,7 @@ u8 putsLCD( u8 *ucBuffer );
 
 void clearRTCFlags( void );
 
+float sysGetADCVoltage( void );
 void *sysAllocate( u32 ulLen );
 void *sysReallocate( void *vPtr, u32 ulLen );
 void sysFree( void *vPtr );

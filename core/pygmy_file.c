@@ -607,7 +607,7 @@ u16 fileGetName( u16 uiFileEntry, u8 *ucName )
 {
     // This function is incremental in nature and designed to provided
     // listing information
-    u32 ulAddress;
+    //u32 ulAddress;
     u16 uiID;
     u8 i, ucBuffer[ 16 ];
 
@@ -650,7 +650,7 @@ u16 fileGetName( u16 uiFileEntry, u8 *ucName )
 
 u16 fileSeekName( u8 *ucName )
 {
-    u32 i, ii;
+    u32 i;//, ii;
     u8 ucBuffer[ 13 ];
     
     for( i = 0; i < pygmyRootVolume.MaxFiles; i++ ){
@@ -857,7 +857,7 @@ u16 fileGetBuffer( PYGMYFILE *pygmyFile, u16 uiLen, u8 *ucBuffer )
 u16 fileGetWord( PYGMYFILE *pygmyFile, u8 ucEndian )
 {
     u16 uiData;
-    u8 i;
+    //u8 i;
 
     if( ucEndian == BIGENDIAN ){
         uiData = (u16)fileGetChar( pygmyFile ) << 8;
@@ -952,13 +952,14 @@ u8 fileGetChar( PYGMYFILE *pygmyFile )
     
         ulAddress = ( pygmyFilePtr->Sector * pygmyRootVolume.SectorSize ) + ((( pygmyFilePtr->Index + 128 ) ) % pygmyRootVolume.SectorSize ) ;
         
-        ulAddress = ulAddress | 0x03000000;
+        /*ulAddress = ulAddress | 0x03000000;
         FLASH_CS_LOW;
         spiWriteLong( &pygmyFlashSPI, ulAddress );
         for( i = 0; i < PYGMY_FILE_BUFLEN; i++ ){
             ucBuffer[ i ] = spiReadByte( &pygmyFlashSPI );
         } // for   
-        FLASH_CS_HIGH;
+        FLASH_CS_HIGH;*/
+        spiGetBuffer( &pygmyFlashSPI, ulAddress, ucBuffer, PYGMY_FILE_BUFLEN );
     } // if
       
     if( pygmyFilePtr->Index < pygmyFilePtr->Length ){
@@ -1125,12 +1126,13 @@ u32 fileFormat( u8 *ucName )
         uiSectors = 128;
     } // else if
     
-    #ifndef __PYGMY_BOOT
+    //#ifndef __PYGMY_BOOT
         // Next write optional volume name, if needed
-        if( ucName[ 0 ] ){ // As long as first char of name field is non-null, name is optional
-            flashWriteString( PYGMY_FILE_VOLUME_FIELD_NAME, TRUE, ucName );
-        } // if
-    #endif
+        //if( ucName[ 0 ] ){ // As long as first char of name field is non-null, name is optional
+    spiPutBuffer( &pygmyFlashSPI, PYGMY_FILE_VOLUME_FIELD_NAME, ucName, len( ucName ) + 1 );
+            //flashWriteString( PYGMY_FILE_VOLUME_FIELD_NAME, TRUE, ucName );
+        //} // if
+    //#endif
     flashWriteByte( PYGMY_FILE_VOLUME_FIELD_ATTRIB, ucAttribs );
     flashWriteWord( PYGMY_FILE_VOLUME_FIELD_SECTORS, uiSecPerFAT * 252 ); 
     flashWriteWord( PYGMY_FILE_VOLUME_FIELD_SECTORSIZE, uiSectorSize ); // hard coded to SST family sectors size
@@ -1157,7 +1159,7 @@ u32 fileFormat( u8 *ucName )
 #ifdef __PYGMY_BOOT
     //#define FLASH_CS_LOW    
     //#define FLASH_CS_HIGH   
-void spiWriteByte( PYGMYSPIPORT *pymgyPort, u8 ucByte )
+void spiWriteByte( PYGMYSPIPORT *pygmyPort, u8 ucByte )
 {
     // Clocks out 8 bits
 	u16 i;
@@ -1174,7 +1176,7 @@ void spiWriteByte( PYGMYSPIPORT *pymgyPort, u8 ucByte )
     } // for
 } 
 
-void spiWriteWord( PYGMYSPIPORT *pymgyPort,  u16 uiWord )
+void spiWriteWord( PYGMYSPIPORT *pygmyPort,  u16 uiWord )
 {
     // Clocks out 16 bits
 	u16 i;
@@ -1191,7 +1193,7 @@ void spiWriteWord( PYGMYSPIPORT *pymgyPort,  u16 uiWord )
     } // for
 } 
 
-void spiWriteLong( PYGMYSPIPORT *pymgyPort, u32 ulLong )
+void spiWriteLong( PYGMYSPIPORT *pygmyPort, u32 ulLong )
 {
     // Clocks out 32 bits
 	u16 i;
@@ -1208,7 +1210,7 @@ void spiWriteLong( PYGMYSPIPORT *pymgyPort, u32 ulLong )
     } // for
 } 
 
-u8 spiReadByte( PYGMYSPIPORT *pymgyPort )
+u8 spiReadByte( PYGMYSPIPORT *pygmyPort )
 {
     // Clocks in 8 bits
     u16 i;
@@ -1230,58 +1232,61 @@ u8 spiReadByte( PYGMYSPIPORT *pymgyPort )
 
 u16 flashReadWord( u32 ulAddress )
 {
-    u16 uiWord;
+    u16 uiData;
 
     ulAddress |=  0x03000000;
-    FLASH_CS_LOW;               // CS active low to enable chip  
+    uiData = spiGetWord( &pygmyFlashSPI, ulAddress );
+    /*FLASH_CS_LOW;               // CS active low to enable chip  
     spiWriteLong( &pygmyFlashSPI, ulAddress );
 	uiWord = (u16)spiReadByte( &pygmyFlashSPI ) << 8;
     uiWord |= (u16)spiReadByte( &pygmyFlashSPI );
-    FLASH_CS_HIGH;
+    FLASH_CS_HIGH;*/
     
-    return( uiWord );
+    return( uiData );
 }
 
 u32 flashReadLong( u32 ulAddress )
 {
-    u32 ulLong;
+    u32 ulData;
 
     ulAddress |= 0x03000000;
-    FLASH_CS_LOW; 
+    ulData = spiGetLong( &pygmyFlashSPI, ulAddress );
+    /*FLASH_CS_LOW; 
     spiWriteLong( &pygmyFlashSPI, ulAddress );
     ulLong = (u32)spiReadByte( &pygmyFlashSPI ) << 24;
     ulLong |= (u32)spiReadByte( &pygmyFlashSPI ) << 16;
     ulLong |= (u32)spiReadByte( &pygmyFlashSPI ) << 8;
     ulLong |= (u32)spiReadByte( &pygmyFlashSPI );
-    FLASH_CS_HIGH;
+    FLASH_CS_HIGH;*/
 
-    return( ulLong );
+    return( ulData );
 }
 
 u8 flashReadByte( u32 ulAddress )
 {
-    u8 ucByte;
+    //u8 ucByte;
     
     ulAddress |= 0x03000000;
-    FLASH_CS_LOW;
+    /*FLASH_CS_LOW;
     spiWriteLong( &pygmyFlashSPI, ulAddress );
 	ucByte = spiReadByte( &pygmyFlashSPI );
-    FLASH_CS_HIGH;
+    FLASH_CS_HIGH;*/
 	
-	return( ucByte );    
+	return( spiGetChar( &pygmyFlashSPI, ulAddress ) );    
 }
 
 void flashReadBuffer( u32 ulAddress, u8 *ucBuffer, u16 uiLen )
 {
-    u16 i;
+    //u16 i;
 
     ulAddress = ulAddress | 0x03000000;
-    FLASH_CS_LOW; 
+    spiGetBuffer( &pygmyFlashSPI, ulAddress, ucBuffer, uiLen );
+    /*FLASH_CS_LOW; 
     spiWriteLong( &pygmyFlashSPI, ulAddress );
     for( i = 0; i < uiLen; i++ ){
         ucBuffer[ i ] = spiReadByte( &pygmyFlashSPI );
     } // for
-    FLASH_CS_HIGH;   
+    FLASH_CS_HIGH; */  
 }
 
 u8 flashReadStatus( void )
@@ -1300,12 +1305,12 @@ u8 flashReadID( void )
 {
     u8 ucByte;
     
-    FLASH_CS_LOW;
+    pygmyFlashSPI.PortCS->BRR = pygmyFlashSPI.PinCS;
     spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_JEDECID );
     ucByte = spiReadByte( &pygmyFlashSPI ); // Manufacturer
     ucByte = spiReadByte( &pygmyFlashSPI ); // Type
     ucByte = spiReadByte( &pygmyFlashSPI ); // Capacity
-    FLASH_CS_HIGH;
+    pygmyFlashSPI.PortCS->BSRR = pygmyFlashSPI.PinCS;
 
     return( ucByte );
     
@@ -1314,23 +1319,29 @@ u8 flashReadID( void )
 void flashSectorErase( u32 ulSector )
 {
     ulSector |= 0x20000000; // 4KB Sector Erase
-    FLASH_CS_LOW;
+    /*FLASH_CS_LOW;
     spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN );
     FLASH_CS_HIGH;
     FLASH_CS_LOW;
     spiWriteLong( &pygmyFlashSPI, ulSector );
-    FLASH_CS_HIGH;
+    FLASH_CS_HIGH;*/
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_WREN );
+    pygmyFlashSPI.PortCS->BRR = pygmyFlashSPI.PinCS;
+    spiWriteAddress( &pygmyFlashSPI, ulSector );
+    pygmyFlashSPI.PortCS->BSRR = pygmyFlashSPI.PinCS;
     flashWaitForBusy();
 }
 
 u8 flashChipErase( void )
 {
-    FLASH_CS_LOW;
+    /*FLASH_CS_LOW;
     spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN );
     FLASH_CS_HIGH;
     FLASH_CS_LOW;
     spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_ERASE_ALL );
-    FLASH_CS_HIGH;
+    FLASH_CS_HIGH;*/
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_WREN );
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_ERASE_ALL );
     flashWaitForBusy( );
     
     return( 1 );
@@ -1343,19 +1354,24 @@ void flashWaitForBusy( void )
 
 void flashWriteWord( u32 ulAddress, u16 uiWord )
 {
-    flashWriteByte( ulAddress, (u8)( uiWord >> 8 ) );
-    flashWriteByte( ulAddress + 1, (u8) uiWord );    
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_WREN );// WREN unlocks write capability for one operation
+    spiPutWord( &pygmyFlashSPI, ulAddress, uiWord );
+    /*flashWriteByte( ulAddress, (u8)( uiWord >> 8 ) );
+    flashWriteByte( ulAddress + 1, (u8) uiWord ); */   
 }
 
 void flashWriteLong( u32 ulAddress, u32 ulLong )
 {
-    u8 i;
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_WREN );// WREN unlocks write capability for one operation
+    spiPutLong( &pygmyFlashSPI, ulAddress, ulLong );
+   /* u8 i;
     
     for( i = 0; i < 4; i++ ){
         flashWriteByte( ulAddress + i, (u8)( ulLong >> ( ( 3 - i ) * 8 ) ) );
     } // for
+    */
 }
-
+/*
 void flashWriteString( u32 ulAddress, u8 ucTerminate, u8 *ucBuffer )
 {
 
@@ -1365,16 +1381,16 @@ void flashWriteString( u32 ulAddress, u8 ucTerminate, u8 *ucBuffer )
     if( ucTerminate ){
         flashWriteByte( ulAddress++, 0 ); // Terminate string with NULL if true
     } // if
-}
+}*/
 
 void flashWriteBuffer( u32 ulAddress, u16 uiLen , u8 *ucBuffer )
 {
-    // Function returns 1 for all bytes good, 0 for failure of one or more bytes
-    u32 i;
+    spiPutBuffer( &pygmyFlashSPI, ulAddress, ucBuffer, uiLen );
+    /*u32 i;
     
     for( i = 0; i < uiLen; i++ ){
         flashWriteByte( ulAddress + i, ucBuffer[ i ] );
-    }
+    }*/
 }
 
 
@@ -1382,13 +1398,15 @@ void flashWriteByte( u32 ulAddress, u8 ucByte )
 {
     // Mask 32 bit long to make sure MSB is clear for instruction
     ulAddress |= 0x02000000;
-    FLASH_CS_LOW;
-    spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN ); // WREN unlocks write capability for one operation
-    FLASH_CS_HIGH;
-    FLASH_CS_LOW;
-    spiWriteLong( &pygmyFlashSPI, ulAddress ); // Write instruction and 3 address bytes
-    spiWriteByte( &pygmyFlashSPI, ucByte ); // Write data byte
-    FLASH_CS_HIGH;
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_WREN );// WREN unlocks write capability for one operation
+    spiPutChar( &pygmyFlashSPI, ulAddress, ucByte );
+    //FLASH_CS_LOW;
+    //spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN ); // WREN unlocks write capability for one operation
+    //FLASH_CS_HIGH;
+    //FLASH_CS_LOW;
+    //spiWriteLong( &pygmyFlashSPI, ulAddress ); // Write instruction and 3 address bytes
+    //spiWriteByte( &pygmyFlashSPI, ucByte ); // Write data byte
+    //FLASH_CS_HIGH;
     flashWaitForBusy(); // Busy must be clear before next write cycle may start
 }
 
@@ -1396,7 +1414,7 @@ void flashWriteEnable( void )
 {
     // Must be called before any write operations to FLASH
     #ifndef __PYGMY_BOOT
-        spiConfig( &pygmyFlashSPI, FLASH_CS, FLASH_SCK, FLASH_MISO, FLASH_MOSI );
+        spiConfig( &pygmyFlashSPI, FLASH_CS, FLASH_SCK, FLASH_MISO, FLASH_MOSI, SPILONGADDRESS );
     #endif
     #ifdef __PYGMY_BOOT
         FLASH_CS_INIT; // To be defined in profile
@@ -1404,9 +1422,10 @@ void flashWriteEnable( void )
         FLASH_MISO_INIT;
         FLASH_MOSI_INIT; 
     #endif
-    FLASH_CS_LOW;
-    spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN ); // WREN must be written before status register may be modified
-    FLASH_CS_HIGH;
+    //FLASH_CS_LOW;
+    //spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WREN ); // WREN must be written before status register may be modified
+    //FLASH_CS_HIGH;
+    spiPutCommand( &pygmyFlashSPI, PYGMY_FLASH_WREN ); // WREN must be written before status register may be modified
     FLASH_CS_LOW;
     spiWriteByte( &pygmyFlashSPI, PYGMY_FLASH_WRSR );
     spiWriteByte( &pygmyFlashSPI, 0 );

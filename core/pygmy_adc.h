@@ -114,9 +114,6 @@ u8 adcEnableChannel( u8 ucPin ); //PYGMYADC *pygmyADC );
 u8 adcDisableChannel( u8 ucPin ); //PYGMYADC *pygmyADC );
 u8 adcGetSQR( u8 ucIndex );
 u16 adcGet( u8 ucPin ); //PYGMYADC *pygmyADC );
-//void Pygmy_ADC_InterruptEnable( PYGMYADC *pygmyADC, u32 ulInterruptMask );
-//void Pygmy_ADC_InterruptDisable( PYGMYADC *pygmyADC, u32 ulInterruptMask );
-//u8 Pygmy_ADC_TriggerSelect( PYGMYADC *pygmyADC, u32 ulTriggerMask );
 u8 adcSetSampleTime( u8 ucChannel, u8 ucSampleTime ); //PYGMYADC *pygmyADC, u8 ucChannel, u32 ucTimeMask );
-u8 Pygmy_ADC_AddChannelToRegularSequence( PYGMYADC *pygmyADC, u8 ucChannel );
+//u8 Pygmy_ADC_AddChannelToRegularSequence( PYGMYADC *pygmyADC, u8 ucChannel );
 

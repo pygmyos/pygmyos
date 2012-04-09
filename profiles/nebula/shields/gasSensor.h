@@ -17,17 +17,38 @@
     You should have received a copy of the GNU Lesser General Public License
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
+
+// This file supports the Nebula Gas Sensor Shield, with any of the optional
+// Gas Sensors available for the shield.
+
 #pragma once
 
-#define RESET           MCO
-#ifndef SCL
-    #define SCL         TX1
-#endif
-#ifndef SDA
-    #define SDA         RX1
-#endif
-#define OUTPUT          T0
-#define BOOST_PWM       T1
-#define BOOST_EN        T2
-#define SENSOR          A5
+#include "pygmy_profile.h"
 
+#define GASSENSOR_RESET         MCO
+#define GASSENSOR_SCL           TX1
+#define GASSENSOR_SDA           RX1
+#define GASSENSOR_OUTPUT        T0
+#define GASSENSOR_BOOST_PWM     T1
+#define GASSENSOR_BOOST_EN      T2
+#define GASSENSOR_SENSOR        A5
+
+/*
+#define GASSENSOR_RESET         A4
+#define GASSENSOR_SCL           TX1
+#define GASSENSOR_SDA           RX1
+#define GASSENSOR_OUTPUT        T0
+#define GASSENSOR_BOOST_PWM     T1
+#define GASSENSOR_BOOST_EN      T2
+#define GASSENSOR_SENSOR        A5
+*/
+void gasSensorDisableBoost( void );
+void gasSensorEnableBoost( boid );
+void gasSensorSetOutput( u8 ucState );
+u8 gasSensorGetOutput( void );
+u8 gasSensorInit( void );
+u8 gasSensorGetGain( u8 ucWiper );
+u8 gasSensorSetGain( u8 ucGain );
+u8 gasSensorSetLoad( u8 ucLoad );
+u8 gasSensorSetHeaterPWM( u8 ucDutyCycle );
+float gasSensorRead( void );

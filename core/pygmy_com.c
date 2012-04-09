@@ -272,15 +272,139 @@ u16 parallelRead( PYGMYPARALLELPORT *pygmyPort, u8 ucA0 )
     return( uiWord );
 }
 
+void spiPutCommand( PYGMYSPIPORT *pygmySPI, u8 ucByte )
+{
+    // write one byte with CS cycle to SPI device, generally used for command transfer
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteByte( pygmySPI, ucByte );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
+{
+    if( pygmySPI->CR & SPILONGADDRESS ){
+        spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 24 ) );
+        spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 16 ) );
+        spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 8 ) );
+    } else if( pygmySPI->CR & SPIWORDADDRESS ){
+        spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 8 ) );
+    } // else if
+    spiWriteByte( pygmySPI, (u8) ulAddress );
+}
+
+void spiPutChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 ucByte )
+{
+    // Writes one char with prepended address and CS cycle
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    spiWriteByte( pygmySPI, ucByte );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+void spiPutWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u16 uiData )
+{
+    // writes a bigendian 16bit word with prepended address and CS cycle
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    spiWriteByte( pygmySPI, (u8)((u16) uiData >> 8 ) );
+    spiWriteByte( pygmySPI, (u8) uiData );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+void spiPutLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u32 ulData )
+{
+    // writes a bigendian 32bit  long with prepended address and CS cycle
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    spiWriteByte( pygmySPI, (u8)((u32) ulData >> 24 ) );
+    spiWriteByte( pygmySPI, (u8)((u32) ulData >> 16 ) );
+    spiWriteByte( pygmySPI, (u8)((u32) ulData >> 8 ) );
+    spiWriteByte( pygmySPI, (u8) ulData );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+void spiPutBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen )
+{
+    u32 i;
+    
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    for( i = 0; i < ulLen; i++ ){
+        spiWriteByte( pygmySPI, ucBuffer[ i ] );
+    } // for
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+u8 spiGetChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
+{
+    u8 ucChar;
+
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    ucChar = spiReadByte( pygmySPI );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+u16 spiGetWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
+{
+    u16 uiData;
+
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    uiData = (u16)spiReadByte( pygmySPI ) << 8;
+    uiData |= (u16)spiReadByte( pygmySPI );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+    
+    return( uiData );
+}
+
+u32 spiGetLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
+{
+    u32 ulData;
+
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    ulData = (u32)spiReadByte( pygmySPI ) << 24;
+    ulData |= (u32)spiReadByte( pygmySPI ) << 16;
+    ulData |= (u32)spiReadByte( pygmySPI ) << 8;
+    ulData |= (u32)spiReadByte( pygmySPI );
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+
+    return( ulData );
+}
+
+void spiGetBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen )
+{
+    u32 i;
+
+    pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    spiWriteAddress( pygmySPI, ulAddress );
+    for( i = 0; i < ulLen; i++ ){
+        ucBuffer[ i ] = spiReadByte( pygmySPI );
+    } // for
+    pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
+}
+
+/*
+void spiWriteLong( PYGMYSPIPORT *pygmySPI, u32 ulData )
+{
+    spiPutChar( pygmySPI, (u8)((u32) ulData >> 24 ) );
+    spiPutChar( pygmySPI, (u8)((u32) ulData >> 16 ) );
+    spiPutChar( pygmySPI, (u8)((u32) ulData >> 8 ) );
+    spiPutChar( pygmySPI, (u8) ulData );
+}
+*/
+
 void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte )
 {
     // Clocks out 8 bits
 	u16 i;
 
 	pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Clock starts low, low-high-low clocks data in or out
-	for( i = 24; i < 32; i++ ){ 		                        // 
-		//if( ucByte & ( BIT7 >> i ) ){                       // 	
-        if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+	//for( i = 24; i < 32; i++ ){ 		                        // 
+    for( i = 0; i < 8; i++ ){ 
+		if( ucByte & ( BIT7 >> i ) ){                       // 	
+        //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
             pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
 		} else{                                             //
             pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;  // MasterOutSlaveIn low if bit clear
@@ -289,7 +413,7 @@ void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte )
 		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
     } // for
 } 
-
+/*
 void spiWriteWord( PYGMYSPIPORT *pygmySPI, u16 uiWord )
 {
     // Clocks out 16 bits
@@ -324,7 +448,7 @@ void spiWriteLong( PYGMYSPIPORT *pygmySPI, u32 ulLong )
 		pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;	        // clock must start low, transition high
 		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;        // Low transition finishes clock sequence
     } // for
-} 
+} */
 
 u8 spiReadByte( PYGMYSPIPORT *pygmySPI )
 {
@@ -367,7 +491,7 @@ void spiWriteBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen )
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
 }
 
-void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI )
+void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI, u8 ucCR )
 {
     pinConfig( ucCS, OUT );
     pinConfig( ucSCK, OUT );
@@ -388,7 +512,7 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI 
     pygmySPI->PinCS     = PYGMY_BITMASKS[ ucCS % 16 ];
     pygmySPI->PinSCK    = PYGMY_BITMASKS[ ucSCK % 16 ];   
     
-    pygmySPI->CR        = 0xFF;
+    pygmySPI->CR        = ucCR;//0xFF;
 
     pinSet( ucSCK, LOW );
     pinSet( ucCS, HIGH );
@@ -398,8 +522,6 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI 
 //-------------------------------------------------------------------------------------------------
 void i2cInit( I2C_TYPEDEF *i2c )
 {
-    u8 i;
-
     #ifndef __PYGMYI2COWNADDRESS
         #define __PYGMYI2COWNADDRESS 0x10
     #endif // __PYGMYI2COWNADDRESS
@@ -560,8 +682,6 @@ void i2cStretch( PYGMYI2CPORT *pygmyI2C )
  
 void i2cStart( PYGMYI2CPORT *pygmyI2C )
 {
-    u16 i;
-    
     // Allow SDA to float
     pinConfig( pygmyI2C->SDA, PULLUP );
     i2cDelay( pygmyI2C );
@@ -571,6 +691,8 @@ void i2cStart( PYGMYI2CPORT *pygmyI2C )
    
     if ( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
         // ToDo: Handle loss of arbitration
+        // print( COM3, "\rBus error on START" ); // Debug Output
+        i2cResetBus( pygmyI2C );
     } //
     pygmyI2C->PortSDA->ODR &= ~pygmyI2C->PinSDA; // set state before setting to output 
     pinConfig( pygmyI2C->SDA, OUT ); // set to output to drive low
@@ -583,34 +705,27 @@ void i2cStart( PYGMYI2CPORT *pygmyI2C )
  
 void i2cStop( PYGMYI2CPORT *pygmyI2C )
 {
-    u16 i;
-
     pygmyI2C->PortSDA->ODR &= ~pygmyI2C->PinSDA; // set state before setting to output 
     pinConfig( pygmyI2C->SDA, OUT ); // set to output to drive low
     i2cDelay( pygmyI2C );
     // Allow for SCL stretching   
     pinConfig( pygmyI2C->SCL, PULLUP );
-    /*for( i = 0; i < 0xFFFF; i++ ){
-        if( !( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ) ){
-            break;
-        } // if
-    } // for 
-    print( COM3, "\rSCL: %d", i );*/
     i2cStretch( pygmyI2C );
-    // Allow SDA to float and check state
+    // Allow SDA to float and check state ( arbitration test )
     pinConfig( pygmyI2C->SDA, PULLUP );
+    i2cDelay( pygmyI2C );
+    //pinSet( MCO, LOW ); // used to test timing
     if ( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
-        print( COM3, "\rBus error!" );
+        // print( COM3, "\rBus error on STOP" ); // Debug Output
+        i2cResetBus( pygmyI2C );
         // ToDo: Handle loss of arbitration
     } // 
-    //i2cDelay( pygmyI2C );
+    //pinSet( MCO, HIGH ); // used to test timing
 }
  
 void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit )
 {
     // write one bit
-    u16 i;
-
     if ( ucBit ){
         pinConfig( pygmyI2C->SDA, PULLUP );
     } else{ 
@@ -620,19 +735,15 @@ void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit )
     i2cDelay( pygmyI2C );
     // allow clock stretching 
     pinConfig( pygmyI2C->SCL, PULLUP );
-    /*for( i = 0; i < 0xFFFF; i++ ){
-        //if( !( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ) ){
-        if( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ){
-            break;
-        } // if
-    } // for
-    print( COM3, "\rSCL: %d", i );*/
+    
     i2cStretch( pygmyI2C );
     // If SDA should be 1, check that it isn't being push/pulled by another device
     
     if ( ucBit ){  
         pinConfig( pygmyI2C->SDA, PULLUP );  
         if( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
+            // print( COM3, "\rBus error on WRITE" ); // Debug Output
+            //i2cResetBus( pygmyI2C );
             // ToDo: Handle loss of arbitration
         } // if
     } // if   
@@ -645,7 +756,6 @@ void i2cWriteBit( PYGMYI2CPORT *pygmyI2C, u8 ucBit )
 u8 i2cReadBit( PYGMYI2CPORT *pygmyI2C )
 {
     // read one bit
-    u16 i;
     u8 ucBit;
 
     pinConfig( pygmyI2C->SDA, PULLUP );
@@ -657,12 +767,9 @@ u8 i2cReadBit( PYGMYI2CPORT *pygmyI2C )
     
     // Clock in whenSCL high
     
-    //print( COM3, "\rTest ACK" );
     if( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ){
-        //print( COM3, "\rReadBit NACK" );
         ucBit = 1;
     } else{
-        //print( COM3, "\rACK" );
         ucBit = 0;
     } // else
     
@@ -693,19 +800,26 @@ u8 i2cReadBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen
 {
     u16 i;
     
-    i2cWriteBuffer( pygmyI2C, uiAddress, ucBuffer, 0 ); // Len 0 to write address only
+    i2cStart( pygmyI2C );
+    i2cWriteByte( pygmyI2C, pygmyI2C->Address );
+    if( pygmyI2C->CR & I2CWORDADDRESS ){
+        i2cWriteByte( pygmyI2C, (u8)( (u16)uiAddress >> 8 )); // Write MSB if 16bit addressing
+    } // if
+    i2cWriteByte( pygmyI2C, (u8)uiAddress );
     i2cStart( pygmyI2C );
     i2cWriteByte( pygmyI2C, pygmyI2C->Address | 1 );
     for( i = 0; i < uiLen; i++ ){
         *(ucBuffer++) = i2cReadByte( pygmyI2C );
+        if( i + 1 < uiLen ){
+            i2cWriteBit( pygmyI2C, 0 ); // Ack for next byte
+        } // if
     } // for
-    i2cWriteBit( pygmyI2C, 0 ); // Low ACK
+    i2cWriteBit( pygmyI2C, 1 ); // Nack when all bytes read
     i2cStop( pygmyI2C );
 }
 
 u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte )
 {
-    // write a byte and return ack/nack from slave
     u8 i;
     u8 ucAck;
 
@@ -727,16 +841,15 @@ u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte )
  
 u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C )
 {
-    // read and return one byte  
     u8 ucByte;
     u8 i;
         
     for( i = 0, ucByte = 0; i < 8; i++ ){
         ucByte = ( ucByte << 1 ) | i2cReadBit( pygmyI2C );
     } // for
-    i2cWriteBit( pygmyI2C, 0 ); // Low ACK
+    //i2cWriteBit( pygmyI2C, 0 ); // Low ACK
     //pinConfig( pygmyI2C->SDA, PULLUP );
-    //PYGMY_WATCHDOG_REFRESH;
+
     return( ucByte );
 }
 
@@ -744,15 +857,122 @@ void i2cResetBus( PYGMYI2CPORT *pygmyI2C )
 {
     u8 i;
 
-    //pinSet( MCO, LOW );
-    i2cStart( pygmyI2C );
-    for ( i = 0; i < 8; i++ ){
-        i2cWriteBit( pygmyI2C, 1 );
+    //1) Master tries to assert a Logic 1 on the SDA line
+    //2) Master still sees a Logic 0 and then generates a clock pulse on SCL (1-0-1 transition)
+    //3) Master examines SDA. If SDA = 0, go to Step 2; if SDA = 1, go to Step 4
+    //4) Generate a STOP condition
+    pinConfig( pygmyI2C->SCL, OUT );
+    for ( i = 0; i < 9; i++ ){
+        pygmyI2C->PortSDA->ODR |= pygmyI2C->PinSDA; // set state before setting to output 
+        pinConfig( pygmyI2C->SDA, OUT ); // set to output to drive low
+        if( !( pygmyI2C->PortSDA->IDR & pygmyI2C->PinSDA ) ){
+            i2cStop( pygmyI2C );
+            return;
+        } // if
+        i2cDelay( pygmyI2C );
+        pygmyI2C->PortSCL->ODR |= pygmyI2C->PinSCL; // set state before setting to output
+        i2cDelay( pygmyI2C );
+        pygmyI2C->PortSCL->ODR &= ~pygmyI2C->PinSCL; // set state before setting to output
+        i2cDelay( pygmyI2C );
+        pygmyI2C->PortSCL->ODR |= pygmyI2C->PinSCL; // set state before setting to output
     } // for
-    i2cReadBit( pygmyI2C );
+}
+
+u8 i2cPutString( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer )
+{
+    for( ; *ucBuffer; uiAddress++, ucBuffer++  ){
+        if( !i2cPutChar( pygmyI2C, uiAddress, *ucBuffer ) ){
+            return( FALSE );
+        } // if
+    } // for
+
+    return( TRUE );
+}
+
+u8 i2cPutBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen )
+{
+    u16 i;
+
+    for( i = 0; i < uiLen; i++ ){
+        if( !i2cPutChar( pygmyI2C, uiAddress + i, *ucBuffer ) ){
+            return( FALSE );   
+        } // else
+    } // for
+    
+    return( TRUE );
+}
+
+u8 i2cPutChar( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 ucChar )
+{
+    u8 ucAck;
+
+    ucAck = 0;
+    PYGMY_WATCHDOG_REFRESH;
     i2cStart( pygmyI2C );
+    ucAck |= i2cWriteByte( pygmyI2C, pygmyI2C->Address );
+    if( pygmyI2C->CR & I2CWORDADDRESS ){
+        ucAck |= i2cWriteByte( pygmyI2C, (u8)( (u16)uiAddress >> 8 )); // Write MSB if 16bit addressing
+    } // if
+    ucAck |= i2cWriteByte( pygmyI2C, (u8)uiAddress );
+    ucAck |= i2cWriteByte( pygmyI2C, ucChar );
     i2cStop( pygmyI2C );
-    //pinSet( MCO, HIGH );
+    
+    if( ucAck ){
+        return( FALSE );
+    } // if
+    if( pygmyI2C->CR & I2CPOLLFORACK ){
+        i2cPollAck( pygmyI2C );
+    } // if
+    
+    return( TRUE );
+}
+
+u8 i2cGetChar( PYGMYI2CPORT *pygmyI2C, u16 uiAddress )
+{
+    u8 ucChar;
+
+    PYGMY_WATCHDOG_REFRESH;
+    i2cStart( pygmyI2C);
+    i2cWriteByte( pygmyI2C, pygmyI2C->Address );
+    if( pygmyI2C->CR & I2CWORDADDRESS ){
+        i2cWriteByte( pygmyI2C, (u8)((u16)uiAddress >> 8) );
+    } // if
+    i2cWriteByte( pygmyI2C, (u8)uiAddress );
+    i2cStart( pygmyI2C );
+    i2cWriteByte( pygmyI2C, pygmyI2C->Address | 1 ); // Read
+    ucChar = i2cReadByte( pygmyI2C ); // Clock in Byte
+    
+    i2cWriteBit( pygmyI2C, 1 ); // High NACK to end sequence
+    i2cStop( pygmyI2C );
+
+    return( ucChar );
+}
+
+void i2cGetBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen )
+{
+    u8 i;
+
+    for( i = 0; i < uiLen; i++ ){
+        ucBuffer[ i ] = i2cGetChar( pygmyI2C, uiAddress + i );
+    } // for
+}
+
+void i2cPollAck( PYGMYI2CPORT *pygmyI2C )
+{
+    // Waits for device to ack address
+    // Used by EEPROM and other devices to show busy status
+    u16 i;
+    u8 ucAck;
+
+    for( i = 0; i < 0xFFFF; i++  ){
+        i2cDelay( pygmyI2C );
+        i2cStart( pygmyI2C );
+        ucAck = i2cWriteByte( pygmyI2C, pygmyI2C->Address );
+        i2cStop( pygmyI2C );
+        if( !ucAck ){
+            break;
+        } // if
+    } // for
 }
 
 //--------------------------------------I2C Software Interface-------------------------------------

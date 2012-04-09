@@ -19,6 +19,9 @@
 ***************************************************************************/
 
 #include "pygmy_profile.h"
+#include "profiles/nebula/shields/gasSensor.h"
+#include "profiles/digipots/mcp443x.h"
+#include "profiles/eeprom/at24hc02b.h"
 
 extern u8 globalHumidity[];
 
@@ -36,6 +39,11 @@ u8 *globalCMDPrompt, *globalCMDError, *globalCMDUnsupported;
 PYGMYSPIPORT globalSPIPorts[ __PYGMY_MAXCOMMANDSPIPORTS ];
 PYGMYI2CPORT globalI2CPorts[ __PYGMY_MAXCOMMANDI2CPORTS ];
 PYGMYPORTINDEX globalCMDPorts[ __PYGMY_MAXCOMMANDPORTS ];
+
+const PYGMYCMD PYGMYCORECOMMANDS[] = {
+                                    {(u8*)"set",        cmd_set},
+                                    {(u8*)"",           cmdNull}
+                                    };
 
 const PYGMYCMD PYGMYSTDCOMMANDS[] = { 
                                     {(u8*)"reset",      cmd_reset},
@@ -87,6 +95,7 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     {(u8*)"voltshield", cmd_voltshield},
                                     #endif
                                     {(u8*)"eeprom",     cmd_eeprom},
+                                    {(u8*)"gassensor",  cmd_gassensor},
                                     {(u8*)"", cmdNull} // No Commands after NULL
                                     }; 
 
@@ -226,6 +235,53 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //----------------------------------End Pygmy CMD Interface-----------------------------------
 //--------------------------------------------------------------------------------------------
+
+//--------------------------------------Standard Commands-------------------------------------
+//--------------------------------------------------------------------------------------------
+u8 cmd_set( u8 *ucBuffer )
+{
+    u8 ucLen, *ucParams[8];
+    
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 8, WHITESPACE );
+    //if( isStringSame( 
+
+    return( TRUE );
+}
+
+u8 cmd_set_mcuid( u8 *ucBuffer )
+{
+
+}
+
+u8 cmd_set_adcvoltage( u8 *ucBuffer )
+{
+
+}
+
+u8 cmd_set_xtal( u8 *ucBuffer )
+{
+
+}
+
+u8 cmd_set_platform( u8 *ucBuffer )
+{
+
+}
+
+u8 cmd_set_delaytimer( u8 *ucBuffer )
+{
+
+}
+
+u8 cmd_set_pwmtimer( u8 *ucBuffer )
+{
+
+}
+
+
+//--------------------------------------------------------------------------------------------
+//------------------------------------End Standard Commands-----------------------------------
+
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
@@ -945,6 +1001,36 @@ u8 cmd_eeprom( u8 *ucBuffer )
         return( FALSE );
     } // else
 
+    return( TRUE );
+}
+
+u8 cmd_gassensor( u8 *ucBuffer )
+{
+    u8 ucWiper, ucLen, *ucParams[2];
+
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
+    if( ucLen ){
+        if( isStringSameIgnoreCase( "on", ucParams[ 0 ] ) ){
+            print( STDIO, "\rBoost ON" );
+            gasSensorBoostEnable();
+        } else if( isStringSameIgnoreCase( "off", ucParams[ 0 ] ) ){
+            print( STDIO, "\rBoost OFF" );
+            gasSensorBoostDisable();
+        } else if( isStringSame( "pwm", ucParams[ 0 ] ) ){
+            print( STDIO, "\rHeater PWM set" );
+            gasSensorSetHeaterPWM( convertStringToInt( ucParams[ 1 ] ) );
+        } else if( isStringSame( "gain", ucParams[ 0 ] ) ){
+            gasSensorSetGain( convertStringToInt( ucParams[ 1 ] ) );//, convertStringToInt( ucParams[ 2 ] ) );
+            //print( STDIO, "\rChanged gain" );
+        } else if( isStringSame( "load", ucParams[ 0 ] ) ){
+            gasSensorSetLoad( convertStringToInt( ucParams[ 1 ] ) );
+        } else if( isStringSame( "wiper", ucParams[ 0 ] ) ){
+            ucWiper = convertStringToInt( ucParams[ 1 ] );
+            print( STDIO, "\rWiper%d: 0x%02X", ucWiper, gasSensorGetGain( ucWiper ) );
+        } // else if
+    } // if
+    print( COM3, "\rGas Sensor: %1.3f", gasSensorRead() );
+    
     return( TRUE );
 }
 

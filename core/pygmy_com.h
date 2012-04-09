@@ -451,6 +451,10 @@ enum {
 #define I2CSPEEDFAST        BIT3 // 400kbps
 #define I2CSPEEDFASTPLUS    BIT4 // 1Mbps
 #define I2CSPEEDHIGH        BIT5 // 3.4Mbps
+#define I2CPOLLFORACK       BIT6 // Poll for an Ack on Address to show busy status cleared
+ 
+#define SPIWORDADDRESS      BIT1
+#define SPILONGADDRESS      BIT2
     
 typedef struct{
                 u8 SCL;
@@ -558,14 +562,23 @@ void parallelConfig( PYGMYPARALLELPORT *pygmyPort, u8 ucWidth, u8 ucCS, u8 ucA0,
 void parallelWrite( PYGMYPARALLELPORT *pygmyPort, u8 ucA0, u16 uiWord );
 u16 parallelRead( PYGMYPARALLELPORT *pygmyPort, u8 ucA0 );            
             
-void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI ); 
+//void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI ); 
+void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI, u8 ucCR );
 void spiReadBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen );
 void spiWriteBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen );
 void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte );
 void spiWriteWord( PYGMYSPIPORT *pygmySPI, u16 uiWord );
 void spiWriteLong( PYGMYSPIPORT *pygmySPI, u32 ulLong );
 u8 spiReadByte( PYGMYSPIPORT *pygmySPI );
-            
+void spiPutChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 ucByte );
+void spiPutWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u16 uiData );
+void spiPutLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u32 ulData );
+void spiPutBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen );
+u8 spiGetChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
+void spiGetBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen );
+
+void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
+
 void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 uiSpeed );
 void i2cDelay( PYGMYI2CPORT *pygmyI2C );
 void i2cStretch( PYGMYI2CPORT *pygmyI2C );
@@ -577,7 +590,14 @@ u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u16 ucAddress, u8 *ucBuffer, u16 uiLe
 u8 i2cReadBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen );
 u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte );
 u8 i2cReadByte( PYGMYI2CPORT *pygmyI2C );
-    
+u8 i2cPutString( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer );
+u8 i2cPutBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen );
+u8 i2cPutChar( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 ucChar );
+u8 i2cGetChar( PYGMYI2CPORT *pygmyI2C, u16 uiAddress );
+void i2cGetBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen );
+void i2cPollAck( PYGMYI2CPORT *pygmyI2C );
+void i2cResetBus( PYGMYI2CPORT *pygmyI2C );
+
 void streamHandler( u8 ucPort, u8 ucChar );
 void streamInit( void );
 u8 streamReset( u8 ucStream );

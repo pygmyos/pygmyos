@@ -35,6 +35,8 @@ void cmdInit( void );
 u8 cmdOpenPort( u8 ucProtocol, u8 ucPin0, u8 ucPin1, u8 ucPin2, u8 ucPin3, u8 ucAddress );
 u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
 
+u8 cmd_set( u8 *ucBuffer );
+
 u8 cmdNull( u8 *ucBuffer );
 u8 cmd_reset( u8 *ucBuffer );
 u8 cmd_peek( u8 *ucBuffer );
@@ -75,3 +77,4 @@ u8 cmd_rfopen( u8 *ucBuffer );
 u8 cmd_rfsend( u8 *ucBuffer );
 
 u8 cmd_eeprom( u8 *ucBuffer );
+u8 cmd_gassensor( u8 *ucBuffer );
