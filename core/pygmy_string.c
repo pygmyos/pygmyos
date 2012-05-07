@@ -108,6 +108,54 @@ u8 convertStringToPin( u8 *ucBuffer )
     return( 0xFF );
 }
 
+void copyBuffer( u8 *ucFrom, u8 *ucTo, u16 uiLen )
+{
+    u32 i;
+
+    for( i = 0; i < uiLen; i++ ){
+        *(ucTo++) = *(ucFrom++);
+    } // for
+}
+
+u8 *stripLeadingChars( u8 *ucString, u8 *ucChars )
+{    
+    for( ; *ucString; ucString++){
+       if(!isCharInString( *ucString, ucChars ) ){
+            break;
+        } // if
+    } // for
+    
+    return( ucString );
+}
+
+u8 *splitString( u8 *ucString, u8 ucChar, s16 sCount )
+{
+    // Returns pointer to second half of split string
+    u16 i, uiLen;
+    s16 sInc;
+    //u8 *ucStart;
+
+    uiLen = len( ucString );
+    //ucStart = ucString;
+    sInc = -1;
+    if( sCount < 0 ){
+        sInc = 1;
+        ucString = ucString + uiLen;
+    } // if
+    for( i = 0; i < uiLen && sCount != 0; i++ ){
+        if( *ucString == ucChar ){
+            sCount += sInc;
+        } // if
+        if( sInc < 0 ){
+            --ucString;
+        } else{
+            ++ucString;
+        } // else
+    } // for
+    
+    return( ucString );
+}
+
 void convertU16ToBuffer( u16 uiData, u8 *ucBuffer, u8 ucEndian )
 {
     if( ucEndian == BIGENDIAN ){
@@ -134,26 +182,38 @@ void convertU32ToBuffer( u32 ulData, u8 *ucBuffer, u8 ucEndian )
     } // else
 }
 
-u16 convertBufferToU16( u8 *ucBuffer )
+u16 convertBufferToU16( u8 *ucBuffer, u8 ucEndian )
 {
-    u16 i;
+    u16 uiData;
 
-    i = (u16)( *(ucBuffer++)) << 8;
-    i |= (u16)(*ucBuffer);
+    if( ucEndian == BIGENDIAN ){
+        uiData = (u16)ucBuffer[ 0 ] << 8;
+        uiData |= (u16)ucBuffer[ 1 ];
+    } else {
+        uiData = (u16)ucBuffer[ 0 ];
+        uiData |= (u16)ucBuffer[ 1 ] << 8;
+    } // else
 
-    return( i );
+    return( uiData );
 }
 
-u32 convertBufferToU32( u8 *ucBuffer )
+u32 convertBufferToU32( u8 *ucBuffer, u8 ucEndian )
 {
-    u32 ii;
-    u8 i;
+    u32 ulData;
 
-    for ( i = 0, ii = *(ucBuffer++); i < 3; i++ ){
-        ii = ( ii << 8 ) | *(ucBuffer++);
-    } // if
+    if( ucEndian == BIGENDIAN ){
+        ulData = (u32)ucBuffer[ 0 ] << 24;
+        ulData |= (u32)ucBuffer[ 1 ] << 16;
+        ulData |= (u32)ucBuffer[ 2 ] << 8;
+        ulData |= (u32)ucBuffer[ 3 ]; 
+    } else{
+        ulData = (u32)ucBuffer[ 0 ];
+        ulData |= (u32)ucBuffer[ 1 ] << 8;
+        ulData |= (u32)ucBuffer[ 2 ] << 16;
+        ulData |= (u32)ucBuffer[ 3 ] << 24;
+    } // else
 
-    return( ii );
+    return( ulData );
 }
 
 u8 isPrintable( u8 ucChar )
@@ -169,93 +229,93 @@ s8 isCharInString( u8 ucChar, u8 *ucChars )
 {
     for( ; *ucChars; ) {
         if( ucChar == *(ucChars++) ){
-            return( 1 );
+            return( TRUE );
         } // if
     } // for
     
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isAlpha( u8 ucChar )
 {
     if( ( ucChar > 64 && ucChar < 91 ) || ( ucChar > 96 && ucChar < 123 ) ){
-        return( 1 );
+        return( TRUE );
     } // if
     
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isNumeric( u8 ucChar )
 {
     if( ucChar > 47 && ucChar < 58 ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isAlphaOrNumeric( u8 ucChar )
 {
     if( ( ucChar > 64 && ucChar < 91 ) || ( ucChar > 96 && ucChar < 123 )
         || ( ucChar > 47 && ucChar < 58 ) ){
-        return( 1 );
+        return( TRUE );
     } // if
 
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isHex( u8 ucChar )
 {
     if( ( ucChar > 47 && ucChar < 58 ) || ( ucChar > 64 && ucChar < 71 ) ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isBinary( u8 ucChar )
 {
     if( ucChar == '0' || ucChar == '1' ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isOctal( u8 ucChar )
 {
     if( ucChar > 47 && ucChar < 56 ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isNewline( u8 ucChar )
 {
     if( ucChar == 10 || ucChar == 12 || ucChar == 13 ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isWhitespace( u8 ucChar )
 {
     if( ( ucChar > 7 && ucChar < 33 ) ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isQuote( u8 ucChar )
 {
     if( ( ucChar == 34 ) || ( ucChar == 39 ) ){
-        return( 1 );
+        return( TRUE );
     } // if
     
-    return( 0 );
+    return( FALSE );
     
 }
 
@@ -265,32 +325,41 @@ s8 isMath( u8 ucChar )
         return( 1 );
     } // if
         
-    return( 0 );
+    return( FALSE );
+}
+
+u8 isFileSeparator( u8 ucChar )
+{
+    if( ucChar == '/' ){
+        return( TRUE );
+    } // if
+    
+    return( FALSE );
 }
 
 s8 isSeparator( u8 ucChar )
 {
     if( isCharInString( ucChar, "/\\{}[]-_+=@`|<>'\"" ) ){
-        return( 1 );
+        return( TRUE );
     } // if
     
-    return( 0 );
+    return( FALSE );
 }
 
 s8 isPunctuation( u8 ucChar )
 {
     if( isCharInString( ucChar, "!?,.:;" ) ){
-        return( 1 );
+        return( TRUE );
     } // if
         
-    return( 0 );
+    return( FALSE );
 }
 
 u16 len( u8 *ucString )
 {
     u16 i;
     
-    for( i = 0; *(ucString++) ; i++ ){
+    for( i = 0; *(ucString++); i++ ){
         if( i == 0xFFFF ){
             break;
         } // if
@@ -375,9 +444,23 @@ u16 getAllSubStrings( u8 *ucBuffer, u8 *ucStrings[], u16 uiLen, u8 ucMode )
 u8 *getNextSubString( u8 *ucBuffer, u8 ucMode )
 {
     static u8 *ucIndex = NULL;
-    
+    static u8 *ucBufferCopy = NULL;
+    u8 *ucStart;
+
     if( *ucBuffer ){
-        ucIndex = ucBuffer;
+        //putstr( "\rStrProc: (" ); putstr( ucBuffer ); putstr( ")" );
+        if( ucBufferCopy ){
+            sysFree( ucBufferCopy );
+        } // if
+        //putstr( "\rStrProc: (" ); putstr( ucBuffer ); putstr( ")" );
+        ucBufferCopy = sysAllocate( 1 + len( ucBuffer ) );
+        if( !ucBufferCopy ){
+            return( NULL );
+        } // if
+        
+        copyString( ucBuffer, ucBufferCopy );
+        ucIndex = ucBufferCopy;
+        
     } // if
     if( ucIndex == NULL ){
         return( NULL );
@@ -385,6 +468,7 @@ u8 *getNextSubString( u8 *ucBuffer, u8 ucMode )
     
     for( ; *ucIndex;  ){
         if( ( isWhitespace( *ucIndex ) ) || 
+            ( (ucMode & FILESEPARATORS) && isFileSeparator( *ucIndex ) ) ||
             ( (ucMode & PUNCT) && isPunctuation( *ucIndex ) ) ||
             ( (ucMode & SEPARATORS) && isSeparator( *ucIndex ) ) ||
             ( (ucMode & QUOTES) && isQuote( *ucIndex ) ) ||
@@ -392,11 +476,13 @@ u8 *getNextSubString( u8 *ucBuffer, u8 ucMode )
             ++ucIndex;
             continue;
             } // if
-        ucBuffer = ucIndex;
+        ucStart = ucIndex;
         
         for( ; *ucIndex ; ){
             if( ( (ucMode & WHITESPACE) && isWhitespace( *ucIndex ) ) || 
+                ( (ucMode & FILESEPARATORS) && *ucIndex == '/' ) ||
                 ( (ucMode & PUNCT) && isPunctuation( *ucIndex ) ) ||
+                //( (ucMode & PUNCT) && isFileSeparator( *ucIndex ) ) ||
                 ( (ucMode & SEPARATORS) && isSeparator( *ucIndex ) ) ||
                 ( (ucMode & QUOTES) && isQuote( *ucIndex ) ) ||
                 ( (ucMode & NEWLINE) && isNewline( *ucIndex ) ) ||
@@ -412,7 +498,7 @@ u8 *getNextSubString( u8 *ucBuffer, u8 ucMode )
             ucIndex = NULL;
         } // else
     
-        return( ucBuffer );
+        return( ucStart );
     } // for
     
     return( NULL );

@@ -355,6 +355,7 @@ typedef struct
 #define PYGMY_STREAMS_BACKSPACE     BIT2
 #define PYGMY_STREAMS_ACTIONCHARS   BIT3
 #define PYGMY_STREAMS_CR            BIT4
+#define PYGMY_STREAMS_USERHANDLER   BIT5
 
 typedef struct {
                 u16 RXBufferLen;
@@ -455,7 +456,9 @@ enum {
  
 #define SPIWORDADDRESS      BIT1
 #define SPILONGADDRESS      BIT2
-    
+#define SPIDUMMYONREAD      BIT3   
+#define SPIDUMMYONWRITE     BIT4
+
 typedef struct{
                 u8 SCL;
                 u8 SDA;
@@ -598,6 +601,8 @@ void i2cGetBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLe
 void i2cPollAck( PYGMYI2CPORT *pygmyI2C );
 void i2cResetBus( PYGMYI2CPORT *pygmyI2C );
 
+void streamDisableDefaultGet( u8 ucStream );
+void streamEnableDefaultGet( u8 ucStream );
 void streamHandler( u8 ucPort, u8 ucChar );
 void streamInit( void );
 u8 streamReset( u8 ucStream );

@@ -20,7 +20,7 @@
 
 #pragma once
 #include "pygmy_profile.h"
-#include "pygmy_file.h"
+//#include "pygmy_file.h"
 
 #define SOCKET_CMD_MASK         0xE0
 #define SOCKET_SCAN             0
@@ -29,6 +29,10 @@
 #define SOCKET_DATA             0x60
 #define SOCKET_ACK              0x80
 #define SOCKET_NACK             0xA0
+ 
+#define SOCKET_TYPE_MASK        0x7F    
+#define SOCKET_TX               0x80
+#define SOCKET_RX               0x00
  
  enum{   
         SOCKET_BLANK,           // 
@@ -40,7 +44,7 @@
     };
 
 typedef struct {
-                PYGMYFILE File;
+                PYGMYFILE *File;
                 //PYGMYFUNC Action;
                 u32 StartTime;
                 u32 LastActive;
@@ -60,6 +64,7 @@ typedef struct {
                 u8 *Name;       // Socket Code assumes Name is dynamically allocated
                 u8 Payload[ 32 ];
                 u8 CR;
+                void (*Run)(u8*, u16);
                 } PYGMYSOCKET;
 
 typedef struct {
@@ -101,3 +106,4 @@ void socketControl( PYGMYSOCKET *pygmySocket, u8 *ucTaskName, u8 ucTX );
 u8 socketRequestCommandLine( u32 ulDestID );
 u8 socketOpenCommandLine( u32 ulDestID );
 void socketCommandLine( PYGMYSOCKET *pygmySocket, u8 ucTX );
+void socketPayload( PYGMYSOCKET *pygmySocket, u8 ucCommand, u8 *ucBuffer, u8 ucLen );

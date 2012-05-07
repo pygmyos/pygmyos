@@ -96,7 +96,7 @@ PYGMYSOCKET *socketOpenFromPacket( PYGMYPACKET *pygmyPacket )
     tmpSocket->BufferLen    = 0;
     tmpSocket->BufferIndex  = 0;
     tmpSocket->CR           = 0;
-    if( pygmyPacket->Type == RF_CONTROL ){
+    if( pygmyPacket->Type == SOCKET_CONTROL ){
         tmpSocket->Name = sysAllocate( len( pygmyPacket->Payload ) + 1 );
         if( tmpSocket->Name ){
             copyString( pygmyPacket->Payload, tmpSocket->Name );
@@ -113,7 +113,8 @@ void socketResend( PYGMYSOCKET *pygmySocket )
 {
     PYGMY_WATCHDOG_REFRESH;
     if( pygmySocket->PayloadLen < 33 ){
-        rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+        //rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+        pygmySocket->Run( pygmySocket->Payload, pygmySocket->PayloadLen );
     } // if
 }
 
@@ -123,7 +124,7 @@ void threadSocketMonitor( void )
 
     for( i = 0; i < globalSocketCount; i++ ){
         if( ( globalSockets[ i ].CR & BIT0 ) || 
-            ( globalSockets[ i ].Type == RF_CMDLINE && globalSockets[ i ].Command == RF_ACK ) ){
+            ( globalSockets[ i ].Type == SOCKET_CMDLINE && globalSockets[ i ].Command == SOCKET_ACK ) ){
             continue;
         } // if
         if( globalSockets[ i ].Retry == 0xFF || globalSockets[ i ].Retry >= globalSockets[ i ].MaxRetries ||
@@ -146,20 +147,20 @@ u8 socketHandler( u8 *ucBuffer )
     u16 i, uiCRC;
 
     PYGMY_WATCHDOG_REFRESH;
-    pygmyPacket.DestID     = convertBufferToU32( ucBuffer );
+    pygmyPacket.DestID     = convertBufferToU32( ucBuffer, BIGENDIAN );
     pygmyPacket.Command    = ( ( *( ucBuffer + 4 ) ) & 0xE0 );
     pygmyPacket.Len        = ( *(ucBuffer + 4 ) & 0x1F );
     pygmyPacket.Chunk      = *( ucBuffer + 5 );
-    pygmyPacket.CRC        = convertBufferToU16( ( ucBuffer + 6 + pygmyPacket.Len ) );
+    pygmyPacket.CRC        = convertBufferToU16( ( ucBuffer + 6 + pygmyPacket.Len ), BIGENDIAN );
     
     uiCRC = sysCRC16( ucBuffer, pygmyPacket.Len + 6 );
     if( uiCRC != pygmyPacket.CRC ){ 
         return;
     } // else
     ucBuffer = ucBuffer + 6;
-    if( pygmyPacket.Command == RF_OPEN ){
+    if( pygmyPacket.Command == SOCKET_OPEN ){
         pygmyPacket.Type = *(ucBuffer++);
-        pygmyPacket.SrcID = convertBufferToU32( ucBuffer );
+        pygmyPacket.SrcID = convertBufferToU32( ucBuffer, BIGENDIAN );
         ucBuffer += 4;
     } // if
         
@@ -168,7 +169,7 @@ u8 socketHandler( u8 *ucBuffer )
     } // for
     // Now decode packet
     
-    if( ( pygmyPacket.Command & RF_CMD_MASK ) == RF_OPEN ){
+    if( ( pygmyPacket.Command & SOCKET_CMD_MASK ) == SOCKET_OPEN ){
         ulID = pygmyPacket.DestID;
         pygmyPacket.DestID = pygmyPacket.SrcID;
         pygmySocket = socketOpenFromPacket( &pygmyPacket );
@@ -178,10 +179,12 @@ u8 socketHandler( u8 *ucBuffer )
         pygmySocket->SrcID = ulID;
         pygmySocket->LastActive = timeGet();
         pygmySocket->Type = pygmyPacket.Type;
-        if( ( pygmyPacket.Type & RF_TYPE_MASK ) == RF_FILE ){
-            if( pygmyPacket.Type & RF_TX){
+        if( ( pygmyPacket.Type & SOCKET_TYPE_MASK ) == SOCKET_FILE ){
+            if( pygmyPacket.Type & SOCKET_TX){
                 // File requested, opened for WRITE by originating device, open local for READ
-                if( fileOpen( &pygmySocket->File, pygmyPacket.Payload, READ ) ){
+                //if( fileOpen( &pygmySocket->File, pygmyPacket.Payload, READ ) ){
+                pygmySocket->File = fileOpen( pygmyPacket.Payload, READ , 0);
+                if( pygmySocket->File ){
                     socketSendData( pygmySocket );
                 } else{
                     socketSendClose( pygmySocket );
@@ -189,7 +192,9 @@ u8 socketHandler( u8 *ucBuffer )
                 } // else
             } else{
                 // File incoming, opened for READ by originating device, open local for WRITE
-                if( fileOpen( &pygmySocket->File, pygmyPacket.Payload, WRITE ) ){
+                //if( fileOpen( &pygmySocket->File, pygmyPacket.Payload, WRITE ) ){
+                pygmySocket->File = fileOpen( pygmyPacket.Payload, READ, 0 );
+                if( pygmySocket->File ){
                     socketSendAck( pygmySocket );
                 } else{
                     socketSendClose( pygmySocket );
@@ -197,9 +202,9 @@ u8 socketHandler( u8 *ucBuffer )
                 } // else
             } // else
         #ifdef __PYGMYMESSAGES
-        } else if( ( pygmyPacket.Type & RF_TYPE_MASK ) == RF_CONTROL ){
+        } else if( ( pygmyPacket.Type & SOCKET_TYPE_MASK ) == SOCKET_CONTROL ){
             //print( COM3, "\rReceived Control " );
-            if( pygmyPacket.Type & RF_TX){
+            if( pygmyPacket.Type & SOCKET_TX){
                 //print( COM3, "Request" );
                 // File requested, opened for WRITE by originating device, open local for READ
                 if( taskIsRunning( pygmyPacket.Payload, 0 ) ){
@@ -225,7 +230,7 @@ u8 socketHandler( u8 *ucBuffer )
             } // else
         #endif // __PYGMYMESSAGES
         #ifdef __PYGMYCOMMANDS
-        } else if( ( pygmyPacket.Type & RF_TYPE_MASK ) == RF_CMDLINE ){
+        } else if( ( pygmyPacket.Type & SOCKET_TYPE_MASK ) == SOCKET_CMDLINE ){
             pygmySocket->Buffer = sysAllocate( 64 ); // This is the base starting point, buffer will expand as needed
             pygmySocket->BufferLen = 64;
             if( pygmySocket->Buffer ){
@@ -245,13 +250,13 @@ u8 socketHandler( u8 *ucBuffer )
         return( 0 );
     } // if
 
-    if( ( pygmyPacket.Command & RF_CMD_MASK ) == RF_CLOSE ){
+    if( ( pygmyPacket.Command & SOCKET_CMD_MASK ) == SOCKET_CLOSE ){
         //print( COM3, "\rData Transfer Complete" );
         socketSendAck( pygmySocket );
         socketClose( pygmySocket );
-    } else if( ( pygmyPacket.Command & RF_CMD_MASK ) == RF_DATA ){
+    } else if( ( pygmyPacket.Command & SOCKET_CMD_MASK ) == SOCKET_DATA ){
         //print( COM3, "\rRF_DATA" );
-        if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_FILE ){
+        if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_FILE ){
             if( !socketSaveData( pygmySocket, &pygmyPacket ) ){
                 //print( COM3, "\rMem full" );
                 socketSendClose( pygmySocket );
@@ -259,13 +264,13 @@ u8 socketHandler( u8 *ucBuffer )
                 socketSendAck( pygmySocket );
             } // else
         #ifdef __PYGMYMESSAGES
-        } else if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_CONTROL ){
+        } else if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_CONTROL ){
             //print( COM3, "\rData Received: %s", ucBuffer );
             msgSend( pygmySocket->Name, PYGMY_UNMARKEDID, "RX", convertStringToInt( pygmyPacket.Payload ) );
             socketSendClose( pygmySocket );
         #endif // __PYGMYMESSAGES
         #ifdef __PYGMYCOMMANDS
-        } else if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_CMDLINE ){
+        } else if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_CMDLINE ){
             //print( COM3, "\rData Received: " );
             if( ( pygmyPacket.Len + pygmySocket->BufferIndex ) > pygmySocket->BufferLen ){
                 ucPtr = sysReallocate( pygmySocket->Buffer, pygmyPacket.Len + pygmySocket->BufferIndex );
@@ -293,31 +298,31 @@ u8 socketHandler( u8 *ucBuffer )
             socketSendAck( pygmySocket );
         #endif // __PYGMYCOMMANDS
         } // else if  
-    } else if( ( pygmyPacket.Command & RF_CMD_MASK )== RF_ACK ){  
+    } else if( ( pygmyPacket.Command & SOCKET_CMD_MASK )== SOCKET_ACK ){  
         pygmySocket->CR |= BIT0;
         //print( COM3, "\rAck Received" );
         //print( COM3, "\rCommand: 0x%02X", pygmySocket->Command & RF_CMD_MASK );
-        if( ( pygmySocket->Command & RF_CMD_MASK ) == RF_CLOSE ){
+        if( ( pygmySocket->Command & SOCKET_CMD_MASK ) == SOCKET_CLOSE ){
             // Local socket is closed only after ACK is received in response to CLOSE
             //print( COM3, "\rRemote Socket Closed" );
             socketClose( pygmySocket );
             return( 0 ); 
         } // if
-        if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_FILE ){
+        if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_FILE ){
             //print( COM3, "\rReceived ACK %d", pygmySocket->Chunk );
             socketSendData( pygmySocket );
         #ifdef __PYGMYMESSAGES
-        } else if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_CONTROL ){
+        } else if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_CONTROL ){
             msgSend( pygmyPacket.Payload, PYGMY_UNMARKEDID, "TX", pygmySocket->DestID );
         #endif // __PYGMYMESSAGES
         #ifdef __PYGMYCOMMANDS
-        } else if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_CMDLINE ){
+        } else if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_CMDLINE ){
             //print( COM3, "\rSocket Opened" );
         #endif // __PYGMYCOMMANDS
         } // else if
-    } else if( ( pygmySocket->Command & RF_CMD_MASK ) == RF_NACK ){
+    } else if( ( pygmySocket->Command & SOCKET_CMD_MASK ) == SOCKET_NACK ){
         socketResend( pygmySocket );
-    } else if( ( pygmySocket->Command & RF_CMD_MASK ) == RF_SCAN ){
+    } else if( ( pygmySocket->Command & SOCKET_CMD_MASK ) == SOCKET_SCAN ){
         //print( COM3, "\rRF_SCAN" );
     } // else if
     
@@ -342,9 +347,9 @@ void socketList( void )
         print( COM3, "\r\tLen:\t0x%02X", tmpSocket->Len );
         print( COM3, "\r\tRetry:\t%d", tmpSocket->Retry );
         
-        if( ( tmpSocket->Type & RF_TYPE_MASK ) == RF_FILE ){
+        if( ( tmpSocket->Type & SOCKET_TYPE_MASK ) == SOCKET_FILE ){
             print( COM3, " %s", tmpSocket->File.Name );
-            if( tmpSocket->Type & RF_TX ){
+            if( tmpSocket->Type & SOCKET_TX ){
                 print( COM3, " TX" );
             } else{
                 print( COM3, " RX" );
@@ -361,7 +366,6 @@ PYGMYSOCKET *socketGet( u32 ulDestID, u32 ulSrcID )
     // should be 0
     u8 i;
 
-    PYGMY_WATCHDOG_REFRESH;
     for( i = 0; i < globalSocketCount; i++ ){
         if( globalSockets[ i ].DestID == ulDestID || globalSockets[ i ].DestID == ulSrcID||
             globalSockets[ i ].SrcID == ulDestID || globalSockets[ i ].SrcID == ulSrcID ){
@@ -377,7 +381,8 @@ void socketCopy( PYGMYSOCKET *fromSocket, PYGMYSOCKET *toSocket )
     u8 i;
 
     PYGMY_WATCHDOG_REFRESH;
-    fileCopyHandle( &fromSocket->File, &toSocket->File );
+    //fileCopyHandle( &fromSocket->File, &toSocket->File );
+    toSocket->File = fromSocket->File;
     //toSocket->Action        = fromSocket->Action;
     toSocket->StartTime     = fromSocket->StartTime;
     toSocket->LastActive    = fromSocket->LastActive;
@@ -395,6 +400,7 @@ void socketCopy( PYGMYSOCKET *fromSocket, PYGMYSOCKET *toSocket )
     toSocket->BufferLen     = fromSocket->BufferLen;
     toSocket->BufferIndex   = fromSocket->BufferIndex;
     toSocket->CR            = fromSocket->CR;
+    toSocket->Run           = fromSocket->Run;
     for( i = 0; i < 32; i++ ){
         toSocket->Payload[ i ] = fromSocket->Payload[ i ];
     } // for
@@ -405,10 +411,8 @@ void socketClose( PYGMYSOCKET *pygmySocket )
     PYGMYSOCKET *tmpSockets;
     u8 i;
     
-    //print( COM3, "\rClosing Local Socket" );
     PYGMY_WATCHDOG_REFRESH;
-    if( ( pygmySocket->Type & RF_TYPE_MASK ) == RF_FILE ){
-        //print( COM3, "\r\tClosing File" );
+    if( ( pygmySocket->Type & SOCKET_TYPE_MASK ) == SOCKET_FILE ){
         fileClose( &pygmySocket->File );
     } // if
     pygmySocket->DestID = 0;
@@ -437,29 +441,37 @@ void socketClose( PYGMYSOCKET *pygmySocket )
 
 void socketFile( PYGMYSOCKET *pygmySocket, u8 *ucFileName, u8 ucTX )
 {
+    u8 i, ucLen, ucBuffer[ 24 ];
     u32 ulID;
-    u16 uiCRC;
-    u8 i, ucLen;
+    //u16 uiCRC;
+    //u8 i, ucLen;
 
-    PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->CR &= ~BIT0;
-    pygmySocket->Command = RF_OPEN;
-    ucLen = len( ucFileName )+1;
-    pygmySocket->LastActive = timeGet();
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+4) = (u8) ( RF_OPEN|(ucLen+5) ); // len of filename plus null and 32 bit ID
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
-    *(pygmySocket->Payload+6) = (ucTX|RF_FILE);   
-    ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
-    convertU32ToBuffer( ulID, pygmySocket->Payload+7, BIGENDIAN );
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->CR &= ~BIT0;
+    //pygmySocket->Command = RF_OPEN;
+    //ucLen = len( ucFileName )+1;
+    //pygmySocket->LastActive = timeGet();
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    // *(pygmySocket->Payload+4) = (u8) ( RF_OPEN|(ucLen+5) ); // len of filename plus null and 32 bit ID
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
+    // *(pygmySocket->Payload+6) = (ucTX|RF_FILE);   
+    //ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
+    //convertU32ToBuffer( ulID, pygmySocket->Payload+7, BIGENDIAN );
     
+    //for( i = 0; i < ucLen; i++ ){
+    //    *(pygmySocket->Payload+11+i) = *(ucFileName++);
+    //} // for
+    //uiCRC = sysCRC16( pygmySocket->Payload, 11+ucLen );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload+11+ucLen, BIGENDIAN );
+    //pygmySocket->PayloadLen = 13+ucLen;
+    //rfPutTXBuffer( 13+ucLen, pygmySocket->Payload );
+    ucBuffer[ 0 ] = ( SOCKET_OPEN|(ucLen+5) );
+    ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
+    convertU32ToBuffer( ulID, ucBuffer + 1, BIGENDIAN );
     for( i = 0; i < ucLen; i++ ){
-        *(pygmySocket->Payload+11+i) = *(ucFileName++);
+        *(ucBuffer+5+i) = *(ucFileName++);
     } // for
-    uiCRC = sysCRC16( pygmySocket->Payload, 11+ucLen );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload+11+ucLen, BIGENDIAN );
-    pygmySocket->PayloadLen = 13+ucLen;
-    rfPutTXBuffer( 13+ucLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_OPEN, ucBuffer, ucLen+5 );
 }
 
 u8 socketSaveData( PYGMYSOCKET *pygmySocket, PYGMYPACKET *pygmyPacket )
@@ -473,13 +485,16 @@ u8 socketSaveData( PYGMYSOCKET *pygmySocket, PYGMYPACKET *pygmyPacket )
 u8 socketSendFile( u32 ulDestID, u8 *ucFileName )
 {
     PYGMYSOCKET *pygmySocket;
-    PYGMYFILE pygmyFile;
+    PYGMYFILE *pygmyFile;
 
     PYGMY_WATCHDOG_REFRESH;
-    if( fileOpen( &pygmyFile, ucFileName, READ ) ){
-        pygmySocket = socketOpen( ulDestID, RF_FILE );
+    //if( fileOpen( &pygmyFile, ucFileName, READ ) ){
+    pygmyFile = fileOpen( ucFileName, READ, 0 );
+    if( pygmyFile ){
+        pygmySocket = socketOpen( ulDestID, SOCKET_FILE );
         if( pygmySocket ){ 
-            fileCopyHandle( &pygmyFile, &pygmySocket->File );
+            pygmySocket->File = pygmyFile;
+            //fileCopyHandle( &pygmyFile, &pygmySocket->File );
             socketFile( pygmySocket, ucFileName, 0 );
             
             return( TRUE );
@@ -492,15 +507,18 @@ u8 socketSendFile( u32 ulDestID, u8 *ucFileName )
 u8 socketRequestFile( u32 ulDestID, u8 *ucFileName )
 {
     PYGMYSOCKET *pygmySocket;
-    PYGMYFILE pygmyFile;
+    PYGMYFILE *pygmyFile;
 
     PYGMY_WATCHDOG_REFRESH;
     
-    if( fileOpen( &pygmyFile, ucFileName, WRITE ) ){
-        pygmySocket = socketOpen( ulDestID, RF_TX|RF_FILE );
+    //if( fileOpen( &pygmyFile, ucFileName, WRITE ) ){
+    pygmyFile = fileOpen ( ucFileName, WRITE, 0 );
+    if( pygmyFile ){
+        pygmySocket = socketOpen( ulDestID, SOCKET_TX|SOCKET_FILE );
         if( pygmySocket ){ 
-            fileCopyHandle( &pygmyFile, &pygmySocket->File );
-            socketFile( pygmySocket, ucFileName, RF_TX ); // TX on recipient side
+            //fileCopyHandle( &pygmyFile, &pygmySocket->File );
+            pygmySocket->File = pygmyFile;
+            socketFile( pygmySocket, ucFileName, SOCKET_TX ); // TX on recipient side
 
             return( 1 );
         } // if
@@ -509,24 +527,7 @@ u8 socketRequestFile( u32 ulDestID, u8 *ucFileName )
     return( 0 );
 }
 
-u8 socketSendControl( u32 ulDestID, u8 *ucTaskName )
-{
-    PYGMYSOCKET *pygmySocket;
-
-    PYGMY_WATCHDOG_REFRESH;
-    if( !taskIsRunning( ucTaskName, 0 ) ){
-        return( FALSE );
-    } // if
-    pygmySocket = socketOpen( ulDestID, RF_RX|RF_CONTROL );
-    if( pygmySocket ){ 
-        socketControl( pygmySocket, ucTaskName, RF_RX ); // TX on recipient side
-        
-        return( TRUE );
-    } // if
-
-    return( FALSE );
-}
-
+#ifdef __PYGMYSOCKETS_CMDLINE
 u8 socketRequestCommandLine( u32 ulDestID )
 {
     
@@ -537,12 +538,12 @@ u8 socketOpenCommandLine( u32 ulDestID )
     PYGMYSOCKET *pygmySocket;
 
     PYGMY_WATCHDOG_REFRESH;
-    pygmySocket = socketOpen( ulDestID, RF_RX|RF_CMDLINE );
+    pygmySocket = socketOpen( ulDestID, SOCKET_RX|SOCKET_CMDLINE );
     if( pygmySocket ){ 
         pygmySocket->Buffer = sysAllocate( 64 ); // This is base starting point, buffer will expand as needed
         pygmySocket->BufferLen = 64;
         if( pygmySocket->Buffer ){
-            socketCommandLine( pygmySocket, RF_RX ); // TX on recipient side
+            socketCommandLine( pygmySocket, SOCKET_RX ); // TX on recipient side
         } else{
             socketClose( pygmySocket );
         } // else
@@ -554,32 +555,52 @@ u8 socketOpenCommandLine( u32 ulDestID )
 
 void socketCommandLine( PYGMYSOCKET *pygmySocket, u8 ucTX )
 {
+    u8 ucBuffer[ 24 ];
     u32 ulID;
-    u16 uiCRC;
-    u8 ucLen;
+    //u16 uiCRC;
+    //u8 ucLen;
+
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->CR &= ~BIT0;
+    //pygmySocket->Command = RF_OPEN;
+    //ucLen = len( ucTaskName )+1;
+    //pygmySocket->LastActive = timeGet();
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    // *(pygmySocket->Payload+4) = (u8) ( RF_OPEN|(ucLen+5) ); // len of filename plus null and 32 bit ID
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
+    // *(pygmySocket->Payload+6) = (ucTX|RF_CMDLINE);   
+    //ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
+    //convertU32ToBuffer( ulID, pygmySocket->Payload+7, BIGENDIAN );
+    
+    //ucLen = 0;
+    //uiCRC = sysCRC16( pygmySocket->Payload, 11+ucLen );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload+11+ucLen, BIGENDIAN );
+    //pygmySocket->PayloadLen = 13+ucLen;
+    //rfPutTXBuffer( 13+ucLen, pygmySocket->Payload );
+    ucBuffer[ 0 ] = (ucTX|SOCKET_CMDLINE);
+    ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
+    convertU32ToBuffer( ulID, ucBuffer+1, BIGENDIAN );
+    socketPayload( pygmySocket, SOCKET_OPEN, ucBuffer, 5 );    
+}
+#endif //#ifdef __PYGMYSOCKETS_CMDLINE
+
+#ifdef __PYGMYSOCKETS_CONTROL
+u8 socketSendControl( u32 ulDestID, u8 *ucTaskName )
+{
+    PYGMYSOCKET *pygmySocket;
 
     PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->CR &= ~BIT0;
-    pygmySocket->Command = RF_OPEN;
-    //ucLen = len( ucTaskName )+1;
-    pygmySocket->LastActive = timeGet();
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+4) = (u8) ( RF_OPEN|(ucLen+5) ); // len of filename plus null and 32 bit ID
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
-    *(pygmySocket->Payload+6) = (ucTX|RF_CMDLINE);   
-    ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
-    convertU32ToBuffer( ulID, pygmySocket->Payload+7, BIGENDIAN );
-    
-    /*for( i = 0; i < ucLen; i++ ){
-        *(pygmySocket->Payload+11+i) = *(ucTaskName++);
-    } // for
-    */
-    ucLen = 0;
-    uiCRC = sysCRC16( pygmySocket->Payload, 11+ucLen );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload+11+ucLen, BIGENDIAN );
-    pygmySocket->PayloadLen = 13+ucLen;
-    rfPutTXBuffer( 13+ucLen, pygmySocket->Payload );
-    //print( COM3, "\rTX Payload Complete" );
+    if( !taskIsRunning( ucTaskName ) ){
+        return( FALSE );
+    } // if
+    pygmySocket = socketOpen( ulDestID, SOCKET_RX|SOCKET_CONTROL );
+    if( pygmySocket ){ 
+        socketControl( pygmySocket, ucTaskName, SOCKET_RX ); // TX on recipient side
+        
+        return( TRUE );
+    } // if
+
+    return( FALSE );
 }
 
 u8 socketRequestControl( u32 ulDestID, u8 *ucTaskName )
@@ -587,12 +608,12 @@ u8 socketRequestControl( u32 ulDestID, u8 *ucTaskName )
     PYGMYSOCKET *pygmySocket;
 
     PYGMY_WATCHDOG_REFRESH;
-    if( !taskIsRunning( ucTaskName, 0 ) ){
+    if( !taskIsRunning( ucTaskName ) ){
         return( FALSE );
     } // if
-    pygmySocket = socketOpen( ulDestID, RF_TX|RF_CONTROL );
+    pygmySocket = socketOpen( ulDestID, SOCKET_TX|SOCKET_CONTROL );
     if( pygmySocket ){ 
-        socketControl( pygmySocket, ucTaskName, RF_TX ); // TX on recipient side
+        socketControl( pygmySocket, ucTaskName, SOCKET_TX ); // TX on recipient side
         
         return( TRUE );
     } // if
@@ -602,35 +623,45 @@ u8 socketRequestControl( u32 ulDestID, u8 *ucTaskName )
 
 void socketControl( PYGMYSOCKET *pygmySocket, u8 *ucTaskName, u8 ucTX )
 {
+    u8 i, ucLen, ucBuffer[ 24 ];
     u32 ulID;
-    u16 uiCRC;
-    u8 i, ucLen;
+    //u16 uiCRC;
+    //u8 i, ucLen;
 
-    PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->CR &= ~BIT0;
-    pygmySocket->Command = RF_OPEN;
-    ucLen = len( ucTaskName )+1;
-    pygmySocket->LastActive = timeGet();
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->CR &= ~BIT0;
+    //pygmySocket->Command = RF_OPEN;
+    //ucLen = len( ucTaskName )+1;
+    //pygmySocket->LastActive = timeGet();
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
 
-    *(pygmySocket->Payload+4) = (u8) ( RF_OPEN|(ucLen+5) ); // len of filename plus null and 32 bit ID
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
-    *(pygmySocket->Payload+6) = (ucTX|RF_CONTROL);   
-    ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
-    convertU32ToBuffer( ulID, pygmySocket->Payload+7, BIGENDIAN );
+    // *(pygmySocket->Payload+4) = (u8) ( RF_OPEN|(ucLen+5) ); // len of filename plus null and 32 bit ID
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
+    // *(pygmySocket->Payload+6) = (ucTX|RF_CONTROL);   
+    // ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
+    //convertU32ToBuffer( ulID, pygmySocket->Payload+7, BIGENDIAN );
     
+    //for( i = 0; i < ucLen; i++ ){
+    //    *(pygmySocket->Payload+11+i) = *(ucTaskName++);
+    //} // for
+    //uiCRC = sysCRC16( pygmySocket->Payload, 11+ucLen );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload+11+ucLen, BIGENDIAN );
+    //pygmySocket->PayloadLen = 13+ucLen;
+    //rfPutTXBuffer( 13+ucLen, pygmySocket->Payload );
+    ucBuffer[ 0 ] = (ucTX|SOCKET_CONTROL);
+    ulID = ( globalSocketID & 0xFFFFFF00 ) | ( pygmySocket->DestID & 0x000000FF );
+    convertU32ToBuffer( ulID, ucBuffer+1, BIGENDIAN );
+    ucLen = len( ucTaskName )+1;
     for( i = 0; i < ucLen; i++ ){
-        *(pygmySocket->Payload+11+i) = *(ucTaskName++);
+        *(ucBuffer+5+i) = *(ucTaskName++);
     } // for
-    uiCRC = sysCRC16( pygmySocket->Payload, 11+ucLen );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload+11+ucLen, BIGENDIAN );
-    pygmySocket->PayloadLen = 13+ucLen;
-    rfPutTXBuffer( 13+ucLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_OPEN, ucBuffer, ucLen+5 );
 }
+#endif // #ifdef __PYGMYSOCKETS_CONTROL
 
-void socketBuildPayload( PYGMYSOCKET *pygmySocket, u8 ucCommand, u8 *ucBuffer, u8 ucLen )
+void socketPayload( PYGMYSOCKET *pygmySocket, u8 ucCommand, u8 *ucBuffer, u8 ucLen )
 {
-    u16 uiCRC;
+    u16 i, uiCRC;
 
     PYGMY_WATCHDOG_REFRESH;
     pygmySocket->Len = ucLen;
@@ -639,18 +670,19 @@ void socketBuildPayload( PYGMYSOCKET *pygmySocket, u8 ucCommand, u8 *ucBuffer, u
     pygmySocket->Command = ucCommand;
     pygmySocket->PayloadLen = pygmySocket->Len + 8;
     convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+4) = (u8) ( RF_CLOSE );
+    *(pygmySocket->Payload+4) = (u8) ( ucCommand | pygmySocket->Len );
     *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
     for( i = 0; i < pygmySocket->Len; i++ ){
         *(pygmySocket->Payload+6+i) = *(ucBuffer++);
     } // for
     uiCRC = sysCRC16( pygmySocket->Payload, pygmySocket->Len + 6 );
     convertU16ToBuffer( uiCRC, pygmySocket->Payload+pygmySocket->Len + 6, BIGENDIAN );
+    pygmySocket->Run( pygmySocket->Payload, pygmySocket->PayloadLen );
 }
 
 void socketSendClose( PYGMYSOCKET *pygmySocket )
 {
-    u16 uiCRC;
+    //u16 uiCRC;
 
     //PYGMY_WATCHDOG_REFRESH;
     //pygmySocket->CR &= ~BIT0;
@@ -660,12 +692,12 @@ void socketSendClose( PYGMYSOCKET *pygmySocket )
 
     // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
     // *(pygmySocket->Payload+4) = (u8) ( RF_CLOSE );
-    uiCRC = sysCRC16( pygmySocket->Payload, 6 );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload + 6, BIGENDIAN );
-    pygmySocket->PayloadLen = 8;
+    //uiCRC = sysCRC16( pygmySocket->Payload, 6 );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload + 6, BIGENDIAN );
+    //pygmySocket->PayloadLen = 8;
 
-    rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
-    
+    //rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_CLOSE, NULL, 0 );
 } 
 /*
 void socketSendControlResponse( PYGMYSOCKET *pygmySocket, u8 *ucTaskName, u8 *ucString )
@@ -700,89 +732,94 @@ void socketSendControlResponse( PYGMYSOCKET *pygmySocket, u8 *ucTaskName, u8 *uc
 
 void socketSendDataFromString( PYGMYSOCKET *pygmySocket, u8 *ucString )
 {
-    u16 i, uiCRC;
+    //u16 i, uiCRC;
 
-    PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->CR &= ~BIT0;
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->CR &= ~BIT0;
     //print( COM3, "\rSending Data From String: " );
-    pygmySocket->LastActive = timeGet();
+    //pygmySocket->LastActive = timeGet();
     pygmySocket->Len = len( ucString )+1;
     if( pygmySocket->Len > 22 ){
         return;
     } // if
-    pygmySocket->Command = RF_DATA; 
+    //pygmySocket->Command = RF_DATA; 
     if( pygmySocket->Len == 0 ){
         socketSendClose( pygmySocket );
         return;
     } // if
-    for( i = 0; i < pygmySocket->Len; i++ ){
-        *(pygmySocket->Payload+6+i) = *(ucString++);
-    } // for
-    *(pygmySocket->Payload+4) = (u8)( RF_DATA | pygmySocket->Len );
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk++;
+    //for( i = 0; i < pygmySocket->Len; i++ ){
+    //    *(pygmySocket->Payload+6+i) = *(ucString++);
+    //} // for
+    // *(pygmySocket->Payload+4) = (u8)( RF_DATA | pygmySocket->Len );
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk++;
     
     //uiCRC = sysCRC16( pygmySocket->Payload, pygmySocket->Len + 6 );
     //convertU16ToBuffer( uiCRC, pygmySocket->Payload+pygmySocket->Len + 6, BIGENDIAN );
-    pygmySocket->PayloadLen = pygmySocket->Len + 8;
+    //pygmySocket->PayloadLen = pygmySocket->Len + 8;
     
-    rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    //rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_DATA, ucString, pygmySocket->Len );
 }
 
 void socketSendData( PYGMYSOCKET *pygmySocket )
 {
-    u16 uiCRC;
+    u8 ucBuffer[ 24 ];
+    //u16 uiCRC;
 
-    PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->CR &= ~BIT0;
-    pygmySocket->LastActive = timeGet();
-    pygmySocket->Len = fileGetBuffer( &pygmySocket->File, 24, pygmySocket->Payload+6 );
-    pygmySocket->Command = RF_DATA; 
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->CR &= ~BIT0;
+    //pygmySocket->LastActive = timeGet();
+    pygmySocket->Len = fileGetBuffer( &pygmySocket->File, 24, ucBuffer );//pygmySocket->Payload+6 );
+    //pygmySocket->Command = RF_DATA; 
     if( pygmySocket->Len == 0 ){
         socketSendClose( pygmySocket );
         return;
     } // if
-    *(pygmySocket->Payload+4) = (u8)( RF_DATA | pygmySocket->Len );
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk++;
+    // *(pygmySocket->Payload+4) = (u8)( RF_DATA | pygmySocket->Len );
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk++;
     
-    uiCRC = sysCRC16( pygmySocket->Payload, pygmySocket->Len + 6 );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload+pygmySocket->Len + 6, BIGENDIAN );
-    pygmySocket->PayloadLen = pygmySocket->Len + 8;
+    //uiCRC = sysCRC16( pygmySocket->Payload, pygmySocket->Len + 6 );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload+pygmySocket->Len + 6, BIGENDIAN );
+    //pygmySocket->PayloadLen = pygmySocket->Len + 8;
     
-    rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    //rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_DATA, ucBuffer, pygmySocket->Len );
 }
 
 void socketSendAck( PYGMYSOCKET *pygmySocket )
 {
-    u16 uiCRC;
+    //u16 uiCRC;
 
-    PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->LastActive = timeGet();
-    pygmySocket->Command = RF_ACK;
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+4) = (u8) ( RF_ACK );
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
-    uiCRC = sysCRC16( pygmySocket->Payload, 6 );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload + 6, BIGENDIAN );
-    pygmySocket->PayloadLen = 8;
-    rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->LastActive = timeGet();
+    //pygmySocket->Command = RF_ACK;
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    // *(pygmySocket->Payload+4) = (u8) ( RF_ACK );
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
+    //uiCRC = sysCRC16( pygmySocket->Payload, 6 );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload + 6, BIGENDIAN );
+    //pygmySocket->PayloadLen = 8;
+    //rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_ACK, NULL, 0 );
 }
 
 void socketSendNack( PYGMYSOCKET *pygmySocket )
 {
-    u16 uiCRC;
+    //u16 uiCRC;
 
-    PYGMY_WATCHDOG_REFRESH;
-    pygmySocket->CR &= ~BIT0;
-    pygmySocket->LastActive = timeGet();
-    pygmySocket->Command = RF_NACK;
-    convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
-    *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
-    *(pygmySocket->Payload+4) = (u8) ( RF_NACK );
-    uiCRC = sysCRC16( pygmySocket->Payload, 6 );
-    convertU16ToBuffer( uiCRC, pygmySocket->Payload+ 6, BIGENDIAN );
-    pygmySocket->PayloadLen = 8;
-    rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    //PYGMY_WATCHDOG_REFRESH;
+    //pygmySocket->CR &= ~BIT0;
+    //pygmySocket->LastActive = timeGet();
+    //pygmySocket->Command = RF_NACK;
+    //convertU32ToBuffer( pygmySocket->DestID, pygmySocket->Payload , BIGENDIAN );
+    // *(pygmySocket->Payload+5) = (u8) pygmySocket->Chunk;
+    // *(pygmySocket->Payload+4) = (u8) ( RF_NACK );
+    //uiCRC = sysCRC16( pygmySocket->Payload, 6 );
+    //convertU16ToBuffer( uiCRC, pygmySocket->Payload+ 6, BIGENDIAN );
+    //pygmySocket->PayloadLen = 8;
+    //rfPutTXBuffer( pygmySocket->PayloadLen, pygmySocket->Payload );
+    socketPayload( pygmySocket, SOCKET_NACK, NULL, 0 );
 }
 

@@ -297,6 +297,9 @@ void spiPutChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 ucByte )
     // Writes one char with prepended address and CS cycle
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONWRITE ){
+        spiReadByte( pygmySPI );
+    } // if
     spiWriteByte( pygmySPI, ucByte );
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
 }
@@ -306,6 +309,9 @@ void spiPutWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u16 uiData )
     // writes a bigendian 16bit word with prepended address and CS cycle
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONWRITE ){
+        spiReadByte( pygmySPI );
+    } // if
     spiWriteByte( pygmySPI, (u8)((u16) uiData >> 8 ) );
     spiWriteByte( pygmySPI, (u8) uiData );
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
@@ -316,6 +322,9 @@ void spiPutLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u32 ulData )
     // writes a bigendian 32bit  long with prepended address and CS cycle
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONWRITE ){
+        spiReadByte( pygmySPI );
+    } // if
     spiWriteByte( pygmySPI, (u8)((u32) ulData >> 24 ) );
     spiWriteByte( pygmySPI, (u8)((u32) ulData >> 16 ) );
     spiWriteByte( pygmySPI, (u8)((u32) ulData >> 8 ) );
@@ -329,6 +338,9 @@ void spiPutBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLe
     
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONWRITE ){
+        spiReadByte( pygmySPI );
+    } // if
     for( i = 0; i < ulLen; i++ ){
         spiWriteByte( pygmySPI, ucBuffer[ i ] );
     } // for
@@ -341,6 +353,9 @@ u8 spiGetChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
 
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONREAD ){
+        spiReadByte( pygmySPI );
+    } // if
     ucChar = spiReadByte( pygmySPI );
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
 }
@@ -351,6 +366,9 @@ u16 spiGetWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
 
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONREAD ){
+        spiReadByte( pygmySPI );
+    } // if
     uiData = (u16)spiReadByte( pygmySPI ) << 8;
     uiData |= (u16)spiReadByte( pygmySPI );
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
@@ -364,6 +382,9 @@ u32 spiGetLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
 
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONREAD ){
+        spiReadByte( pygmySPI );
+    } // if
     ulData = (u32)spiReadByte( pygmySPI ) << 24;
     ulData |= (u32)spiReadByte( pygmySPI ) << 16;
     ulData |= (u32)spiReadByte( pygmySPI ) << 8;
@@ -379,6 +400,9 @@ void spiGetBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLe
 
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
+    if( pygmySPI->CR & SPIDUMMYONREAD ){
+        spiReadByte( pygmySPI );
+    } // if
     for( i = 0; i < ulLen; i++ ){
         ucBuffer[ i ] = spiReadByte( pygmySPI );
     } // for
@@ -457,15 +481,22 @@ u8 spiReadByte( PYGMYSPIPORT *pygmySPI )
 	u8 ucByte;
 	
     pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;             // Clock starts low, low-high-low clocks data in or out
-	for( i = 24, ucByte = 0; i < 32; i++ ){                   // 
+	/*for( i = 24, ucByte = 0; i < 32; i++ ){                   // 
 		pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
         if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
             ucByte |= PYGMY_INVBITMASKS[ i ];
 			//ucByte |= ( BIT7 >> i );                        //
         } // if                                             //
 		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
+    } // for*/
+	for( i = 0, ucByte = 0; i < 8; i++ ){                   // 
+		pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
+        if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
+            //ucByte |= PYGMY_INVBITMASKS[ i ];
+			ucByte |= ( BIT7 >> i );                        //
+        } // if                                             //
+		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
     } // for
-	
 	return( ucByte );
 }
 
@@ -498,19 +529,19 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI,
     if( ucMOSI != NONE ){
         pinConfig( ucMOSI, OUT );
         pygmySPI->PortMOSI  = pinGetPort( ucMOSI );
-        pygmySPI->PinMOSI   = PYGMY_BITMASKS[ ucMOSI % 16 ];
+        pygmySPI->PinMOSI   = sysGenerateBit( ucMOSI % 16 );//PYGMY_BITMASKS[ ucMOSI % 16 ];
     } // if
     if( ucMISO != NONE ){
         pinConfig( ucMISO, IN );
         pygmySPI->PortMISO  = pinGetPort( ucMISO );
-        pygmySPI->PinMISO   = PYGMY_BITMASKS[ ucMISO % 16 ];
+        pygmySPI->PinMISO   = sysGenerateBit( ucMISO % 16 );//PYGMY_BITMASKS[ ucMISO % 16 ];
     } // if
 
     pygmySPI->PortCS    = pinGetPort( ucCS );
     pygmySPI->PortSCK   = pinGetPort( ucSCK );   
     
-    pygmySPI->PinCS     = PYGMY_BITMASKS[ ucCS % 16 ];
-    pygmySPI->PinSCK    = PYGMY_BITMASKS[ ucSCK % 16 ];   
+    pygmySPI->PinCS     = sysGenerateBit( ucCS % 16 );//PYGMY_BITMASKS[ ucCS % 16 ];
+    pygmySPI->PinSCK    = sysGenerateBit( ucSCK % 16 );//PYGMY_BITMASKS[ ucSCK % 16 ];   
     
     pygmySPI->CR        = ucCR;//0xFF;
 
@@ -668,16 +699,13 @@ void i2cDelay( PYGMYI2CPORT *pygmyI2C )
  
 void i2cStretch( PYGMYI2CPORT *pygmyI2C )
 {
-    u32 i;
+    u16 i;
 
-    //pinSet( MCO, LOW );
-    for( i = 0; i < 0xFFFF; i++ ){
+    for( i = 0; i < 60000; i++ ){
         if( pygmyI2C->PortSCL->IDR & pygmyI2C->PinSCL ){
             break;
         } // if
     } // for
-    
-    //pinSet( MCO, HIGH );
 }
  
 void i2cStart( PYGMYI2CPORT *pygmyI2C )
@@ -779,7 +807,7 @@ u8 i2cReadBit( PYGMYI2CPORT *pygmyI2C )
         
     return( ucBit );
 }
-
+/*
 u8 i2cWriteBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen )
 {
     u16 i;
@@ -816,7 +844,7 @@ u8 i2cReadBuffer( PYGMYI2CPORT *pygmyI2C, u16 uiAddress, u8 *ucBuffer, u16 uiLen
     } // for
     i2cWriteBit( pygmyI2C, 1 ); // Nack when all bytes read
     i2cStop( pygmyI2C );
-}
+}*/
 
 u8 i2cWriteByte( PYGMYI2CPORT *pygmyI2C, u8 ucByte )
 {
@@ -1205,10 +1233,22 @@ u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen )
     return( 0 );
 }
 
+
+
 void streamSetActionChars( u8 ucStream, u8 *ucString )
 {
     // Warning! ucString must be NULL terminated
     globalStreams[ ucStream ].ActionChars = ucString;
+}
+
+void streamDisableDefaultGet( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR |= PYGMY_STREAMS_USERHANDLER;
+}
+
+void streamEnableDefaultGet( u8 ucStream )
+{
+    globalStreams[ ucStream ].CR &= ~PYGMY_STREAMS_USERHANDLER;
 }
 
 u8 streamGetEcho( u8 ucStream )
@@ -1395,12 +1435,16 @@ void USART3_IRQHandler( void )
     u8 ucChar;//, ucAction;
 
     if( USART3->SR & USART_RXNE){
-        ucChar = USART3->DR;
-        streamHandler( COM3, ucChar );
+        if( globalStreams[ COM3 ].CR & PYGMY_STREAMS_USERHANDLER ){
+            globalStreams[ COM3 ].Get();
+        } else{
+            ucChar = USART3->DR;
+            streamHandler( COM3, ucChar );
+        } // else
     } // if
-    //if( USART3->SR & USART_TXE ){
-    //   streamTXChar( COM3, USART3 );
-    //} // if
+    if( USART3->SR & USART_TXE ){
+       streamTXChar( COM3, USART3 );
+    } // if
     USART3->SR = 0;
 }
 

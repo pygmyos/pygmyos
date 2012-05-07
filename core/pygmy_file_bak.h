@@ -21,37 +21,7 @@
 #pragma once    
 
 #include "pygmy_profile.h"
-
-// ------------------ Defines for SST25VF080B SPI Flash and compatible ---------------------
-
-#define PYGMY_FLASH_READ                          0x03
-#define PYGMY_FLASH_FASTREAD                      0x0B
-#define PYGMY_FLASH_ERASE                         0x20
-#define PYGMY_FLASH_ERASE_4KB                     0x20
-#define PYGMY_FLASH_ERASE_32KB                    0x52
-#define PYGMY_FLASH_ERASE_64KB                    0xD8
-#define PYGMY_FLASH_ERASE_ALL                     0x60
-#define PYGMY_FLASH_WRITE_BYTE                    0x02
-//#define PYGMY_FLASH_WRITE_WORD                    0xAD
-#define PYGMY_FLASH_RDSR                          0x05
-#define PYGMY_FLASH_EWSR                          0x50
-#define PYGMY_FLASH_WRSR                          0x01
-#define PYGMY_FLASH_WREN                          0x06
-#define PYGMY_FLASH_WRDI                          0x04
-#define PYGMY_FLASH_RDID                          0x90
-#define PYGMY_FLASH_JEDECID                       0x9F
-#define PYGMY_FLASH_EBSY                          0x70
-#define PYGMY_FLASH_DBSY                          0x80
-#define PYGMY_FLASH_STATUS_BUSY                   BIT0
-#define PYGMY_FLASH_STATUS_WEL                    BIT1
-#define PYGMY_FLASH_STATUS_BP0                    BIT2
-#define PYGMY_FLASH_STATUS_BP1                    BIT3
-#define PYGMY_FLASH_STATUS_BP2                    BIT4
-#define PYGMY_FLASH_STATUS_BP3                    BIT5
-#define PYGMY_FLASH_STATUS_AAI                    BIT6
-#define PYGMY_FLASH_STATUS_BPL                    BIT7
-#define PYGMY_FLASH_MAXSECTORS                    256  // Sectors in 1MB Flash IC
-#define PYGMY_FLASH_SECTORSIZE                    4096 // Bytes per sector
+#include "pygmy_type.h"
 
 #define PYGMY_FILE_MAXFILENAMELEN                12 // 25 - NULL sring terminator
 #define PYGMY_FILE_MAXVOLUMENAMELEN              12 // 19 - NULL string terminator      
@@ -104,26 +74,31 @@
 #define CURRENT                     2
 #define END                         4
 
-#define SST_ID                      0xBF
-#define SST_ID_MEMTYPE              0x25 // FLASH
-#define SST_ID_32M                  0x4A // SST25VF032B
-#define SST_ID_16M                  0x41 // SST25VF016B
-#define SST_ID_8M                   0x8E // SST25VF080B
-#define SST_ID_4M                   0x8D // SST25VF040B
+
 
 #ifndef __PYGMY_BOOT
     //#define FLASH_CS_LOW    pygmyFlashSPI.PortCS->BRR = pygmyFlashSPI.PinCS
     //#define FLASH_CS_HIGH   pygmyFlashSPI.PortCS->BSRR = pygmyFlashSPI.PinCS
 #endif
-
+/*
+typedef struct {
+                u32 Capacity;       // Sectors x Sector Size
+                u16 Sectors;        // Total number of sectors as defined below
+                u16 SectorSize;     // Smallest erasable size ( generally 256B-4KB )
+                u8 Attributes;      // Pygmy File Attributes
+                u8 Manufacturer;    // 1 byte JDEC ID
+                u8 Type;            // JDEC Memory Type
+                } PYGMYMEMDESC;     // Generic Memory Descriptor
+*/
 
 typedef struct PYGMYFILEVOLUME_TYPEDEF {
                 u8 Name[ PYGMY_FILE_MAXVOLUMENAMELEN + 1 ];
-                u8 Attributes;
+                u8 *Path;
+                //u8 Attributes;
                 u32 ActiveFiles;
                 u32 ActiveFAT;
-                u16 Sectors; // was u32
-                u16 SectorSize;
+                //u16 Sectors; // was u32
+                //u16 SectorSize;
                 u32 MaxFiles;
                 u32 MediaSize; // Sectors * SectorSize
                 u16 EntriesPerFAT;
@@ -134,9 +109,13 @@ typedef struct PYGMYFILEVOLUME_TYPEDEF {
                 u32 Files_B;
                 u32 FAT_A;
                 u32 FAT_B;
+                PYGMYMEMDESC Desc;
+                PYGMYMEMIO *IO;
+                void *Port;
                 } PYGMYFILEVOLUME;
 
 typedef struct PYGMYFILE_TYPEDEF { 
+                PYGMYFILEVOLUME *MountPoint;
                 u32 Sector;
                 u32 Length;
                 u32 Index;
@@ -153,11 +132,14 @@ typedef struct PYGMYFILE_TYPEDEF {
 
 // ----------------------------- End Platform specific defines -----------------------------
 
-extern PYGMYFILEVOLUME pygmyRootVolume;     
-extern PYGMYSPIPORT pygmyFlashSPI;
+//extern PYGMYFILEVOLUME pygmyRootVolume;     
+//extern PYGMYSPIPORT pygmyFlashSPI;
        
-u16 fileAllocateContiguousFATEntries( u16 uiID, u16 uiEntries );
-u32 filePreAllocate( PYGMYFILE *pygmyFile, u32 ulSize );
+//u16 fileAllocateContiguousFATEntries( u16 uiID, u16 uiEntries );
+//u32 filePreAllocate( PYGMYFILE *pygmyFile, u32 ulSize );
+u8 fileMount( PYGMYMEMIO *pygmyMEMIO, ... );            
+u32 fileFormat( PYGMYFILEVOLUME *pygmyVolume, u8 *ucName );
+            
 void fileCopyHandle( PYGMYFILE *pygmyFrom, PYGMYFILE *pygmyTo );  
 u8 fileOpenResource( PYGMYFILE *pygmyFile, u8 *ucResource );            
 u8 fileOpen( PYGMYFILE *pygmyFile, u8 *ucName, u8 ucAttrib );
@@ -188,8 +170,8 @@ u32 fileGetFreeSpace( void );
 u8 *fileGetVolumeName( u8 *ucName );
 u32 fileGetActiveFAT( void );
 u8 fileMountRoot( void );
-u8 fileMountVolume( void );//PYGMYFILEVOLUME *pygmyFileVolume );
-u32 fileFormat( u8 *ucName );
+//u8 fileMountVolume( void );//PYGMYFILEVOLUME *pygmyFileVolume );
+//u32 fileFormat( u8 *ucName );
 u8 fileIsValidName( u8 *ucName );
 u8 fileIsEOF( PYGMYFILE *pygmyFile );
 u8 fileIsRootFull( void );
@@ -202,6 +184,7 @@ u16 fileSeekName( u8 *ucName );
 void filePrintDebug( u8 ucStream );
 void filePrintList( u8 ucStream );
 
+/*
 u8 flashReadByte( u32 ulAddress );
 u16 flashReadWord( u32 ulAddress );
 u32 flashReadLong( u32 ulAddress );
@@ -217,6 +200,7 @@ u8 flashReadID( void );
 void flashWaitForBusy( void );
 void flashSectorErase( u32 ulAddress );
 u8 flashChipErase( void );
+*/
 /*
 #ifdef __PYGMY_BOOT
 void spiWriteByte( void *, u8 ucByte );

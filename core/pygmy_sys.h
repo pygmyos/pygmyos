@@ -19,18 +19,20 @@
 ***************************************************************************/
 
 #pragma once
-//#include "pygmy_com.h"
+#include <stdint.h>
 
 #define NULL                                (void*)0
 #define TRUE                                1
 #define FALSE                               0
 
-typedef signed long long                    s64;
+//typedef signed long long                    s64;
+typedef int64_t                             s64;
 typedef signed long                         s32;
 typedef signed short                        s16;
 typedef signed char                         s8;
 
 typedef signed long long const              sc64;
+//typedef signed int64_t const                sc64;
 typedef signed long  const                  sc32;  
 typedef signed short const                  sc16;  
 typedef signed char  const                  sc8;   
@@ -45,7 +47,8 @@ typedef volatile signed long  const         vsc32;
 typedef volatile signed short const         vsc16;  
 typedef volatile signed char  const         vsc8;  
 
-typedef unsigned long long                  u64;
+//typedef unsigned long long                  u64;
+typedef uint64_t                            u64;
 typedef unsigned long                       u32;
 typedef unsigned short                      u16;
 typedef unsigned char                       u8;
@@ -1277,22 +1280,30 @@ u16 msgInit( void );
 void msgList( PYGMYMESSAGE *pygmyMsg, u16 uiMsg );
 
 void taskInit( void );
-u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler );
-u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler );
-u8 taskDelete( u8 *ucName, u16 uiID );
-void taskList( PYGMYTASK *pygmyTask, u16 uiTask );
-u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask );
-u8 taskIsRunning( u8 *ucName, u16 uiID );
+//u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler );
+u8 taskNew( u8 *ucName, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler );
+u8 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler );
+//u8 taskDelete( u8 *ucName, u16 uiID );
+u8 taskDelete( u8 *ucName );
+PYGMYTASK  *taskGet( u8 *ucName );
+u16 taskGetCount( void );
+PYGMYTASK *taskGetByIndex( u16 uiIndex );
+u8 taskIsRunning( u8 *ucName );
+//void taskList( PYGMYTASK *pygmyTask, u16 uiTask );
+//u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask );
+//u8 taskIsRunning( u8 *ucName, u16 uiID );
 
 void TaskException_Handler( void );
 
 u32 sysRandom( u32 ulFrom, u32 ulTo);
+u32 sysGenerateBit( u8 ucBit );
 u8 sysFlipU8( u8 ucData );
 u16 sysFlipU16( u16 uiData );
 u32 sysFlipU32( u32 ulData );
 u32 sysFlipBits( u32 ulData, u8 ucBits );
 u8 sysCRC8( u8 *ucBuffer, u16 uiLen );
 u16 sysCRC16( u8 *ucBuffer, u16 uiLen );
+u32 pdiaEncodeString( u8 *ucString );
 u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum );
 void pdiaPrintInteger( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucFormat, u32 ulData );
 void pdiaPrintString( u8 ucMode, u32 *ulSum, u8 ucStream, u8 *ucBuffer );

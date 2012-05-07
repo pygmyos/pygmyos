@@ -20,11 +20,13 @@
 
 #include "pygmy_profile.h"
 #include "pygmy_xmodem.h"
-#include "pygmy_file.h"
+//#include "pygmy_file.h"
 
 u8 xmodemRecv( PYGMYXMODEM *pygmyXModem, u8 *ucFileName )
 {
-    if( fileOpen( &pygmyXModem->File, ucFileName, WRITE ) ){
+    pygmyXModem->File = fileOpen( ucFileName, WRITE, 0 );
+    //if( fileOpen( &pygmyXModem->File, ucFileName, WRITE ) ){
+    if( pygmyXModem->File ){
         pygmyXModem->Status |= XMODEM_ACTIVE;       // BIT1 used to mark In XModem Status
         pygmyXModem->Timeout = 1000; // 10 seconds
         pygmyXModem->Transaction = 60;
@@ -38,7 +40,9 @@ u8 xmodemRecv( PYGMYXMODEM *pygmyXModem, u8 *ucFileName )
 
 u8 xmodemSend( PYGMYXMODEM *pygmyXModem, u8 *ucFileName )
 {
-    if( fileOpen( &pygmyXModem->File, ucFileName, READ ) ){
+    pygmyXModem->File = fileOpen( ucFileName, READ, 0 );
+    //if( fileOpen( &pygmyXModem->File, ucFileName, READ ) ){
+    if( pygmyXModem->File ){
         pygmyXModem->Count = 1;
         pygmyXModem->Timeout = 1000;
         pygmyXModem->Transaction = 10;
@@ -66,9 +70,11 @@ u8 xmodemProcess( PYGMYXMODEM *pygmyXModem, u8 ucByte )
                     } else{
                         ++pygmyXModem->Count;
                     } // else
-                    putcUSART3( 0x06 );// Return ACK
+                    //putcUSART3( 0x06 );// Return ACK
+                    print( COM3, "%c", 0x06 );
                 } else{
-                    putcUSART3( 0x15 );// Return NACK
+                    //putcUSART3( 0x15 );// Return NACK
+                    print( COM3, "%c", 0x15 );
                 } // else  
             } 
         } else{
@@ -78,9 +84,10 @@ u8 xmodemProcess( PYGMYXMODEM *pygmyXModem, u8 ucByte )
                 pygmyXModem->Transaction = 10;
             } else if( ucByte == 0x04 || ucByte == XMODEM_CAN ){ // 0x04 Marks End Of Transmission              
                 pygmyXModem->Status = 0;//&= ~( XMODEM_RECV );
-                filePutBuffer( &pygmyXModem->File, 128, pygmyXModem->Buffer );
-                fileClose( &pygmyXModem->File );
-                putcUSART3( 0x06 ); // Send Ack to close connection
+                //filePutBuffer( &pygmyXModem->File, 128, pygmyXModem->Buffer );
+                //fileClose( &pygmyXModem->File );
+                //putcUSART3( 0x06 ); // Send Ack to close connection
+                print( COM3, "%c", 0x06 );
                 //putstr( "Done\r> " );
             } // else if
             pygmyXModem->Index = 0;
@@ -95,9 +102,11 @@ u8 xmodemProcess( PYGMYXMODEM *pygmyXModem, u8 ucByte )
             } // if
             pygmyXModem->Timeout = 1000;
             pygmyXModem->Transaction = 10;
-            if( pygmyXModem->File.Attributes & EOF ){
+            //if( pygmyXModem->File.Attributes & EOF ){
+            if( pygmyXModem->File->Properties.Attributes & EOF ){
                 pygmyXModem->Status |= XMODEM_SEND_EOT;
-                putcUSART3( XMODEM_EOT );
+                //putcUSART3( XMODEM_EOT );
+                print( COM3, "%c", XMODEM_EOT );
             } else{
                 ++pygmyXModem->Count;
                 xmodemSendPacket( pygmyXModem, XMODEM_NEXT ); // 0 = next pack
@@ -114,7 +123,8 @@ u8 xmodemProcess( PYGMYXMODEM *pygmyXModem, u8 ucByte )
             } // else
         } else if( ucByte == XMODEM_CAN ){
             pygmyXModem->Status = 0;
-            putcUSART3( 0x06 ); // Send Ack to close connection
+            //putcUSART3( 0x06 ); // Send Ack to close connection
+            print( COM3, "%c", 0x06 );
             //putstr( (u8*)BOOT_PROMPT );
         } // else if
         return( TRUE );
@@ -129,7 +139,8 @@ void xmodemProcessTimer( PYGMYXMODEM *pygmyXModem )
         if( pygmyXModem->Timeout ){
             --pygmyXModem->Timeout;
         } else{
-            putcUSART3( XMODEM_NACK );
+            //putcUSART3( XMODEM_NACK );
+            print( COM3, "%c", XMODEM_NACK );
             pygmyXModem->Timeout = 1000;
             if( pygmyXModem->Transaction ){
                 --pygmyXModem->Transaction;
@@ -166,7 +177,7 @@ u8 xmodemWritePacket( PYGMYXMODEM *pygmyXModem )//u8 *ucBuffer )
         ucSum += ucBuffer[ i ]; 
     } // for  
     if( ucSum == ucBuffer[ 128 ] ){
-        filePutBuffer( &pygmyXModem->File, 128, ucBuffer );
+        //filePutBuffer( &pygmyXModem->File, 128, ucBuffer );
         return( TRUE );
     } // if
 	

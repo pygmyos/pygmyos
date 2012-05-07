@@ -25,13 +25,12 @@
 //#include "alloc.h"
 #include "pygmy_profile.h"
 
-
-const u8 PYGSYS_INVBITS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
+//const u8 PYGSYS_INVBITS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 const u8 PYGMY_DAYSINMONTH[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-const u32 PYGMY_BITMASKS[] = { BIT0,BIT1,BIT2,BIT3,BIT4,BIT5,BIT6,BIT7,BIT8,BIT9,BIT10,BIT11,BIT12,BIT13,BIT14,BIT15,
-                              BIT16,BIT17,BIT18,BIT19,BIT20,BIT21,BIT22,BIT23,BIT24,BIT25,BIT26,BIT27,BIT28,BIT29,BIT30,BIT31};
-const u32 PYGMY_INVBITMASKS[] = {BIT31,BIT30,BIT29,BIT28,BIT27,BIT26,BIT25,BIT24,BIT23,BIT22,BIT21,BIT20,BIT19,BIT18,BIT17,BIT16,
-                               BIT15,BIT14,BIT13,BIT12,BIT11,BIT10,BIT9,BIT8,BIT7,BIT6,BIT5,BIT4,BIT3,BIT2,BIT1,BIT0};
+//const u32 PYGMY_BITMASKS[] = { BIT0,BIT1,BIT2,BIT3,BIT4,BIT5,BIT6,BIT7,BIT8,BIT9,BIT10,BIT11,BIT12,BIT13,BIT14,BIT15,
+//                              BIT16,BIT17,BIT18,BIT19,BIT20,BIT21,BIT22,BIT23,BIT24,BIT25,BIT26,BIT27,BIT28,BIT29,BIT30,BIT31};
+//const u32 PYGMY_INVBITMASKS[] = {BIT31,BIT30,BIT29,BIT28,BIT27,BIT26,BIT25,BIT24,BIT23,BIT22,BIT21,BIT20,BIT19,BIT18,BIT17,BIT16,
+//                               BIT15,BIT14,BIT13,BIT12,BIT11,BIT10,BIT9,BIT8,BIT7,BIT6,BIT5,BIT4,BIT3,BIT2,BIT1,BIT0};
 
 // Global System Variables                          
                            
@@ -660,6 +659,21 @@ void *cmdListQueue( u16 uiIndex )
 
 //--------------------------------------------------------------------------------------------
 //--------------------------------Pygmy OS Data Integrity Algorithm---------------------------
+u32 sysGenerateBit( u8 ucBit )
+{
+    u32 ulData = BIT0;
+    u8 i;
+
+    if( ucBit > 32 ){
+        return( 0 );
+    } // if
+    
+    for( i = 0; i < ucBit; i++ ){
+        ulData <<= 1;
+    } // for
+    
+    return( ulData );
+}
 
 u8 sysFlipU8( u8 ucData )
 {
@@ -714,6 +728,20 @@ u16 sysCRC16( u8 *ucBuffer, u16 uiLen )
     uiCRC = 1 + ( 0xFFFF ^ (u16)uiCRC ); 
     
     return( uiCRC );
+}
+
+u32 pdiaEncodeString( u8 *ucString )
+{
+    u32 ulSum;
+    // Warning!!! Only use with strings under 16384 bytes long!
+
+    pdiaEncode( 0, PDIA_NEW, &ulSum );
+    for( ; *ucString; ){
+        pdiaEncode( *(ucString++), PDIA_ADD, &ulSum );
+    } // for
+    pdiaEncode( 0, PDIA_END, &ulSum );
+    
+    return( ulSum );
 }
 
 u8 pdiaEncode( u8 ucByte, u8 ucMode, u32 *ulSum )
@@ -795,8 +823,8 @@ u16 taskProcess( void )
         if( pygmyGlobalTasks[ i ].ID != PYGMY_BLANKID ){
             if( pygmyGlobalTasks[ i ].Expire ){
                 if( pygmyGlobalTasks[ i ].Expire == ulTime ){
-                    //deleteTask( &pygmyGlobalTasks[ i ] );
-                    taskDelete( "", pygmyGlobalTasks[ i ].ID );
+                    //taskDelete( "", pygmyGlobalTasks[ i ].ID );
+                    taskDelete( pygmyGlobalTasks[ i ].Name );
                     continue; // Do Not finish processing task after it has ended
                 } // if
             } // if
@@ -834,37 +862,43 @@ void taskInit( void )
     pygmyGlobalData.Status |= PYGMY_TASK_INIT;
 }
 
-u16 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
+u8 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
 {
     // ID = 0 calls for auto generated ID
     // Timer = 2, 1 is reload, this provides approx 1 millisec delay
     // Reload = ulTimer, This value will be loaded into timer on each reload at 1
     // Expire = 0, doesn't expire
 
-    return( taskNew( ucName, 0, 2, ulTimer, 0, EventHandler ) ); // return ID or 0 for fail
+    //return( taskNew( ucName, 0, 2, ulTimer, 0, EventHandler ) ); // return ID or 0 for fail
+    return( taskNew( ucName, ulTimer, ulTimer, 0, EventHandler ) );
 }
 
-u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
+//u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
+u8 taskNew( u8 *ucName, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
 { 
     u16 i;
 
-    if( uiID >= PYGMY_SERVICEDID ){
-        return( 0 );
-    } // if
-    for( i = 0; i < PYGMY_MAXTASKS; i++ ){
+    //if( uiID >= PYGMY_SERVICEDID ){
+    //    return( 0 );
+    //} // if
+    /*for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         if( uiID && ( pygmyGlobalTasks[ i ].ID == uiID || 
             isStringSame( ucName, pygmyGlobalTasks[ i ].Name ) ) ){
             return( 0 );
             //return( PYGMY_TASK_EXISTS );
         } // if
     } // for
+    */
+    if( taskIsRunning( ucName ) ){
+        return( FALSE );
+    } // if
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         if( pygmyGlobalTasks[ i ].ID == PYGMY_BLANKID ){
-            if( uiID ){
-                pygmyGlobalTasks[ i ].ID = uiID; // ID was provided
-            } else{
+            //if( uiID ){
+            //    pygmyGlobalTasks[ i ].ID = uiID; // ID was provided
+            //} else{
                 pygmyGlobalTasks[ i ].ID = PYGMY_TEMPID | i; // Generate unique ID
-            } // else
+            //} // else
             pygmyGlobalTasks[ i ].Busy          = 0;
             pygmyGlobalTasks[ i ].Name          = ucName;
             pygmyGlobalTasks[ i ].Timer         = ulTimer;
@@ -878,54 +912,76 @@ u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGM
             pygmyGlobalTasks[ i ].Expire        = ulExpire;
 
             //return( PYGMY_TASK_SUCCESS );
-            return( pygmyGlobalTasks[ i ].ID );
+            return( TRUE );//pygmyGlobalTasks[ i ].ID );
         } // if
     } // for
 
-    return( 0 );
-    //return( PYGMY_TASK_FAIL );
+    return( FALSE );
 }
 
-u8 taskIsRunning( u8 *ucName, u16 uiID ) 
+//u8 taskIsRunning( u8 *ucName, u16 uiID )
+u8 taskIsRunning( u8 *ucName )
 {
     // Return 1 for task found and 0 for not found
-    u16 i;
+    u16 i, uiLen;
     
-    for( i = 0; i < PYGMY_MAXTASKS; i++ ){
-        if( ( uiID && pygmyGlobalTasks[ i ].ID == uiID ) || 
-            isStringSame( pygmyGlobalTasks[ i ].Name, ucName ) ){
+    uiLen = taskGetCount();
+    for( i = 0; i < uiLen; i++ ){
+        if( pygmyGlobalTasks[ i ].Name && isStringSame( pygmyGlobalTasks[ i ].Name, ucName ) ){
             
-            return( 1 );
+            return( TRUE );
         } // if
     }//for
 
-    return( 0 );
+    return( FALSE );
 }
 
-u8 taskDelete( u8 *ucName, u16 uiID )
+// u8 taskDelete( u8 *ucName, u16 uiID )
+u8 taskDelete( u8 *ucName )
 {
-    u16 i; 
-	u8 ucDeleted;
+    u16 i, uiLen; 
+	//u8 ucDeleted;
     
     // This loop iterates to MAX to delete all instances of a given name
-    for( i = 0, ucDeleted = 0; i < PYGMY_MAXTASKS; i++ ){
-        if( ( uiID && pygmyGlobalTasks[ i ].ID == uiID ) || isStringSame( ucName, pygmyGlobalTasks[ i ].Name ) ){
+    uiLen = taskGetCount();
+    for( i = 0; i < uiLen; i++ ){
+        //if( ( uiID && pygmyGlobalTasks[ i ].ID == uiID ) || isStringSame( ucName, pygmyGlobalTasks[ i ].Name ) ){
+        if( pygmyGlobalTasks[ i ].Name && isStringSame( ucName, pygmyGlobalTasks[ i ].Name ) ){
             pygmyGlobalTasks[ i ].Name          = NULL;
             pygmyGlobalTasks[ i ].ID            = PYGMY_BLANKID;
             pygmyGlobalTasks[ i ].Timer         = 0;
             pygmyGlobalTasks[ i ].Reload        = 0;
             pygmyGlobalTasks[ i ].EventHandler  = ( void * ) TaskException_Handler;
             pygmyGlobalTasks[ i ].TimeStamp     = 0;
-            ucDeleted = 1;
+            return( TRUE );
         } // if
     } // for
    
-    return( ucDeleted );
+    return( FALSE );
 }
 
-u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask )
+//u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask )
+PYGMYTASK  *taskGet( u8 *ucName )
 {
-    u16 i;
+    u16 i, uiLen;
+
+    uiLen = taskGetCount();
+    for( i = 0; i < uiLen; i++ ){
+        if( pygmyGlobalTasks[ i ].Name && isStringSame( ucName, pygmyGlobalTasks[ i ].Name ) ){
+            //pygmyTask->Name = pygmyGlobalTasks[ i ].Name;
+            //pygmyTask->ID = pygmyGlobalTasks[ i ].ID;
+            //pygmyTask->Timer = pygmyGlobalTasks[ i ].Timer;
+            //pygmyTask->Reload = pygmyGlobalTasks[ i ].Reload;
+            //pygmyTask->EventHandler = pygmyGlobalTasks[ i ].EventHandler;
+            //pygmyTask->TimeStamp = pygmyGlobalTasks[ i ].TimeStamp;
+            //pygmyTask->Expire = pygmyGlobalTasks[ i ].Expire;
+            
+            return( &pygmyGlobalTasks[ i ] );
+        } // if
+    } // for
+    
+    return( NULL );
+    /*u16 i;
 
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         if( ( uiID && pygmyGlobalTasks[ i ].ID == uiID ) || 
@@ -942,9 +998,23 @@ u8 taskGet( u8 *ucName, u16 uiID, PYGMYTASK *pygmyTask )
         } // if
     } // for
     
-    return( 0 );
+    return( 0 );*/
 }
 
+u16 taskGetCount( void )
+{
+    // update with count value once tasks are dynamically allocated
+    return( PYGMY_MAXTASKS );
+}
+
+PYGMYTASK *taskGetByIndex( u16 uiIndex )
+{
+    if( uiIndex < taskGetCount() ){
+        return( NULL );
+    } // if
+    return( &pygmyGlobalTasks[ uiIndex ] );
+}
+/*
 void taskList( PYGMYTASK *pygmyTask, u16 uiTask )
 {
     pygmyTask->ID               = pygmyGlobalTasks[ uiTask ].ID;
@@ -954,7 +1024,7 @@ void taskList( PYGMYTASK *pygmyTask, u16 uiTask )
     pygmyTask->EventHandler     = pygmyGlobalTasks[ uiTask ].EventHandler;
     pygmyTask->TimeStamp        = pygmyGlobalTasks[ uiTask ].TimeStamp;
     pygmyTask->Expire           = pygmyGlobalTasks[ uiTask ].Expire;
-}
+}*/
 #endif // __PYGMYTASKS
 
 void TaskException_Handler( void )

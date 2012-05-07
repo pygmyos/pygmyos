@@ -21,7 +21,7 @@
 
 #pragma once
 #include "pygmy_profile.h"
-#include "pygmy_file.h"
+//#include "pygmy_file.h"
 
 #define RF_NOP                        0xFF 
 #define RF_READ                       0x00 // 5 LSb are Address Bits
@@ -160,6 +160,8 @@
 #define RF_REG_FEATURE_EN_DPL         BIT2
 #define RF_REG_FEATURE_EN_ACK_PAY     BIT1
 #define RF_REG_FEATURE_EN_DYN_ACK     BIT0
+
+
 /*
 #define RF_MARK              0
 #define RF_HELLO             1
@@ -177,10 +179,6 @@
 */
 
 //#define RF_MAXSOCKETS       32
- 
-#define RF_TYPE_MASK        0x7F    
-#define RF_TX               0x80
-#define RF_RX               0x00
 
 enum{   RF_250KBPS = 1,
         RF_1MBPS,
@@ -197,7 +195,8 @@ u8 rfGetStatus( void );
 u8 rfGetTX( void );
 u8 rfSetTX( void );
 u8 rfSetRX( void );
-void rfPutTXBuffer( u16 uiLen, u8 *ucBuffer );
+//void rfPutTXBuffer( u16 uiLen, u8 *ucBuffer );
+void rfPutTXBuffer( u8 *ucBuffer, u16 uiLen );
 void rfPutString( u8 *ucBuffer );
 u8 rfGetRXPayloadLen( void );
 void rfGetRXPayload( void );

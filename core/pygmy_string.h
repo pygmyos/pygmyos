@@ -22,13 +22,14 @@
 
 #include "pygmy_profile.h"      
       
-#define PUNCT              BIT0
-#define WHITESPACE         BIT1
-#define NEWLINE            BIT2
-#define SEPARATORS         BIT3
-#define QUOTES             BIT4
-#define COMMA              BIT5
-#define ALPHA              BIT6
+#define PUNCT               BIT0
+#define WHITESPACE          BIT1
+#define NEWLINE             BIT2
+#define SEPARATORS          BIT3
+#define QUOTES              BIT4
+#define COMMA               BIT5
+#define ALPHA               BIT6
+#define FILESEPARATORS      BIT7
 
 extern const PYGMYPAIR PYGMYNEBULAPINS[];
 //extern const u8 PYGMYBASE64CHARS[];
@@ -37,8 +38,8 @@ u8 *convertPinToString( u8 ucPin );
 u8 convertStringToPin( u8 *ucBuffer );
 void convertU16ToBuffer( u16 uiData, u8 *ucBuffer, u8 ucEndian );
 void convertU32ToBuffer( u32 ulData, u8 *ucBuffer, u8 ucEndian );
-u16 convertBufferToU16( u8 *ucBuffer );
-u32 convertBufferToU32( u8 *ucBuffer );
+u16 convertBufferToU16( u8 *ucBuffer, u8 ucEndian );
+u32 convertBufferToU32( u8 *ucBuffer, u8 ucEndian );
 u8 isPrintable( u8 ucChar );
 s8 isSeparator( u8 ucChar );
 s8 isMathChar( u8 ucChar );
@@ -51,6 +52,7 @@ s8 isHex( u8 ucChar );
 s8 isBinary( u8 ucChar );
 s8 isOctal( u8 ucChar );
 s8 isWhitespace( u8 ucChar );
+u8 isFileSeparator( u8 ucChar );
 s8 isPunctuation( u8 ucChar );
 u8 isCharSameIgnoreCase( u8 ucChar1, u8 ucChar2 );
 u8 isStringSameIgnoreCase( u8 *ucString1, u8 *ucString2 );
@@ -63,6 +65,9 @@ u8 *getNextSubString( u8 *ucBuffer, u8 ucMode );
 void convertFloatToString( double fData, u8 *ucFormat, u8 *ucBuffer );
 void convertIntToString( s64 ulData, u8 *ucFormat, u8 *ucBuffer );
 void copyString( u8 *ucFrom, u8 *ucTo );
+void copyBuffer( u8 *ucFrom, u8 *ucTo, u16 uiLen );
+u8 *splitString( u8 *ucString, u8 ucChar, s16 sCount );
+u8 *stripLeadingChars( u8 *ucString, u8 *ucChars );
 void appendString( u8 *ucFrom, u8 *ucTo );
 u8 convertCharToUpper( u8 ucChar );
 u8 convertCharToLower( u8 ucChar );

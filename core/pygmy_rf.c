@@ -136,10 +136,12 @@ u8 rfGetSignalQuality( void )
     u8 ucSignalQuality;
 
     //spiPutChar( &pygmyRFSPI, RF_READ|RF_REG_OBSERVETX,  
-    RF_CS_LOW;
+    //RF_CS_LOW;
+    pygmyRFSPI.PortCS->BRR = pygmyRFSPI.PinCS;
     spiWriteByte( &pygmyRFSPI, RF_READ|RF_REG_OBSERVETX );
     ucSignalQuality = 15 - ( RF_REG_OBSERVETX_ARCCNT & spiReadByte( &pygmyRFSPI ) ); 
-    RF_CS_HIGH;
+    pygmyRFSPI.PortCS->BSRR = pygmyRFSPI.PinCS;
+    //RF_CS_HIGH;
     
     rfClearStatus();
     
@@ -193,7 +195,7 @@ void rfFlushRX( void )
     RF_CS_HIGH;*/
 }
 
-void rfPutTXBuffer( u16 uiLen, u8 *ucBuffer )
+void rfPutTXBuffer( u8 *ucBuffer, u16 uiLen )
 {
     u8 i;
 
@@ -224,9 +226,11 @@ u8 rfGetStatus( void )
 {
     u8 ucStatus;
 
-    RF_CS_LOW;
+    //RF_CS_LOW;
+    pygmyRFSPI.PortCS->BRR = pygmyRFSPI.PinCS;
     ucStatus = spiReadByte( &pygmyRFSPI );
-    RF_CS_HIGH;
+    pygmyRFSPI.PortCS->BSRR = pygmyRFSPI.PinCS;
+    //RF_CS_HIGH;
 
     return( ucStatus );
 }

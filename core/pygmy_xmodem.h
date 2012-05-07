@@ -21,6 +21,7 @@
 #pragma once
 
 #include "pygmy_profile.h"
+//#include "pygmy_type.h"
 
 #define XMODEM_ACTIVE       BIT1
 #define XMODEM_ACK          0x06
@@ -35,11 +36,9 @@
 #define XMODEM_SEND         BIT3
 #define XMODEM_SEND_WAIT    BIT4
 #define XMODEM_SEND_EOT     BIT5
-
-
-
+ 
 typedef struct {
-                PYGMYFILE File;
+                PYGMYFILE *File;
                 u32 Status;
                 u32 Timeout;
                 u32 Transaction;
@@ -48,10 +47,11 @@ typedef struct {
                 u8 Index;
                 u8 Port;
                 } PYGMYXMODEM;
-            
+
 u8 xmodemRecv( PYGMYXMODEM *pygmyXModem, u8 *ucFileName );
 u8 xmodemSend( PYGMYXMODEM *pygmyXModem, u8 *ucFileName );
 u8 xmodemProcess( PYGMYXMODEM *pygmyXModem, u8 ucByte );
 void xmodemProcessTimer( PYGMYXMODEM *pygmyXModem );
 void xmodemSendPacket( PYGMYXMODEM *pygmyXModem, u8 ucLast );
 u8 xmodemWritePacket( PYGMYXMODEM *pygmyXModem );//, u8 *ucBuffer );
+
