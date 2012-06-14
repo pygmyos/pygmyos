@@ -22,8 +22,10 @@
 // !!!   interface to the pygmy_gui lib. All functions declared should
 // !!!   be inplemented by the hardware specific LCD source file
 
-#pragma once
-    
+//#pragma once
+#ifndef __PYGMY_HEADER_LCD
+	#define __PYGMY_HEADER_LCD
+
 #include "pygmy_profile.h"   
 
 extern const u8 LCD_BITMASKS[];
@@ -50,3 +52,5 @@ u8 lcdGetBPP( void );
 void lcdSetColor( u8 ucR, u8 ucG, u8 ucB );
 void lcdClearArea( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 );
 void lcdClear( void );
+
+#endif // __PYGMY_HEADER_LCD

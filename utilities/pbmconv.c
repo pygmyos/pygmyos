@@ -395,16 +395,18 @@ void exportPBM( FILE *fileOut, IMAGE_BM *image, u16 uiBPP )
             if( uiPixelRep  ){
                 printf( "\nRLE, Reps: %d", uiPixelRep );
                 fputc( (u8)(uiPixelRep-1) | PYGMY_PBM_RLE | PYGMY_PBM_PIXELON, fileOut );
-                fputc( ulLastPixel >> 16, fileOut );
-                fputc( ulLastPixel >> 8, fileOut );
+                
+                
                 fputc( ulLastPixel, fileOut );
+				fputc( ulLastPixel >> 8, fileOut );
+				fputc( ulLastPixel >> 16, fileOut );
             } else{ 
                 printf( "\nRAW, Reps: %d", uiPixelRep );
                 fputc( (u8)(uiPixelRep-1) | PYGMY_PBM_PIXELON, fileOut );
                 for( ii = 0, i -= uiPixelRep; ii < uiPixelRep && i < ulLen; ii++, i++ ){
-                    fputc( image->Buffer[ i ][ 0 ], fileOut );
-                    fputc( image->Buffer[ i ][ 1 ], fileOut );
                     fputc( image->Buffer[ i ][ 2 ], fileOut );
+                    fputc( image->Buffer[ i ][ 1 ], fileOut );
+                    fputc( image->Buffer[ i ][ 0 ], fileOut );
                 } // for
             } // else
         } // else if

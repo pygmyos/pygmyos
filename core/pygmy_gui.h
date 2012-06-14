@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_GUI
+	#define __PYGMY_HEADER_GUI
 
 #include "pygmy_profile.h"
 
@@ -98,6 +100,7 @@
 // Object Style Defines
 enum {  TITLE = 1,
         WINDOW,
+        CANVAS,
         TABSTRIP,
         BUTTON,
         LABEL,
@@ -430,3 +433,4 @@ void guiOutputBMHeader( PYGMYFILE *pygmyFile, u32 ulWidth, u32 ulHeight, u8 ucBP
 //void clearVideoArea( u8 *ucBuffer, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiColor );           
 //void drawVideoArea( u8 *ucBuffer, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 );
             
+#endif // __PYGMY_HEADER_GUI

@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#include "pygmy_profile.h"
+//#include "pygmy_profile.h"
+#ifndef __PYGMY_HEADER_DEBUG
+	#define __PYGMY_HEADER_DEBUG
 
 #pragma once
 
@@ -58,3 +60,5 @@ typedef struct{
 
 #define DEBUG_DISABLE               DEBUGMCU->CR &= ~DEBUG_STOP
 #define DEBUG_ENABLE                DEBUGMCU->CR |= DEBUG_STOP
+
+#endif // __PYGMY_HEADER_DEBUG

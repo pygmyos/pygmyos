@@ -18,8 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
-
+//#pragma once
+#ifndef __PYGMY_HEADER_XMODEM
+	#define __PYGMY_HEADER_XMODEM
 #include "pygmy_profile.h"
 //#include "pygmy_type.h"
 
@@ -55,3 +56,4 @@ void xmodemProcessTimer( PYGMYXMODEM *pygmyXModem );
 void xmodemSendPacket( PYGMYXMODEM *pygmyXModem, u8 ucLast );
 u8 xmodemWritePacket( PYGMYXMODEM *pygmyXModem );//, u8 *ucBuffer );
 
+#endif // __PYGMY_HEADER_XMODEM

@@ -1466,15 +1466,6 @@ u8 putcUSART3( u8 ucData )
     return( FALSE );
 }
 
-u8 putBufferUSART3( u8 *ucBuffer, u16 uiLen )
-{
-     u16 i;
-
-    for( i = 0; i < uiLen ; i++ ){
-        putcUSART3( ucBuffer[ i ] ) ;
-    } // for
-}
-
 u8 putsUSART3( u8 *ucBuffer )
 { 
     //u16 i;

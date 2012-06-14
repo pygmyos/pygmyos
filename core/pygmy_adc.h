@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_ADC
+	#define __PYGMY_HEADER_ADC
 
 #include "pygmy_sys.h"                   
 
@@ -117,3 +119,4 @@ u16 adcGet( u8 ucPin ); //PYGMYADC *pygmyADC );
 u8 adcSetSampleTime( u8 ucChannel, u8 ucSampleTime ); //PYGMYADC *pygmyADC, u8 ucChannel, u32 ucTimeMask );
 //u8 Pygmy_ADC_AddChannelToRegularSequence( PYGMYADC *pygmyADC, u8 ucChannel );
 
+#endif // __PYGMY_HEADER_ADC

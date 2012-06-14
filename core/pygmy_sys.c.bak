@@ -1355,7 +1355,7 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
                     ++ucBuffer;
                     if( *ucBuffer == 'l' ){
                         ++ucBuffer;
-                        iType = 64;
+                        iType == 64;
                     } // if
                 } // if
                 sFormat[ i++ ] = *ucBuffer; // PrintInteger requires format char

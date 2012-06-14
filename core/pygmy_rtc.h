@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_RTC
+	#define __PYGMY_HEADER_RTC
 
 #include "pygmy_profile.h"
 
@@ -79,3 +81,6 @@ void convertSecondsToSystemTime( u32 ulSeconds, PYGMYTIME *pygmyTime );
 void setSysTick( u32 ulSystemClock, u32 ulTicksPerSecond );
 void enableSysTick( void );
 void disableSysTick( void );
+
+#endif // __PYGMY_HEADER_RTC
+

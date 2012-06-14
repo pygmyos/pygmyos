@@ -533,17 +533,24 @@ PYGMYFILEVOLUME *fileSeekPath( u8 *ucPath, PYGMYFILEPROPERTIES *pygmyEntry )
     return( pygmyVolume );
 }
 
-u32 fileList( PYGMYFILEVOLUME *pygmyVolume, PYGMYFILEPROPERTIES *pygmyParent, PYGMYFILEPROPERTIES *pygmyEntry, u32 ulIndex )
-{ 
-    u64 ullAddress;
-    u32 i, ulID, ulSector, ulOffset, ulMax;
-  
+u8 fileList( u8 *ucPath, PYGMYFILEPROPERTIES *pygmyEntry )
+{
+    //static u8 *ucLastString = NULL;
+    static PYGMYFILEVOLUME *pygmyVolume;
+    static PYGMYFILEPROPERTIES pygmyStaticEntry;
+    static u32 ulIndex;
+    u32 ulID, ulSector, ulOffset, ulMax;
+
+    if( ucPath ){
+        pygmyVolume = fileSeekPath( ucPath, &pygmyStaticEntry );
+        ulIndex = 0;
+    } // if
     if( !pygmyVolume ){
         return( FALSE );
     } // if
-    //ulMax = ulIndex + 255;//( pygmyParent->SectorCount * pygmyVolume->Desc.SectorSize ) / 32;
-    //for( i = 0; ulIndex < ulMax; ulIndex++ ){
-        ullAddress = pygmyParent->Sectors[ ( ulIndex * 32 ) / pygmyVolume->Desc.SectorSize ];
+    ulMax = 10;//( pygmyStaticEntry.SectorCount * pygmyVolume->Desc.SectorSize ) / 32;
+    for( ; ulIndex < ulMax; ulIndex++ ){
+        //ulSector = pygmyStaticEntry.Sectors[ ( ulIndex * 32 ) / pygmyVolume->Desc.SectorSize ];
         ulOffset = ( ulIndex * 32 ) % pygmyVolume->Desc.SectorSize;
         ulID = pygmyVolume->IO->GetLong( pygmyVolume->Port, ulSector + ulOffset );
         if( ulID != 0xFFFFFFFF && ((ulID & 0x000000FF ) == 0 ) ){
@@ -551,10 +558,13 @@ u32 fileList( PYGMYFILEVOLUME *pygmyVolume, PYGMYFILEPROPERTIES *pygmyParent, PY
             pygmyEntry->Sectors         = pygmyStaticEntry.Sectors;
             pygmyEntry->SectorGroups    = pygmyStaticEntry.SectorGroups;
             pygmyEntry->SectorCount     = pygmyStaticEntry.SectorCount;
+            //pygmyEntry->Sectors = pygmyStaticEntry.Sectors;
+            //pygmyEntry->SectorCount = pygmyStaticEntry.SectorCount;
+            ++ulIndex;
             
             return( fileLoadEntry( pygmyVolume, pygmyEntry ) );
         } // if
-    //} // for
+    } // for
 
     return( FALSE );
 }

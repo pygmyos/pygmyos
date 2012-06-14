@@ -554,7 +554,6 @@ u16 comGenerateBaud( u32 ulClock, u32 ulRate );
 u8 putsUSART1( u8 *ucBuffer );
 u8 putsUSART2( u8 *ucBuffer );
 u8 putcUSART3( u8 ucData );
-u8 putBufferUSART3( u8 *ucBuffer, u16 uiLen );
 u8 putsUSART3( u8 *ucBuffer );
 u8 putsUSART4( u8 *ucBuffer );
 u8 putsUSART5( u8 *ucBuffer );

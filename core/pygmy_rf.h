@@ -19,7 +19,9 @@
 ***************************************************************************/
 
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_RF
+	#define __PYGMY_HEADER_RF
 #include "pygmy_profile.h"
 //#include "pygmy_file.h"
 
@@ -219,3 +221,4 @@ u8 rfIsRXFIFOEmpty( void );
 //extern PYGMYRFSOCKET pygmyGlobalSockets[];
 extern const PYGMYCMD PYGMYCOMMANDS[];
 
+#endif // __PYGMY_HEADER_RF

@@ -101,8 +101,7 @@ void fileConvertAddressToBuffer( PYGMYFILEADDRESS *pygmyAddress, u8 *ucBuffer );
 u8 fileWriteChunk( PYGMYFILE *pygmyFile, u8 *ucChunk );
 u8 fileSeekChunk( PYGMYFILE *pygmyFile, u64 *ullAddress );
 //u8 fileDeleteEntry( PYGMYFILE *pygmyFile );
-//u8 fileDeleteEntry( PYGMYFILEVOLUME *pygmyVolume, PYGMYFILEPROPERTIES *pygmyEntry );
-u8 fileDeleteEntry( PYGMYFILE *pygmyFile, PYGMYFILEPROPERTIES *pygmyParentEntry );
+u8 fileDeleteEntry( PYGMYFILEVOLUME *pygmyVolume, PYGMYFILEPROPERTIES *pygmyEntry );
 u16 fileGetEntry( PYGMYFILE *pygmyFile, u8 **ucBuffer );
 u8 fileWriteEntry( PYGMYFILE *pygmyParent, PYGMYFILEPROPERTIES *pygmyEntry, u8 ucAttrib, u8 *ucName );
             

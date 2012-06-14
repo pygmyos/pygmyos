@@ -18,7 +18,11 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
+#ifndef __PYGMY_HEADER_SCRIPT
+	#define __PYGMY_HEADER_SCRIPT
+
 void scriptLoad( u8 *ucName );
 u8 *scriptLoadLine( void );
 u16 scriptAddChar( u8 ucChar, u16 uiLen, u16 uiPos, u8 *ucBuffer );
 
+#endif // __PYGMY_HEADER_SCRIPT

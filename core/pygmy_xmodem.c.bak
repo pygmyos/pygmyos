@@ -201,6 +201,6 @@ void xmodemSendPacket( PYGMYXMODEM *pygmyXModem, u8 ucLast )
         ucBuffer[ i ] = ucSum; // add the check sum as the final bytes    
     } // if
     
-    putBufferUSART3( ucBuffer, 132 );
+    putBufferUSART3( 132, ucBuffer );
 }
 

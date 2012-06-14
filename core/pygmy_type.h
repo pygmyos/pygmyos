@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_TYPE
+	#define __PYGMY_HEADER_TYPE
 
 #include "pygmy_profile.h"
 #include <stdarg.h>
@@ -77,4 +79,5 @@ typedef struct {
                 u8 Index;
                 u8 Port;
                 } PYGMYXMODEM;*/
-            
+
+#endif // __PYGMY_HEADER_TYPE

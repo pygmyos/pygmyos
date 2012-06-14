@@ -192,15 +192,15 @@ void modemInit( void )
     //delay( 15000 );
     //pinSet( D0, LOW );
  
-    pinInterrupt( blink, D3, TRIGGER_RISING|TRIGGER_FALLING  );  
+    pinInterrupt( blink, D3, TRIGGER_RISING|TRIGGER_FALLING, 7  );  
     cmdInitQueue( &globalModemQueue );
-    taskNew( "modemcmd", 0, 500, 500, 0, (void*)DriverThread_ProcessCommands );
+    taskNew( "modemcmd", 500, 500, 0, (void*)DriverThread_ProcessCommands );
 }
 
 u8 modemtask_reset( void )
 {
     pinSet( MODEM_RESET, LOW );
-    taskDelete( "modemreset", 0 );
+    taskDelete( "modemreset"  );
     
     return( TRUE );
 }
@@ -208,7 +208,7 @@ u8 modemtask_reset( void )
 u8 modemtask_onoff( void )
 {
     pinSet( MODEM_ONOFF, LOW );
-    taskDelete( "modemonoff", 0 );
+    taskDelete( "modemonoff" );
 
     return( TRUE );
 }

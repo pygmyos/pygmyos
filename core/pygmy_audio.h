@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_AUDIO
+	#define __PYGMY_HEADER_AUDIO
 
 #include "pygmy_profile.h"
 
@@ -35,3 +37,5 @@ void generateSawWave( u8 *ucBuffer, u16 uiFrequency, u16 uiSampleRate, u16 uiAmp
 void blendWaves( u8 *ucBufferDest, u16 uiBufferDestLen, u8 *ucBuffer, u16 uiBufferLen );
 void dac1Output( u8* ucBuffer, u16 uiBufferLen, u16 uiSampleRate, u8 uiMode );
 void dac2Output( u8* ucBuffer, u16 uiBufferLen, u16 uiSampleRate, u8 uiMode );
+
+#endif // __PYGMY_HEADER_AUDIO

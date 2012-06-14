@@ -1,5 +1,8 @@
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_JPEG
+	#define __PYGMY_HEADER_JPEG
+
 #include "pygmy_profile.h"
 
 
@@ -65,3 +68,5 @@ typedef struct {
 
 s32 DecodeJpgFileData( u8* buf, s32 sizeBuf, u8** rgbpix, u32* width, u32* height);
 u8 ConvertJpgFile( u8* szJpgFileInName, u8 *szBmpFileOutName );
+
+#endif // __PYGMY_HEADER_JPEG

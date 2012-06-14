@@ -79,8 +79,7 @@ PYGMYSOCKET *socketOpenFromPacket( PYGMYPACKET *pygmyPacket )
         #endif // __PYGMY_DEBUG_SOCKETS
         return( NULL );
     } // if
-    //tmpSocket = sysReallocate( globalSockets, sizeof( PYGMYSOCKET ) * ( globalSocketCount + 1 ) );
-    tmpSocket = realloc( globalSockets, sizeof( PYGMYSOCKET ) * ( globalSocketCount + 1 ) );
+    tmpSocket = sysReallocate( globalSockets, sizeof( PYGMYSOCKET ) * ( globalSocketCount + 1 ) );
     if( !tmpSocket ){
         #ifdef __PYGMY_DEBUG_SOCKETS
             print( COM3, "\rMem Fail in socketOpenFromPacket" );
@@ -105,8 +104,7 @@ PYGMYSOCKET *socketOpenFromPacket( PYGMYPACKET *pygmyPacket )
     tmpSocket->BufferIndex  = 0;
     tmpSocket->CR           = 0;
     if( pygmyPacket->Type == SOCKET_CONTROL ){
-        //tmpSocket->Name = sysAllocate( len( pygmyPacket->Payload ) + 1 );
-        tmpSocket->Name = malloc( len( pygmyPacket->Payload ) + 1 );
+        tmpSocket->Name = sysAllocate( len( pygmyPacket->Payload ) + 1 );
         if( tmpSocket->Name ){
             copyString( pygmyPacket->Payload, tmpSocket->Name );
         } // if

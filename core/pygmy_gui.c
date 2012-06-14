@@ -139,16 +139,20 @@ PYGMYCOLOR *colorGetRootBackColor( void )
 void fontSetColor( PYGMYFONT *pygmyFont, PYGMYCOLOR *pygmyColor )
 {
     colorCopy( pygmyColor, &pygmyFont->Color );
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rFont Color Changed To: " );
     print( COM3, "0x%02X 0x%02X 0x%02X", globalGUI.Font->Color.R, globalGUI.Font->Color.G, globalGUI.Font->Color.B );
+    #endif // __PYGMY_DEBUG_GUI
 }
 
 void fontSetBackColor( PYGMYFONT *pygmyFont, PYGMYCOLOR *pygmyColor )
 {
     colorCopy( pygmyColor, &pygmyFont->BackColor );
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rFont BackColor Changed To: " );
     print( COM3, "0x%02X 0x%02X 0x%02X", globalGUI.Font->BackColor.R, globalGUI.Font->BackColor.G, 
         globalGUI.Font->BackColor.B );
+    #endif // __PYGMY_DEBUG_GUI
 }
 
 PYGMYFONT *fontGetActive( void )
@@ -458,9 +462,13 @@ u8 guiSaveScreen( void )
     uiHeight = lcdGetHeight();
     convertIntToString( timeGet(), "%8d", ucName );
     copyString( ".bmp", ucName+8 );
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rCreating Screenshot: %s X: %d Y: %d", ucName, uiWidth, uiHeight );
+    #endif // __PYGMY_DEBUG_GUI
     if( !fileOpen( &pygmyFile, "screenshot", WRITE ) ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rFile Fail!" );
+        #endif // __PYGMY_DEBUG_GUI
         return( FALSE );
     } // if
     guiOutputBMHeader( &pygmyFile, 128, 128, 24 );
@@ -746,10 +754,7 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
                     ucR = fileGetChar( pygmyFile );
                     ucG = fileGetChar( pygmyFile );
                     ucB = fileGetChar( pygmyFile );
-                } // else if
-                //if( ucBPP != PYGMY_PBM_1BPP ){
-                //    lcdSetColor( ucR, ucG, ucB );
-                //} // if            
+                } // else if      
             } // if
             if( ucPacket & BIT6 ){
                 if( ( uiPygmyHeader & PYGMY_PBM_FONT ) && ( ucBPP == PYGMY_PBM_1BPP ) ){
@@ -768,6 +773,8 @@ u16 drawImage( u16 uiXPos, u16 uiYPos, PYGMYFILE *pygmyFile, u16 uiIndex )
                     colorApply( &globalGUI.Font->BackColor );
                     //guiApplyFontBackColor( );
                     //guiApplyBackColor();
+                // } else if( ucBPP != PYGMY_PBM_1BPP ){
+                //    lcdSetColor( ucR, ucG, ucB );
                 } else{
                     //guiApplyBackColor( );
                     colorApply( colorGetRootBackColor() );
@@ -873,10 +880,12 @@ void drawJPEG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY )
     uiHeight = fileGetWord( pygmyFile, LITTLEENDIAN );
     uiThumbWidth = fileGetWord( pygmyFile, LITTLEENDIAN );
     uiThumbHeight = fileGetWord( pygmyFile, LITTLEENDIAN );
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rSOI: 0x%X APP0: 0x%X APP0Len: 0x%X", uiSOI, uiAPP0, uiAPP0Len );
     print( COM3, "\rID: %s Version: %d", ucID, uiVersion );
     print( COM3, "\rWidth: %d Height: %d", uiWidth, uiHeight );
     print( COM3, "\rThumbWidth: %d ThumbHeight: %d", uiThumbWidth, uiThumbHeight );
+    #endif // __PYGMY_DEBUG_GUI
 }
 
 void drawPNG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY )
@@ -901,6 +910,7 @@ void drawPNG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY )
             ucCompression = fileGetChar( pygmyFile );
             ucFilter = fileGetChar( pygmyFile );
             ucInterlace = fileGetChar( pygmyFile );
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\rChunk: %s, Len: %d", ucChunkType, ulLen );
             print( COM3, "\rWidth: %d Height: %d", ulWidth, ulHeight );
             print( COM3, "\rBPP: %d", ucBPP );
@@ -908,17 +918,24 @@ void drawPNG( PYGMYFILE *pygmyFile, u16 uiX, u16 uiY )
             print( COM3, "\rCompression: %d", ucCompression );
             print( COM3, "\rFilter: %d", ucFilter );
             print( COM3, "\rInterlace: %d", ucInterlace );
+            #endif // __PYGMY_DEBUG_GUI
         } else if( isStringSame( "PLTE", ucChunkType ) ){
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\rPalette: %d", ulLen );
+            #endif // __PYGMY_DEBUG_GUI
             fileSetPosition( pygmyFile, CURRENT, ulLen );
             
         } else if( isStringSame( "IDAT", ucChunkType ) ){
             // Image data chunk, there may be multiple
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\rData: %d", ulLen );
+            #endif // __PYGMY_DEBUG_GUI
             fileSetPosition( pygmyFile, CURRENT, ulLen );
         } else if( isStringSame( "IEND", ucChunkType ) ){
-            // End of image reached, 
+            // End of image reached,
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\rEnd" );
+            #endif // __PYGMY_DEBUG_GUI
             return;
         } else{
             // If chunk is ancilliary it's not supported, skip
@@ -975,24 +992,34 @@ u8 formNew( u16 uiX, u16 uiY, u16 uiWidth, u16 uiHeight )
     PYGMYFORM *pygmyForms = NULL;
     PYGMYWIDGET *newWidget;
 
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rCreating Form..." );
+    #endif // __PYGMY_DEBUG_GUI
     if( globalFormsStatus ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\r\tReallocating Form Data" );
+        #endif // __PYGMY_DEBUG_GUI
         pygmyForms = sysReallocate( globalForms, sizeof( PYGMYFORM ) * globalFormsLen + 1 ); 
     } else{
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\r\tAllocating Form Data" );
+        #endif // __PYGMY_DEBUG_GUI
         pygmyForms = sysAllocate( sizeof( PYGMYFORM ) );
         globalFormsStatus = 1;
     } // else
     if( !pygmyForms ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rMemory Fail on Form Creation!" );
+        #endif // __PYGMY_DEBUG_GUI
         return( 0 );
     } // if
     globalForms = pygmyForms;
     globalForms[ globalFormsLen ].Len = 0;
     newWidget = sysAllocate( sizeof( PYGMYWIDGET ) );
     if( !newWidget ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rMemory Full!" );
+        #endif // __PYGMY_DEBUG_GUI
         return( FALSE );
     } // if
     globalForms[ globalFormsLen ].X             = uiX;
@@ -1114,26 +1141,41 @@ void formEventHandler( u8 ucEvent )
 {
     PYGMYWIDGET *pygmyWidget;
     
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rEvent 0x%02X ", ucEvent );
+    #endif // __PYGMY_DEBUG_GUI
     pygmyWidget = widgetGetFocused();
     if( !pygmyWidget ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rWidget Failed!" );
+        #endif // __PYGMY_DEBUG_GUI
         return;
     } // if
     if( ucEvent == DRAW ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, " DRAW" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->Draw ){
             pygmyWidget->Draw();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
             drawWidget( pygmyWidget );
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, " Completed Widget Draw->Event" );
+            #endif // __PYGMY_DEBUG_GUI
         } // else
     } else if( ucEvent == MOUSE_MOVE ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "MOUSE_MOVE" );
+        #endif // PYGMY_DEBUG_GUI
         if( pygmyWidget->MouseMove ){
             pygmyWidget->MouseMove();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
             if( globalGUI.EventValue == MOUSE_UP || globalGUI.EventValue == MOUSE_LEFT ){
                 formFocusPrevious();
             } else{
@@ -1141,58 +1183,106 @@ void formEventHandler( u8 ucEvent )
             } // else
         } // else
     } else if( ucEvent == MESSAGE ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "MESSAGE" );
-    
+        #endif // __PYGMY_DEBUG_GUI
     } else if( ucEvent == MOUSE_CLICK ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "MOUSE_CLICK" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->MouseClick ){
             pygmyWidget->MouseClick();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, "\rDraw Invert" );
+            #endif // __PYGMY_DEBUG_GUI
             pygmyWidget->Style |= INVERT;
-            formEventHandler( DRAW );
-            delay( 500000 );
+            //formEventHandler( DRAW );
+            if( pygmyWidget->Draw ){
+                pygmyWidget->Draw();
+            } else{
+                drawWidget( pygmyWidget );
+            } // else
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, "\rClear Invert" );
+            //delay( 5000 );
+            #endif // __PYGMY_DEBUG_GUI
             pygmyWidget->Style &= ~INVERT;
-            formEventHandler( DRAW );
+            //formEventHandler( DRAW );
+            if( pygmyWidget->Draw ){
+                pygmyWidget->Draw();
+            } else{
+                drawWidget( pygmyWidget );
+            } // else
         } // else
+        #ifdef __PYGMY_DEBUG_GUI
+        print( COM3, "\rPassing control to SELECTED" );
+        #endif // __PYGMY_DEBUG_GUI
         formEventHandler( SELECTED );
+        #ifdef __PYGMY_DEBUG_GUI
+        print( COM3, " Done." );
+        #endif // __PYGMY_DEBUG_GUI
     } else if( ucEvent == GOTFOCUS ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "GOTFOCUS" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->GotFocus ){
             pygmyWidget->GotFocus();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
             pygmyWidget->Style |= ACTIVE;
             formEventHandler( DRAW );
         } // else
     } else if( ucEvent == LOSTFOCUS ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "LOSTFOCUS" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->LostFocus ){
             pygmyWidget->LostFocus();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
             pygmyWidget->Style &= ~ACTIVE;
             formEventHandler( DRAW );
         } // else
     } else if( ucEvent == SELECTED ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rSELECTED" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->Selected ){
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, "\rCalling Handler" );
+            #endif // __PYGMY_DEBUG_GUI
             pygmyWidget->Selected();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
         } // else
     } else if( ucEvent == CREATED ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "CREATED" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->Created ){
             pygmyWidget->Created();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
         } // else
     } else if( ucEvent == DESTROYED ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "DESTROYED" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->Destroyed ){
             pygmyWidget->Destroyed();
         } else{
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, " Generic" );
+            #endif // __PYGMY_DEBUG_GUI
         } // else
     } // else if
 }
@@ -1234,7 +1324,9 @@ void formFocusNext( void )
     //if( globalForms[ globalFormsLen - 1 ].Len == 0 ){
     //    return;
     //} // if
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rFocusNext" );
+    #endif // __PYGMY_DEBUG_GUI
     uiSelected = globalForms[ globalFormsLen - 1 ].Selected;
     for( i = 0; i < globalForms[ globalFormsLen - 1 ].Len && i < 255; i++ ){
         if( uiSelected < ( globalForms[ globalFormsLen - 1 ].Len ) ){
@@ -1304,7 +1396,9 @@ u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
     ulLen = sizeof( PYGMYWIDGET ) * ( globalFormsLen + 1 );
     newWidget = sysReallocate( globalForms[ uiIndex ].Widgets, ulLen );
     if( !newWidget ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rMemory Full!" );
+        #endif // __PYGMY_DEBUG_GUI
         return( FALSE );
     } // if
     globalForms[ uiIndex ].Widgets = newWidget;
@@ -1335,7 +1429,9 @@ u8 formAddWidget( PYGMYWIDGET *pygmyWidget )
     colorCopy( &globalForms[ uiIndex ].FocusColor, &globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].FocusColor );
     colorCopy( &globalForms[ uiIndex ].FocusBackColor, &globalForms[ uiIndex ].Widgets[ globalForms[ uiIndex ].Len ].FocusBackColor );
     ++globalForms[ uiIndex ].Len;
+    #ifdef __PYGMY_DEBUG_GUI
     print( COM3, "\rWidgets: %d", globalForms[ uiIndex ].Len );
+    #endif // __PYGMY_DEBUG_GUI
     return( TRUE );
 }
 
@@ -1344,7 +1440,9 @@ void formFreeAll( void )
     u16 i;
 
     if( globalForms ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rFreeing form data" );
+        #endif // __PYGMY_DEBUG_GUI
         for( i = 0; i < globalFormsLen; i++ ){
             if( globalForms[ i ].Widgets ){
                 sysFree( globalForms[ i ].Widgets );
@@ -1363,10 +1461,12 @@ void drawCurrentForm( void )
     u16 i, ii;
    
     for( i = 0; i < globalFormsLen; i++ ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rDrawing Form: %d", i );
         print( COM3, "\r\tLen: %d", globalForms[ i ].Len );
         print( COM3, "\r\tX,Y: %d,%d", globalForms[ i ].X, globalForms[ i ].Y );
         print( COM3, "\r\tWidth,Height: %d,%d", globalForms[ i ].Width, globalForms[ i ].Height );
+        #endif // __PYGMY_DEBUG_GUI
         //colorCopy( &globalForms[ i ].ClearColor, &globalGUI.ClearColor );
         //guiSetBackColor( globalForms[ i ].BackColor.R, globalForms[ i ].BackColor.G, globalForms[ i ].BackColor.B );
         guiClearArea( &globalForms[ i ].ClearColor, globalForms[ i ].X, globalForms[ i ].Y, 
@@ -1374,8 +1474,13 @@ void drawCurrentForm( void )
             globalForms[ i ].Y + globalForms[ i ].Height );
         for( ii = 0; ii < globalForms[ i ].Len; ii++ ){
             PYGMY_WATCHDOG_REFRESH;
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\r\tDrawing Widget %d %s", ii, globalForms[ i ].Widgets[ ii ].String );
+            #endif // __PYGMY_DEBUG_GUI
             drawWidget( &globalForms[ i ].Widgets[ ii ] );
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, " Completed Drawing Widget->CurrentForm" );
+            #endif // __PYGMY_DEBUG_GUI
         } // for
     } // for
 }
@@ -1386,7 +1491,9 @@ void drawForms( void )
     u16 i, ii;
    
     for( i = 0; i < globalFormsLen; i++ ){
-        //print( COM3, "\rDrawing Form: %d", i );
+        #ifdef __PYGMY_DEBUG_GUI
+        print( COM3, "\rDrawing Form: %d", i );
+        #endif // __PYGMY_DEBUG_GUI
         //print( COM3, "\r\tLen: %d", globalForms[ i ].Len );
         //print( COM3, "\r\tX,Y: %d,%d", globalForms[ i ].X, globalForms[ i ].Y );
         //print( COM3, "\r\tWidth,Height: %d,%d", globalForms[ i ].Width, globalForms[ i ].Height );
@@ -1396,8 +1503,13 @@ void drawForms( void )
             globalForms[ i ].Y + globalForms[ i ].Height );
         for( ii = 0; ii < globalForms[ i ].Len; ii++ ){
             PYGMY_WATCHDOG_REFRESH;
-            //print( COM3, "\r\tDrawing Widget %d %s", ii, globalForms[ i ].Widgets[ ii ].String );
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, "\r\tDrawing Widget %d %s", ii, globalForms[ i ].Widgets[ ii ].String );
+            #endif // __PYGMY_DEBUG_GUI
             drawWidget( &globalForms[ i ].Widgets[ ii ] );
+            #ifdef __PYGMY_DEBUG_GUI
+            print( COM3, " Completed Drawing Widget->Form" );
+            #endif // __PYGMY_DEBUG_GUI
         } // for
     } // for
 }
@@ -1410,7 +1522,9 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
     u8 ucRadius;
 
     if( !(pygmyWidget->Style & VISIBLE ) ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\rWidget not visible" );
+        #endif // __PYGMY_DEBUG_GUI
         return;
     } // if
     //print( COM3, "\rWidget: %s", pygmyWidget->String );
@@ -1418,9 +1532,13 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
     ucRadius = globalGUI.Radius;
     
     if( pygmyWidget->Style & INVERT ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\r\tInvert" );
+        #endif // __PYGMY_DEBUG_GUI
         if( pygmyWidget->Style & ACTIVE ){
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\r\tActive" );
+            #endif // __PYGMY_DEBUG_GUI
             colorCopy( &pygmyWidget->FocusColor, &pygmyBackColor );
             colorCopy( &pygmyWidget->FocusBackColor, &pygmyColor );
             //fontSetColor( fontGetActive(), &pygmyWidget->BackColor );
@@ -1431,7 +1549,9 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
         } // else
     } else{    
         if( pygmyWidget->Style & ACTIVE ){
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\r\tActive" );
+            #endif // __PYGMY_DEBUG_GUI
             colorCopy( &pygmyWidget->FocusColor, &pygmyColor );
             colorCopy( &pygmyWidget->FocusBackColor, &pygmyBackColor );
             //fontSetColor( fontGetActive(), &pygmyWidget->BackColor );
@@ -1458,19 +1578,25 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
             //    pygmyWidget->Y+pygmyWidget->Height );
         } // else*/
         if( pygmyWidget->Style & FILLED ){
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\r\tFilled with:" );
             print( COM3, " R: 0x%02X", pygmyBackColor.R );
             print( COM3, " G: 0x%02X", pygmyBackColor.G );
             print( COM3, " B: 0x%02X", pygmyBackColor.B );
+            #endif // __PYGMY_DEBUG_GUI
             drawRect( &pygmyBackColor, pygmyWidget->X+1, pygmyWidget->Y+1, pygmyWidget->X + ( pygmyWidget->Width - 1 ),
                 pygmyWidget->Y + ( pygmyWidget->Height - 1 ), pygmyWidget->Style, ucRadius );
         } // if
         
         if( pygmyWidget->Style & CENTERED ){
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\rCentered" );
+            #endif // __PYGMY_DEBUG_GUI
             uiY = ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
             uiX = 2 + ( ( pygmyWidget->Width - ( ( globalGUI.Font->Height - 7 ) * len( pygmyWidget->String ) ) ) / 2 );
+            #ifdef __PYGMY_DEBUG_GUI
             print( COM3, "\ruiX: %d", uiX );  
+            #endif // __PYGMY_DEBUG_GUI
         } else{
             uiX = 0;
             uiY = ( pygmyWidget->Height - globalGUI.Font->Height ) / 2;
@@ -1501,7 +1627,9 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
         drawRect( &pygmyColor, pygmyWidget->X + ( pygmyWidget->Width - pygmyWidget->Height ), pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Width,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
     } else if( pygmyWidget->Type == HSCROLLBAR ){
+        #ifdef __PYGMY_DEBUG_GUI
         print( COM3, "\r\tHScroll" );
+        #endif // __PYGMY_DEBUG_GUI
         //guiApplyColor();
         drawRect( &pygmyColor, pygmyWidget->X, pygmyWidget->Y, pygmyWidget->X + pygmyWidget->Height,
             pygmyWidget->Y+pygmyWidget->Height, pygmyWidget->Style, ucRadius );
@@ -1559,6 +1687,9 @@ void drawWidget( PYGMYWIDGET *pygmyWidget )
             #endif
         } // else
     } 
+    #ifdef __PYGMY_DEBUG_GUI
+    print( COM3, "\rDone." );
+    #endif // __PYGMY_DEBUG_GUI
 }
 /*
 void eventGotFocus( void )

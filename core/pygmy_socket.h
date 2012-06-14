@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_SOCKET
+	#define __PYGMY_HEADER_SOCKET
 #include "pygmy_profile.h"
 //#include "pygmy_file.h"
 
@@ -44,7 +46,11 @@
     };
 
 typedef struct {
+                #ifdef __PYGMY_PFATLITE
+                PYGMYFILE File;
+                #else
                 PYGMYFILE *File;
+                #endif // __PYGMY_PFATLITE
                 //PYGMYFUNC Action;
                 u32 StartTime;
                 u32 LastActive;
@@ -107,3 +113,6 @@ u8 socketRequestCommandLine( u32 ulDestID );
 u8 socketOpenCommandLine( u32 ulDestID );
 void socketCommandLine( PYGMYSOCKET *pygmySocket, u8 ucTX );
 void socketPayload( PYGMYSOCKET *pygmySocket, u8 ucCommand, u8 *ucBuffer, u8 ucLen );
+
+#endif // __PYGMY_HEADER_SOCKET
+

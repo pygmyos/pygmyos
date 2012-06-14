@@ -219,7 +219,7 @@ u32 convertBufferToU32( u8 *ucBuffer, u8 ucEndian )
 u8 *removeLeadingWhitespace( u8 *ucString )
 {
     for( ; *ucString; ){
-        if( isWhitespace( *ucString ) ){
+        if( !isWhitespace( *ucString ) ){
             ++ucString;
         } else{
             break;

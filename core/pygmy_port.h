@@ -19,8 +19,10 @@
 ***************************************************************************/
 
 
-#pragma once
-    
+//#pragma once
+#ifndef __PYGMY_HEADER_PORT
+	#define __PYGMY_HEADER_PORT
+
 #include "pygmy_sys.h" 
 
 //STM32 Timers
@@ -2064,3 +2066,4 @@ u8 pinGetChannel( u8 ucPin );
 u8 pinPWM( u8 ucPin, u32 uiFreq, u8 ucDutyCycle );
 u8 setTimer( u8 ucPin, u32 uiFreq, u8 ucDutyCycle );
     
+#endif // __PYGMY_HEADER_PORT

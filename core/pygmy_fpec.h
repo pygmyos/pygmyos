@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_FPEC
+	#define __PYGMY_HEADER_FPEC
 
 #include "pygmy_sys.h"
 
@@ -122,3 +124,4 @@ u8 fpecErasePage( u32 ulAddress );
 u8 fpecWriteDescriptor( u16 uiDescriptor, u32 ulValue );
 u16 fpecGetID( void );
 
+#endif // __PYGMY_HEADER_FPEC

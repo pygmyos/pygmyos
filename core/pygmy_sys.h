@@ -18,7 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_SYS
+	#define __PYGMY_HEADER_SYS
 #include <stdint.h>
 
 #define NULL                                (void*)0
@@ -1335,3 +1337,5 @@ u32 stopwatchGet( void );
 
 //------------------------------------End Deprecated------------------------------------
 //--------------------------------------------------------------------------------------
+
+#endif // __PYGMY_HEADER_SYS

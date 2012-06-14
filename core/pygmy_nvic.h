@@ -19,7 +19,9 @@
 ***************************************************************************/
 
 
-#pragma once
+//#pragma once
+#ifndef __PYGMY_HEADER_NVIC
+	#define __PYGMY_HEADER_NVIC
 
 #include "pygmy_sys.h"
 // Pygmy NVIC Header
@@ -323,3 +325,6 @@ void extiConfig( u8 ucPin, u16 uiMode );
 void interruptEnable( u32 ulVector );
 void interruptDisable( u32 ulVector );
 void interruptSetPriority( u32 ulVector, u8 ucPriority );
+
+#endif // __PYGMY_HEADER_NVIC
+

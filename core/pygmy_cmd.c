@@ -46,6 +46,7 @@ const PYGMYCMD PYGMYCORECOMMANDS[] = {
                                     };
 
 const PYGMYCMD PYGMYSTDCOMMANDS[] = { 
+                                    {(u8*)"volume",     cmd_volume},
                                     {(u8*)"reset",      cmd_reset},
                                     {(u8*)"peek",       cmd_peek},
                                     {(u8*)"poke",       cmd_poke},
@@ -78,13 +79,14 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     #endif    
                                 
                                     {(u8*)"port",       cmd_port},
-                                    
+                                    #ifdef __PYGMYSOCKETS
                                     {(u8*)"rflist",     cmd_rflist},
                                     {(u8*)"rfget",      cmd_rfget},
                                     {(u8*)"rfput",      cmd_rfput},
                                     {(u8*)"rfopen",     cmd_rfopen},
                                     {(u8*)"rfsend",     cmd_rfsend},
                                     {(u8*)"rfscan",     cmd_rfscan},
+                                    #endif //__PYGMYSOCKETS
                                     #ifdef __PYGMYMODEMSHIELD
                                     {(u8*)"modem",      cmd_modem},
                                     #endif
@@ -94,8 +96,12 @@ const PYGMYCMD PYGMYSTDCOMMANDS[] = {
                                     #ifdef __PYGMYVOLTAGESHIELD
                                     {(u8*)"voltshield", cmd_voltshield},
                                     #endif
+                                    #ifdef __PYGMYEEPROM
                                     {(u8*)"eeprom",     cmd_eeprom},
+                                    #endif //__PYGMYEEPROM
+                                    #ifdef __PYGMYGASSENSORSHIELD
                                     {(u8*)"gassensor",  cmd_gassensor},
+                                    #endif // __PYGMYGASSENSORSHIELD
                                     {(u8*)"", cmdNull} // No Commands after NULL
                                     }; 
 
@@ -238,6 +244,36 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+u8 cmd_volume( u8 *ucBuffer )
+{
+    PYGMYI2CPORT pygmyI2C;
+    u8 ucVol, ucAddress, ucLen, *ucParams[ 2 ];
+    
+    ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );   
+
+    if( ucLen != 2 ){
+        print( STDIO, "\rEnter address and volume" );
+        return( 0 );
+    } // if 
+    ucVol = convertStringToInt( ucParams[ 1 ] );
+    if( ucVol > 0x3F ){
+        print( STDIO, "\rMax volume is 63" );
+        return( FALSE );
+    } // if
+    ucAddress = convertStringToInt( ucParams[ 0 ] );
+    if( ucAddress != 0x4B && ucAddress != 0x4A && ucAddress != 0x49 ) {
+        print( STDIO, "\rValid addresses are 0x4B, 0x4A, 0x49" );
+        return( FALSE );
+    } // if
+    i2cConfig( &pygmyI2C, TX1, RX1, ucAddress, I2CSPEEDFAST );
+    i2cStart( &pygmyI2C );
+    i2cWriteByte( &pygmyI2C, pygmyI2C.Address );
+    i2cWriteByte( &pygmyI2C, ucVol );
+    i2cStop( &pygmyI2C );
+    
+    return( TRUE );
+}
+
 u8 cmd_set( u8 *ucBuffer )
 {
     u8 ucLen, *ucParams[8];
@@ -392,13 +428,14 @@ u8 cmd_ps( u8 *ucBuffer )
             } // for    
         } // else if
     } // if
-    print( STDIO, "\rTasks\r\r" );
+    /*print( STDIO, "\rTasks\r\r" );
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         taskList( &pygmyTask, i );
         if( pygmyTask.ID ){
             println( STDIO, "%4d %s %t", pygmyTask.ID, pygmyTask.Name, pygmyTask.TimeStamp );
         }
     } // for
+    */
     
     for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
         
@@ -687,7 +724,7 @@ u8 cmdOpenPort( u8 ucProtocol, u8 ucPin0, u8 ucPin1, u8 ucPin2, u8 ucPin3, u8 uc
                 for( ii = 0; ii < __PYGMY_MAXCOMMANDSPIPORTS; ii++ ){
                     if( globalSPIPorts[ ii ].CR == 0xFF ){
                         globalCMDPorts[ i ].SPI = ii;
-                        spiConfig( &globalSPIPorts[ globalCMDPorts[ i ].SPI ] , ucPin0, ucPin1, ucPin2, ucPin3 );
+                        spiConfig( &globalSPIPorts[ globalCMDPorts[ i ].SPI ] , ucPin0, ucPin1, ucPin2, ucPin3, 0 );
                         return( i );
                     } // if
                 } // for
@@ -717,10 +754,10 @@ u8 cmdWritePort( u8 ucCOM, u32 ulAddress, u8 *ucBuffer, u16 uiLen )
 {
     ucCOM -= __PYGMY_FIRSTUSERCOMPORT;
     if( globalCMDPorts[ ucCOM ].SPI != 0xFF ){
-        spiWriteBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucBuffer, uiLen );
+        spiPutBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ulAddress, ucBuffer, uiLen );
         return( 1 );
     } else if( globalCMDPorts[ ucCOM ].I2C != 0xFF ){
-        i2cWriteBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], (u8)ulAddress, ucBuffer, uiLen );
+        i2cPutBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], (u8)ulAddress, ucBuffer, uiLen );
         return( 1 );
     } // else if
     
@@ -734,7 +771,7 @@ u8 cmdReadPort( u8 ucCOM, u32 ulAddress, u8 *ucBuffer, u16 uiLen )
         spiReadBuffer( &globalSPIPorts[ globalCMDPorts[ ucCOM ].SPI ], ucBuffer, uiLen );
         return( 1 );
     } else if( globalCMDPorts[ ucCOM ].I2C != 0xFF ){
-        i2cReadBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], (u8)ulAddress, ucBuffer, uiLen );
+        i2cGetBuffer( &globalI2CPorts[ globalCMDPorts[ ucCOM ].I2C ], (u8)ulAddress, ucBuffer, uiLen );
         return( 1 );
     } // else if
     
@@ -851,6 +888,7 @@ u8 cmd_psend( u8 *ucBuffer )
 
 //--------------------------------------Basic RF Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+#ifdef __PYGMYSOCKETS
 u8 cmd_rflist( u8 *ucBuffer )
 {
     socketList();
@@ -874,7 +912,9 @@ u8 cmd_rfget( u8 *ucBuffer )
     
     ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
     if( ucLen > 1 ){
+        print( STDIO, "\rRequesting File" );
         socketRequestFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
+        print( COM3, "..." );
         //rfListSockets();
         return( TRUE );
     } // if
@@ -888,6 +928,7 @@ u8 cmd_rfput( u8 *ucBuffer )
     
     ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );
     if( ucLen > 1 ){
+        print( STDIO, "\rSending File" );
         socketSendFile( convertStringToInt( ucParams[ 0 ] ), ucParams[ 1 ] );
         //rfListSockets();
         return( TRUE );
@@ -906,7 +947,7 @@ u8 cmd_rfopen( u8 *ucBuffer )
     if( !ucParam ){
         return( 0 );
     } // if
-    socketOpenCommandLine( convertStringToInt( ucParam ) );
+    //socketOpenCommandLine( convertStringToInt( ucParam ) );
     
 
     return( 1 );
@@ -933,7 +974,7 @@ u8 cmd_rfsend( u8 *ucBuffer )
     
     return( FALSE );
 }
-
+#endif // __PYGMYSOCKETS
 //------------------------------------End Basic RFCommands------------------------------------
 //--------------------------------------------------------------------------------------------
 
