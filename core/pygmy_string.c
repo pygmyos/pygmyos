@@ -744,6 +744,24 @@ void convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
     *ucBuffer = '\0';
 }
 
+u8 replaceLastChar( u8 *ucString, u8 ucChar, u8 ucNewChar )
+{
+    // Warning! Do not use with constant strings!
+    // Replaces last occurance of ucChar with ucNewChar
+    // Returns location of char
+    u16 i;
+
+    i = len( ucString );
+    for( ; i; ){
+        if( ucString[ --i ] == ucChar ){
+            ucString[ i ] = ucNewChar;
+            break;
+        } // if
+    } // for
+
+    return( i );
+}
+
 void appendString( u8 *ucFrom, u8 *ucTo )
 {
     for( ; *ucTo; ){

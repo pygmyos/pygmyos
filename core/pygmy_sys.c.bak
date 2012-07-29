@@ -53,6 +53,7 @@ PYGMYCOMMANDQUEUE   *pygmyGlobalQueues[ PYGMY_MAXQUEUES ];
 void HardFault_Handler( void )
 { 
   print( COM3, "\rHard Fault" );
+  PYGMY_RESET;
 }
 
 /*void *sysAllocate( u32 ulLen )
@@ -1023,9 +1024,13 @@ u16 taskGetCount( void )
 
 PYGMYTASK *taskGetByIndex( u16 uiIndex )
 {
-    if( uiIndex < taskGetCount() ){
+    if( uiIndex >= taskGetCount() ){
         return( NULL );
     } // if
+    if( pygmyGlobalTasks[ uiIndex ].ID == PYGMY_BLANKID ){
+        return( NULL );
+    } // if
+
     return( &pygmyGlobalTasks[ uiIndex ] );
 }
 /*
@@ -1301,8 +1306,7 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
     u8 i, ii, ucValue[ 3 ], *sValue, sFormat[ 16 ], ucIntBuffer[ 40 ], iType;
     u16 uiLen;
     va_list ap;
-    
-    
+     
     ucValue[ 2 ] = 0;
     va_start( ap, ucBuffer );
     for( ; *ucBuffer; ucBuffer++ ){
@@ -1355,20 +1359,18 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
                     ++ucBuffer;
                     if( *ucBuffer == 'l' ){
                         ++ucBuffer;
-                        iType == 64;
+                        iType = 64;
                     } // if
                 } // if
                 sFormat[ i++ ] = *ucBuffer; // PrintInteger requires format char
                 sFormat[ i ] = 0; // terminate at new index
                 
-                if( *ucBuffer == 'f' ){
+                if( iType == 64 ){
+                    convertIntToString( va_arg( ap, u64 ), sFormat, ucIntBuffer ); 
+                } else if( *ucBuffer == 'f' ){
                     convertFloatToString( va_arg( ap, double ), sFormat, ucIntBuffer );
                 } else{
-                    if( iType == 64 ){
-                        convertIntToString( va_arg( ap, u64 ), sFormat, ucIntBuffer ); 
-                    } else{
-                        convertIntToString( va_arg( ap, u32 ), sFormat, ucIntBuffer ); 
-                    } // else
+                    convertIntToString( va_arg( ap, u32 ), sFormat, ucIntBuffer ); 
                 } // else
                 globalStreams[ ucStream ].Put( ucIntBuffer );
             //} else if( *ucBuffer == 'f' ){

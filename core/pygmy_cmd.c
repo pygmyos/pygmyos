@@ -24,6 +24,7 @@
 #include "profiles/eeprom/at24hc02b.h"
 
 extern u8 globalHumidity[];
+extern void volumeSet( void );
 
 #ifdef __PYGMYCOMMANDS
 u8 *globalCMDPrompt, *globalCMDError, *globalCMDUnsupported;
@@ -228,7 +229,8 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
         } // if
         if( isStringSame( ucCommand, pygmyCmds[ ii ].Name ) ){
             // Parameters should not be passed here, they are passed using getNextSubString
-            if( pygmyCmds[ ii ].Call( (u8*)"" ) ){
+            if( pygmyCmds[ ii ].Call( ucBuffer + len(ucCommand) ) ){
+            //if( pygmyCmds[ ii ].Call( (u8*)"" ) ){
                 print( STDIO, globalCMDPrompt );
                 return( 1 );
             }else{
@@ -249,9 +251,21 @@ u8 cmd_volume( u8 *ucBuffer )
     PYGMYI2CPORT pygmyI2C;
     u8 ucVol, ucAddress, ucLen, *ucParams[ 2 ];
     
+    ucBuffer = removeLeadingWhitespace( ucBuffer );
     ucLen = getAllSubStrings( ucBuffer, ucParams, 2, WHITESPACE );   
 
     if( ucLen != 2 ){
+        if( isStringSame( "--run", ucParams[ 0 ] ) ){
+            if( taskIsRunning( "volume" ) ){
+                print( STDIO, "\rTask killed\rTask spawned" );
+                taskDelete( "volume" );
+                taskNew( "volume", 5000, 20000, 0, (void*)volumeSet );
+            } else{
+                print( STDIO, "\rTask spawned" );
+                taskNew( "volume", 5000, 20000, 0, (void*)volumeSet );
+            } // else
+            return( TRUE );
+        } // if
         print( STDIO, "\rEnter address and volume" );
         return( 0 );
     } // if 
@@ -407,11 +421,12 @@ u8 cmd_ps( u8 *ucBuffer )
 {
     PYGMYCOMMANDQUEUE *pygmyQueue;
     PYGMYMESSAGE pygmyMsg;
-    PYGMYTASK pygmyTask;
+    PYGMYTASK *pygmyTask;
     u16 i, ii;
-    u8 *ucParam;
+    /*u8 *ucParam;
 
-    ucParam = getNextSubString( ucBuffer, WHITESPACE );
+    ucParam = getNextSubString( ucBuffer, WHITESPACE|NEWLINE );
+    
     if( ucParam ){
         if( isStringSame( ucParam, "-s" ) || isStringSame( ucParam, "--sockets" ) ){
             //rfListSockets();
@@ -428,15 +443,16 @@ u8 cmd_ps( u8 *ucBuffer )
             } // for    
         } // else if
     } // if
-    /*print( STDIO, "\rTasks\r\r" );
+    */
+    print( STDIO, "\rTasks:\r\r" );
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
-        taskList( &pygmyTask, i );
-        if( pygmyTask.ID ){
-            println( STDIO, "%4d %s %t", pygmyTask.ID, pygmyTask.Name, pygmyTask.TimeStamp );
+        pygmyTask = taskGetByIndex( i );
+        if( pygmyTask ){
+            println( STDIO, "%s %t", pygmyTask->Name, pygmyTask->TimeStamp );
         }
     } // for
-    */
     
+    /*
     for( i = 0; i < PYGMY_MAXQUEUES; i++ ){
         
         pygmyQueue = cmdListQueue( i );
@@ -452,14 +468,36 @@ u8 cmd_ps( u8 *ucBuffer )
         } // for
          
     } // for
+    */
 
-    return( 1 );
+    return( TRUE );
 }
 
 u8 cmd_kill( u8 *ucBuffer )
 {
+    PYGMYTASK *pygmyTask;
+    u16 i;
+    u8 *ucParam;
 
-    return( 0 );
+    ucParam = getNextSubString( ucBuffer, WHITESPACE|NEWLINE );
+    if( !ucParam ){
+        return( FALSE );
+    } // if
+    ucBuffer = removeLeadingWhitespace( ucParam );
+    print( STDIO, "\rucBuffer(%s)", ucParam );
+    if( isStringSame( "--all", ucParam ) ){
+        for( i = 0; i < PYGMY_MAXTASKS; i++ ){
+            pygmyTask = taskGetByIndex( i );
+            if( pygmyTask ){
+                print( STDIO, "\rTerminating %s", pygmyTask->Name );
+                taskDelete( pygmyTask->Name );
+            } // if
+        } // for
+    } else{
+        taskDelete( ucParam );
+    } // else
+
+    return( TRUE );
 }
 
 u8 cmd_time( u8 *ucBuffer )

@@ -246,7 +246,7 @@ u8 sst25vfVOpen( PYGMYSPIPORT **pygmySPI, u64 ulAddress, va_list vaList )
     ucSCK = (u8)va_arg( vaList, int );
     ucMISO = (u8)va_arg( vaList, int );
     ucMOSI = (u8)va_arg( vaList, int );
-    //va_end( vaList );
+    va_end( vaList );
     //putstr( "\rAllocating Port" );
     print( COM3, "\rAllocating Port" );
     //ptrSPI = sysAllocate( sizeof( PYGMYSPIPORT ) );

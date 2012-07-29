@@ -295,10 +295,11 @@ u8 sst25vfDesc( PYGMYSPIPORT *pygmySPI, PYGMYMEMDESC *pygmyDesc )
     
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
     print( COM3, "\rCapacity: %d", pygmyDesc->Capacity );
-        print( COM3, "\rSectors: %d", pygmyDesc->Sectors );
-        print( COM3, "\rSectorSize: %d", pygmyDesc->SectorSize );
-        print( COM3, "\rAttributes: %d", pygmyDesc->Attributes );
-        print( COM3, "\rManufacturer: %d", pygmyDesc->Manufacturer );
-        print( COM3, "\rType: %d", pygmyDesc->Type );
+    print( COM3, "\rSectors: %d", pygmyDesc->Sectors );
+    print( COM3, "\rSectorSize: %d", pygmyDesc->SectorSize );
+    print( COM3, "\rAttributes: %d", pygmyDesc->Attributes );
+    print( COM3, "\rManufacturer: %d", pygmyDesc->Manufacturer );
+    print( COM3, "\rType: %d", pygmyDesc->Type );
+
     return( TRUE );
 }

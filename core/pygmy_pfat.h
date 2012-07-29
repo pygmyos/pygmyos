@@ -44,8 +44,6 @@ typedef struct {
                 } PYGMYFILEADDRESS;
 
 typedef struct {
-                //u32 *Sectors;
-                //u32 SectorCount;
                 PYGMYFILEADDRESS *Sectors; // Each address group contains a group sector count
                 u32 SectorGroups; // pairs of base address-sector count pairs
                 u32 SectorCount; // Total Sectors Allocated for file
@@ -64,35 +62,23 @@ typedef struct {
                 PYGMYFILEPROPERTIES Properties;
                 u32 FreeSectors;
                 u32 RootFolder;
-                //u32 *Sectors;
-                //u32 SectorCount;
-                //u8 *Path;
-                //u8 *Name;
-                //u32 FileTable1;
-                //u32 FileTable2;
-                //u32 FAT1;
-                //u32 FAT2;
                 void*Port;
                 } PYGMYFILEVOLUME;
             
-typedef struct PYGMYFILE_TYPEDEF { 
+typedef struct { 
                 PYGMYFILEVOLUME *MountPoint;
                 PYGMYFILEPROPERTIES Properties;
-                //u8 *Name;
-                //u8 *Path;
-                //u8 *Buffer;
-                //u32 *Sectors;
-                //u32 SectorCount;
-                //u32 Length;
                 u32 Index;
-                //u16 ID_Sector;
-                //u16 ID_File;
-                //u8 Attributes;
                 u8 *Resource;
-                
-                //u8 Name[ PYGMY_FILE_MAXFILENAMELEN + 1 ];
                 } PYGMYFILE;
-     
+
+typedef struct {
+                PYGMYFILEVOLUME *MountPoint;
+                PYGMYFILEPROPERTIES ParentProperties; // For Parent Folder
+                PYGMYFILEPROPERTIES Properties; // For currently listed file
+                u32 Index;
+                } PYGMYFILELIST;
+
 extern PYGMYFILEVOLUME *globalMountPoints;
 
 u16 fileGenerateAddress( PYGMYFILE *pygmyFile, u64 *ullAddress );
@@ -109,7 +95,7 @@ u8 fileWriteEntry( PYGMYFILE *pygmyParent, PYGMYFILEPROPERTIES *pygmyEntry, u8 u
 u8 fileGetMountPointCount( void );
 PYGMYFILEVOLUME *fileGetMountPoint( u8 ucIndex );
 PYGMYFILEVOLUME *fileGetCurrentMountPoint( void );
-PYGMYFILEVOLUME *fileSeekPath( u8 *ucPath, PYGMYFILEPROPERTIES *pygmyEntry );
+PYGMYFILEVOLUME *fileSeekPath( u8 *ucPath, s8 sNest, PYGMYFILEPROPERTIES *pygmyEntry );
 u8 fileLoadEntry( PYGMYFILEVOLUME *pygmyVolume, PYGMYFILEPROPERTIES *pygmyEntry );
 void filePrintProperties( PYGMYFILEPROPERTIES *pygmyEntry );
 //u32 fileReadLength( PYGMYFILEVOLUME *pygmyVolume, u32 ulID, u32 *ulSectors, u32 ulSectorCount );
@@ -124,7 +110,9 @@ u8 fileChangeCurrentPath( u8 *ucBuffer );
 u8 fileSetCurrentPath( u8 *ucBuffer );
 u8 *fileGetCurrentPath( void );
 u8 fileSetCurrentMountPoint( PYGMYFILEVOLUME *pygmyVolume );
-u8 fileList( u8 *ucPath, PYGMYFILEPROPERTIES *pygmyEntry );            
+//u8 fileList( u8 *ucPath, PYGMYFILEPROPERTIES *pygmyEntry );      
+//u32 fileList( PYGMYFILEVOLUME *pygmyVolume, PYGMYFILEPROPERTIES *pygmyParent, PYGMYFILEPROPERTIES *pygmyEntry, u32 ulIndex );
+PYGMYFILEPROPERTIES *fileList( PYGMYFILELIST *pygmyFileList );
 //u8 fileWriteEntry( PYGMYFILEVOLUME *pygmyVolume, u32 *ulAddress, u32 ulLen, u32 *ulSectors, u32 ulSectorLen, u8 ucAttrib, u8 *ucName  );
 u32 fileGetSectorPointers( PYGMYFILEVOLUME *pygmyVolume, u32 ulID, u32 *ulAddress, u32 ulLen, u32 **ulSectors );
 //u8 fileAllocateSectors( PYGMYFILEVOLUME *pygmyVolume, u32 *ulSectors, u32 ulCount, u32 ulStartSector );

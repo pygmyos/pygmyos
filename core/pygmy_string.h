@@ -61,6 +61,7 @@ u8 isCharSameIgnoreCase( u8 ucChar1, u8 ucChar2 );
 u8 isStringSameIgnoreCase( u8 *ucString1, u8 *ucString2 );
 s8 isStringSame( u8 *ucBuffer, u8 *ucString );
 u16 len( u8 *ucString );
+u8 replaceLastChar( u8 *ucString, u8 ucChar, u8 ucNewChar );
 u8 replaceChars( u8 *ucBuffer, u8 *ucChars, u8 ucChar );
 u8 *seekStringInString(  u8 *ucString, u8 *ucBuffer );
 u16 getAllSubStrings( u8 *ucBuffer, u8 *ucStrings[], u16 uiLen, u8 ucMode );
