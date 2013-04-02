@@ -1,0 +1,19 @@
+# build
+*.o
+*.slo
+*.lo
+*.d
+*.so
+*.dylib
+*.lai
+*.la
+*.a
+*.d
+*.out
+
+# editor, tags, etc
+*~
+.project
+.metadata
+*.tmp
+tags
