@@ -1,0 +1,33 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+AR	Makefile	/^AR=$(TOOLCHAIN_PATH)\/$(TOOLCHAIN_PREFIX)-ar$/;"	m
+AS	Makefile	/^AS=$(TOOLCHAIN_PATH)\/$(TOOLCHAIN_PREFIX)-as$/;"	m
+ASRC	Makefile	/^ASRC=startup_stm32f4xx.s$/;"	m
+CC	Makefile	/^CC=$(TOOLCHAIN_PATH)\/$(TOOLCHAIN_PREFIX)-gcc$/;"	m
+CDEFS	Makefile	/^CDEFS=-DSTM32F4XX$/;"	m
+CFLAGS	Makefile	/^CFLAGS=$(COMMONFLAGS) $(MCUFLAGS) $(INCLUDE) $(CDEFS)$/;"	m
+COMMONFLAGS	Makefile	/^COMMONFLAGS=-O$(OPTLVL) -g -Wall -Werror $/;"	m
+DISCOVERY	Makefile	/^DISCOVERY:=$(TOP)\/Utilities\/STM32F4-Discovery$/;"	m
+GDB	Makefile	/^GDB=$(TOOLCHAIN_PATH)\/$(TOOLCHAIN_PREFIX)-gdb$/;"	m
+INCLUDE	Makefile	/^INCLUDE=-I$(CURDIR)$/;"	m
+LD	Makefile	/^LD=$(TOOLCHAIN_PATH)\/$(TOOLCHAIN_PREFIX)-gcc$/;"	m
+LDFLAGS	Makefile	/^LDFLAGS=$(COMMONFLAGS) -fno-exceptions -ffunction-sections -fdata-sections \\$/;"	m
+LDLIBS	Makefile	/^LDLIBS=$/;"	m
+LINKER_SCRIPT	Makefile	/^LINKER_SCRIPT=$(CURDIR)\/TrueSTUDIO\/$(PROJECT_NAME)\/stm32_flash.ld$/;"	m
+MCUFLAGS	Makefile	/^MCUFLAGS=-mcpu=cortex-m4 -mthumb$/;"	m
+OBJ	Makefile	/^OBJ = $(SRC:%.c=%.o) $(ASRC:%.s=%.o)$/;"	m
+OBJCOPY	Makefile	/^OBJCOPY=$(TOOLCHAIN_PATH)\/$(TOOLCHAIN_PREFIX)-objcopy$/;"	m
+OPTLVL	Makefile	/^OPTLVL:=3 # Optimization level, can be [0, 1, 2, 3, s].$/;"	m
+PROJECT_NAME	Makefile	/^PROJECT_NAME:=$(notdir $(lastword $(CURDIR)))$/;"	m
+SRC	Makefile	/^SRC=stm32f4xx_it.c$/;"	m
+STARTUP	Makefile	/^STARTUP:=$(STMLIB)\/CMSIS\/ST\/STM32F4xx\/Source\/Templates\/gcc_ride7$/;"	m
+STD_PERIPH	Makefile	/^STD_PERIPH:=$(STMLIB)\/STM32F4xx_StdPeriph_Driver$/;"	m
+STMLIB	Makefile	/^STMLIB:=$(TOP)\/Libraries$/;"	m
+TARGET	Makefile	/^TARGET:=IO_Toggle$/;"	m
+TOOLCHAIN_PATH	Makefile	/^TOOLCHAIN_PATH:=~\/sat\/bin$/;"	m
+TOOLCHAIN_PREFIX	Makefile	/^TOOLCHAIN_PREFIX:=arm-none-eabi$/;"	m
+TOP	Makefile	/^TOP:=$(shell readlink -f "..\/..\/..")$/;"	m
