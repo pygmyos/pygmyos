@@ -120,6 +120,7 @@ struct PYGMYFOLDER_TYPEDEF {
                 u8 IsRoot;
                 };
 
+
 typedef struct { 
                 PYGMYFILEVOLUME *Volume;
                 PYGMYFILEPROPERTIES Properties;
@@ -235,11 +236,11 @@ u8 fileList( PYGMYFILELIST *FileList );
 
 u8 fileFlush( PYGMYFILE *File );
 u8 fileRename( u8 *Name, u8 *NewName );
-u8 fileCopy( u8 *FileNameFrom, u8 *FileNameTo );
+u8 fileCopy( u8 *From, u8 *To );
 u8 fileGetChar( PYGMYFILE *File );
 u8 fileGetBuffer( PYGMYFILE *File, u8 *Buffer, u32 Len );
 u8 *fileGetString( PYGMYFILE *File );
-u32 fileReadBytes( PYGMYFILE *File, u8 *Buffer, u32 Len );
+u8 fileReadBytes( PYGMYFILE *File, u8 *Buffer, u32 Len );
 u8 fileWriteBytes( PYGMYFILE *File, u8 *Buffer, u32 Len );
 u8 filePutChar( PYGMYFILE *File, u8 Data );
 u16 fileGetWord( PYGMYFILE *File, u8 Endian );
@@ -248,7 +249,5 @@ u32 fileGetLong( PYGMYFILE *File, u8 Endian );
 u8 filePutLong( PYGMYFILE *File, u32 Data, u8 Endian );
 u8 filePutBuffer( PYGMYFILE *File, u8 *Buffer, u32 Len );
 u8 fileSeek( PYGMYFILE *File, u8 Origin, s32 Index );
-void filePrintProperties( PYGMYFILEPROPERTIES *Properties );
-u8 fileEOF( PYGMYFILE *File );
 
 #endif

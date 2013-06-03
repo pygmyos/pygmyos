@@ -225,7 +225,7 @@ typedef struct {
                 PYGMYXMODEM XModem;
                 u32 MainClock;
                 u32 XTAL;
-                u32 FlashControl;
+                u32 FPEC;
                 u32 PLL;
                 u32 StopWatch;
                 u32 Status;

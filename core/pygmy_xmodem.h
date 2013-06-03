@@ -18,17 +18,18 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-//#pragma once
-#ifndef __PYGMY_HEADER_XMODEM
-	#define __PYGMY_HEADER_XMODEM
+#pragma once
+//#ifndef __PYGMY_HEADER_XMODEM
+	////#define __PYGMY_HEADER_XMODEM
+#include "pygmy_type.h"
 #include "pygmy_profile.h"
-//#include "pygmy_type.h"
+#include "pygmy_pfat.h"
 
 #define XMODEM_ACTIVE       BIT1
 #define XMODEM_ACK          0x06
 #define XMODEM_NACK         0x15
 #define XMODEM_EOT          0x04
-//#define XMODEM_SOH          0x01
+#define XMODEM_SOH          0x01
 #define XMODEM_CAN          0x18
 #define XMODEM_NEXT         0x00
 #define XMODEM_LAST         0x01
@@ -37,6 +38,8 @@
 #define XMODEM_SEND         BIT3
 #define XMODEM_SEND_WAIT    BIT4
 #define XMODEM_SEND_EOT     BIT5
+
+#define XMODEM_MAXFAILURES  10
  
 typedef struct {
                 PYGMYFILE *File;
@@ -45,15 +48,20 @@ typedef struct {
                 u32 Transaction;
                 u32 Count;
                 u8 Buffer[ 132 ];
+                u8 Failures;
                 u8 Index;
                 u8 Port;
+                u8 Enabled;
                 } PYGMYXMODEM;
 
-u8 xmodemRecv( PYGMYXMODEM *pygmyXModem, u8 *ucFileName );
-u8 xmodemSend( PYGMYXMODEM *pygmyXModem, u8 *ucFileName );
-u8 xmodemProcess( PYGMYXMODEM *pygmyXModem, u8 ucByte );
-void xmodemProcessTimer( PYGMYXMODEM *pygmyXModem );
-void xmodemSendPacket( PYGMYXMODEM *pygmyXModem, u8 ucLast );
-u8 xmodemWritePacket( PYGMYXMODEM *pygmyXModem );//, u8 *ucBuffer );
+void xmodemInit( PYGMYXMODEM *XModem );
+void xmodemEnable( PYGMYXMODEM *XModem );
+void xmodemDisable( PYGMYXMODEM *XModem );
+u8 xmodemRecv( PYGMYXMODEM *XModem, u8 *FileName );
+u8 xmodemSend( PYGMYXMODEM *XModem, u8 *FileName );
+u8 xmodemProcess( PYGMYXMODEM *XModem, u8 Byte );
+void xmodemProcessTimer( PYGMYXMODEM *XModem );
+void xmodemSendPacket( PYGMYXMODEM *XModem, u8 Last );
+u8 xmodemWritePacket( PYGMYXMODEM *XModem );//, u8 *ucBuffer );
 
-#endif // __PYGMY_HEADER_XMODEM
+//#endif // __PYGMY_HEADER_XMODEM

@@ -367,7 +367,6 @@ typedef struct {
                 u16 TXIndex;
                 u16 TXLen;
                 PYGMYCMDPTR Put;
-                PYGMYCMDPTR Putc;
                 PYGMYVOIDPTR Get;
                 u8 *RXBuffer;
                 u8 *TXBuffer;
@@ -457,10 +456,34 @@ enum {
 #define I2CSPEEDHIGH        BIT5 // 3.4Mbps
 #define I2CPOLLFORACK       BIT6 // Poll for an Ack on Address to show busy status cleared
  
-#define SPIWORDADDRESS      BIT1
-#define SPILONGADDRESS      BIT2
-#define SPIDUMMYONREAD      BIT3   
-#define SPIDUMMYONWRITE     BIT4
+#define SPIMODE0            0     // BIT0 and BIT1
+#define SPIMODE1            1     //
+#define SPIMODE2            2     //
+#define SPIMODE3            3     //
+#define SPIDUMMYONWRITE     BIT2  
+#define SPIDUMMYONREAD      BIT3
+// BITS 4-7 are 0-16 bit address7
+#define SPIADDRESS0BYTE     0
+#define SPIADDRESS1BYTE     BIT4
+#define SPIADDRESS2BYTE     BIT5
+#define SPIADDRESS3BYTE     BIT4|BIT5
+#define SPIADDRESS4BYTE     BIT6
+#define SPIADDRESS5BYTE     BIT6|BIT4
+#define SPIADDRESS6BYTE     BIT6|BIT5
+#define SPIADDRESS7BYTE     BIT6|BIT5|BIT4
+#define SPIADDRESS8BYTE     BIT7
+#define SPIADDRESS9BYTE     BIT7|BIT4
+#define SPIADDRESS10BYTE    BIT7|BIT5
+#define SPIADDRESS11BYTE    BIT7|BIT5|BIT4
+#define SPIADDRESS12BYTE    BIT7|BIT6
+#define SPIADDRESS13BYTE    BIT7|BIT6|BIT4
+#define SPIADDRESS14BYTE    BIT7|BIT6|BIT5
+#define SPIADDRESS15BYTE    BIT7|BIT6|BIT5|BIT4
+
+//#define SPIWORDADDRESS      BIT4  // BIT1
+//#define SPILONGADDRESS      BIT5  // BIT2
+//#define SPIDUMMYONREAD      BIT6  // BIT3  
+//#define SPIDUMMYONWRITE     BIT7  // BIT4
 
 typedef struct{
                 u8 SCL;
@@ -554,7 +577,6 @@ void comEnable( u8 ucPort );
 u16 comGenerateBaud( u32 ulClock, u32 ulRate );
 u8 putcUSART1( u8 Byte );
 u8 putsUSART1( u8 *ucBuffer );
-u8 putcUSART2( u8 Byte );
 u8 putsUSART2( u8 *ucBuffer );
 u8 putcUSART3( u8 ucData );
 u8 putBufferUSART3( u8 *ucBuffer, u16 uiLen );
@@ -590,7 +612,7 @@ u16 spiGetWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
 u8 spiGetChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
 void spiGetBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen );
 
-void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
+void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u64 Address );
 
 void i2cConfig( PYGMYI2CPORT *pygmyI2C, u8 ucSCL, u8 ucSDA, u8 ucAddress, u16 uiSpeed );
 void i2cDelay( PYGMYI2CPORT *pygmyI2C );
@@ -630,7 +652,6 @@ u8 streamPopChar( u8 ucStream );
 u8 streamPeekChar( u8 ucStream );
 void streamPushChar( u8 ucStream, u8 ucChar );
 u8 streamSetPut( u8 ucStream, void *ptrFunc );
-u8 streamSetPutc( u8 Stream, void *Func );
 u8 streamSetGet( u8 ucStream, void *ptrFunc );
 u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );

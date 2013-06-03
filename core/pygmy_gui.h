@@ -18,9 +18,9 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-//#pragma once
-#ifndef __PYGMY_HEADER_GUI
-	#define __PYGMY_HEADER_GUI
+#pragma once
+//#ifndef __PYGMY_HEADER_GUI
+//	#define __PYGMY_HEADER_GUI
 
 #include "pygmy_profile.h"
 
@@ -417,6 +417,7 @@ void drawThickLine( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, 
 void drawPoly( PYGMYCOLOR *pygmyColor, u16 *uiPoints, u16 uiLen, u32 ulStyle );
 void drawRect( PYGMYCOLOR *pygmyColor, s16 iX1, s16 iY1, s16 iX2, s16 iY2, u32 ulStyle, u16 uiRadius );
 void drawFill( PYGMYCOLOR *pygmyColor, u16 x, u16 y );
+void drawAll( u8 *ucBuffer );
 u8 guiGetPixelOpening( u16 uiX, u16 uiY, u32 ulColor );
 //void drawRadius( u16 uiX0, u16 uiY0, u16 uiSectors, u16 uiRadius );
 //void drawRadius( u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiRadius );
@@ -433,4 +434,4 @@ void guiOutputBMHeader( PYGMYFILE *pygmyFile, u32 ulWidth, u32 ulHeight, u8 ucBP
 //void clearVideoArea( u8 *ucBuffer, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2, u16 uiColor );           
 //void drawVideoArea( u8 *ucBuffer, u16 uiX1, u16 uiY1, u16 uiX2, u16 uiY2 );
             
-#endif // __PYGMY_HEADER_GUI
+//#endif // __PYGMY_HEADER_GUI

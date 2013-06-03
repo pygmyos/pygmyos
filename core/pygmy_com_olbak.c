@@ -43,114 +43,6 @@
 #ifdef __PYGMYSTREAMUSER
     
 #endif
-
-u8 comOpen( u8 Port, u32 BaudRate, u8 Options )
-{
-    USART_TYPEDEF *Uart;
-    u32 MainClock;
-
-    sysEnableComClock( Port );
-    
-    #ifdef __PYGMYSTREAMCOM1
-    if( Port == COM1 ){
-        PYGMY_RCC_USART1_ENABLE;
-        pinConfig( COM1_TX, ALT );
-        pinConfig( COM1_RX, PULLUP );
-        interruptEnable( USART1_IRQ );
-        interruptSetPriority( USART1_IRQ, 1 );
-        Uart = USART1;
-        if( Options & RTS ){
-            pinConfig( COM1_RTS, ALT );
-        } // if
-        if( Options & CTS ){
-            pinConfig( COM1_CTS, IN );
-        } // if
-    } // if
-    #endif // __PYGMYSTREAMCOM1
-    #ifdef __PYGMYSTREAMCOM2
-    if( Port == COM2 ){
-        PYGMY_RCC_USART2_ENABLE;
-        pinConfig( COM2_TX, ALT );
-        pinConfig( COM2_RX, IN );
-        interruptSetPriority( USART2_IRQ, 0 );
-        interruptEnable( USART2_IRQ );
-        Uart = USART2;
-        if( Options & RTS ){
-            pinConfig( COM2_TX, ALT );
-        } // if
-        if( Options & CTS ){
-            pinConfig( COM2_CTS, IN );
-        } // if
-    } // if
-    #endif // __PYGMYSTREAMCOM2
-    #ifdef __PYGMYSTREAMCOM3
-    if( Port == COM3 ){
-        PYGMY_RCC_USART3_ENABLE;
-        pinConfig( COM3_TX, ALT );
-        pinConfig( COM3_RX, IN );
-        interruptSetPriority( USART3_IRQ, 1 );
-        interruptEnable( USART3_IRQ );
-        Uart = USART3;
-        if( Options & RTS ){
-            pinConfig( COM3_RTS, ALT );
-        } // if
-        if( Options & CTS ){
-            pinConfig( COM3_CTS, IN );
-        } // if
-    } 
-    #endif // __PYGMYSTREAMCOM3
-    #ifdef __PYGMYSTREAMCOM4
-    if( Port == COM4 ){
-        if( Options & (RTS|CTS) ){
-            return( FALSE ); // Do not open the port if un-supported options are requested.
-        } // if
-        PYGMY_RCC_USART4_ENABLE;
-        pinConfig( COM4_TX, ALT );
-        pinconfig( COM4_RX, IN );
-        interruptEnable( USART4_IRQ );
-        interruptSetPriority( USART4_IRQ, 1 );
-        Uart = USART4;
-    } // if
-    #endif // __PYGMYSTREAMCOM4
-    #ifdef __PYGMYSTREAMCOM5
-    if( Port == COM5 ){
-        PYGMY_RCC_USART5_ENABLE;
-        pinconfig( COM5_TX, ALT );
-        pinConfig( COM5_RX, PULLUP );
-        interruptEnable( USART5_IRQ );
-        interruptSetPriority( USART5_IRQ, 1 );
-        Uart = USART5;
-    } // if
-    #endif // __PYGMYSTREAMCOM5
-    #ifdef __PYGMYSTREAMCOM6
-    if( Port == COM6 ){
-        PYGMY_RCC_USART6_ENABLE;
-        pinConfig( COM6_TX, ALT );
-        pinConfig( COM6_RX, PULLUP );
-        interruptEnable( USART6_IRQ );
-        interruptSetPriority( USART6_IRQ, 1 );
-        Uart = USART6;
-    } // else if
-    #endif // __PYGMYSTREAMCOM6        
-    Uart->CR3 = USART_ONEBITE;
-    // Warning! CTS and RTS are not supported on UART4-UART5
-    if( Options & RTS ){
-        Uart->CR3 |= USART_RTSE;
-    } // if
-    if( Options & CTS ){
-        Uart->CR3 |= USART_CTSE;
-    } // if
-    MainClock = sysGetMainClock();
-    Uart->BRR = ( ( ( MainClock >> 3 ) / BaudRate ) << 4 ) + ( ( ( MainClock / BaudRate ) ) & 0x0007 );
-    if( Options & TXIE ){
-        Uart->CR1 = ( USART_OVER8 | USART_UE | USART_TXEIE | USART_RXNEIE | USART_TE | USART_RE  );
-    } else{
-        Uart->CR1 = ( USART_OVER8 | USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-    } // else
-    
-    Uart->SR = 0;
-}
-
 void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate )
 {
     USART_TYPEDEF *ptrUSART;
@@ -388,9 +280,17 @@ void spiPutCommand( PYGMYSPIPORT *pygmySPI, u8 ucByte )
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
 }
 
-void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
+void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u64 Address )
 {
-    if( pygmySPI->CR & SPILONGADDRESS ){
+    u16 i, AddressBytes;
+
+    AddressBytes = pygmySPI->CR >> 4;
+
+    for( i = 0; i < AddressBytes; i++ ){
+        spiWriteByte( pygmySPI, (u8)((u64) Address >> ( 64 - ( i * 8 ) ) ) );
+    } // for
+    
+    /*if( pygmySPI->CR & SPILONGADDRESS ){
         spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 24 ) );
         spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 16 ) );
         spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 8 ) );
@@ -398,17 +298,28 @@ void spiWriteAddress( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
         spiWriteByte( pygmySPI, (u8)((u32) ulAddress >> 8 ) );
     } // else if
     spiWriteByte( pygmySPI, (u8) ulAddress );
+    */
 }
 
 void spiPutChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 ucByte )
 {
     // Writes one char with prepended address and CS cycle
+    //if( ( pygmySPI->CR & 0x03) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;
+    //} else{
+    //    pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;
+    //} // else
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
     if( pygmySPI->CR & SPIDUMMYONWRITE ){
         spiReadByte( pygmySPI );
     } // if
     spiWriteByte( pygmySPI, ucByte );
+    //if( ( pygmySPI->CR & 0x03) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;
+    //} else{
+    //    pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;
+    //} // else
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS;
 }
 
@@ -457,19 +368,28 @@ void spiPutBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLe
 
 u8 spiGetChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
 {
-    u8 ucChar;
+    u8 DataByte;
     
-    //print( COM3, "\rspiGetChar() Address: 0x%012llX", ulAddress );
+    //if( ( pygmySPI->CR & 0x03) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+    //    pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;
+   // } else{
+    //    pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;
+    //} // else
     pygmySPI->PortCS->BRR = pygmySPI->PinCS;
     spiWriteAddress( pygmySPI, ulAddress );
     if( pygmySPI->CR & SPIDUMMYONREAD ){
         spiReadByte( pygmySPI );
     } // if
-    ucChar = spiReadByte( pygmySPI );
+    DataByte = spiReadByte( pygmySPI );
+    //pygmySPI->PortCS->BRR = pygmySPI->PinCS;
+    //if( ( pygmySPI->CR & 0x03) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+    //    pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;
+    //} else{
+    //    pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;
+    //} // else
     pygmySPI->PortCS->BSRR = pygmySPI->PinCS; 
-    //print( COM3, "\rChar: %02X", ucChar );
 
-    return( ucChar );
+    return( DataByte );
 }
 
 u16 spiGetWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress )
@@ -534,20 +454,98 @@ void spiWriteLong( PYGMYSPIPORT *pygmySPI, u32 ulData )
 void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte )
 {
     // Clocks out 8 bits
-	u16 i;
-
-	pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Clock starts low, low-high-low clocks data in or out
-	//for( i = 24; i < 32; i++ ){ 		                        // 
-      for( i = 0; i < 8; i++ ){ 
-		if( ucByte & ( BIT7 >> i ) ){                       // 	
-        //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
-            pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
-		} else{                                             //
-            pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;  // MasterOutSlaveIn low if bit clear
-        } // else                                           //
-		pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;			// clock must start low, transition high
-		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
-    } // for
+    u16 i;
+    
+    /*if( ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        // Mode 1
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	
+        for( i = 0; i < 8; i++ ){ 
+            if( ucByte & ( BIT7 >> i ) ){ //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+                pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
+            } else{                                             //
+                pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;    // MasterOutSlaveIn low if bit clear
+            } // else                                           //
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;         // clock must start low, transition high 
+        } // for
+    } else if( ( pygmySPI->CR & 0x03 ) == SPIMODE2 ){
+        // Mode 2
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;
+        for( i = 0; i < 8; i++ ){ 
+            if( ucByte & ( BIT7 >> i ) ){ //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+                pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
+            } else{                                             //
+                pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;    // MasterOutSlaveIn low if bit clear
+            } // else                                           //
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;         // clock must start low, transition high 
+        } // for
+    } else if( ( pygmySPI->CR & 0x03 ) == SPIMODE3 ){
+        // Mode 3
+        pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;
+        for( i = 0; i < 8; i++ ){ 
+            if( ucByte & ( BIT7 >> i ) ){ //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+                pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
+            } else{                                             //
+                pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;    // MasterOutSlaveIn low if bit clear
+            } // else                                           //
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;         // clock must start low, transition high 
+        } // for
+    } else{
+        // Mode 0
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	
+        for( i = 0; i < 8; i++ ){ 
+            if( ucByte & ( BIT7 >> i ) ){ //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+                pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
+            } else{                                             //
+                pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;    // MasterOutSlaveIn low if bit clear
+            } // else                                           //
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;         // clock must start low, transition high 
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
+        } // for
+    } // else
+*/
+    //if( ( pygmySPI->CR & 0x03 ) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        // MODE0 and MODE1 use Clock Polarity Low
+        // Clock starts low, low-high-low clocks data in or out
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        
+    //} else{
+        // MODE2 and MODE3 use Clock Polarity High
+        // Clock starts high, high-low-high clocks data in or out
+    //    pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;
+    //} // else 
+    //if( ( pymgySPI->CR & 0x03 ) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        for( i = 0; i < 8; i++ ){ 
+            if( ucByte & ( BIT7 >> i ) ){ //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+                pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
+            } else{                                             //
+                pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;    // MasterOutSlaveIn low if bit clear
+            } // else                                           //
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;         // clock must start low, transition high 
+        } // for
+    ///} else{
+    //    for( i = 0; i < 8; i++ ){ 
+    //        if( ucByte & ( BIT7 >> i ) ){ //if( ucByte & PYGMY_INVBITMASKS[ i ] ){
+    //            pygmySPI->PortMOSI->BSRR = pygmySPI->PinMOSI;   // MasterOutSlaveIn high if bit set
+    //        } else{                                             //
+    //            pygmySPI->PortMOSI->BRR = pygmySPI->PinMOSI;    // MasterOutSlaveIn low if bit clear
+    //        } // else                                           //
+    //        pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;         // clock must start low, transition high  
+    //        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	    // Low transition finishes clock sequence
+    //    } // for
+    //} // else
+    //if( ( pygmySPI->CR & 0x03 ) == SPIMODE0 || ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        // MODE0 and MODE1 use Clock Polarity Low
+        // Clock starts low, low-high-low clocks data in or out
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        
+    //} else{
+        // MODE2 and MODE3 use Clock Polarity High
+        // Clock starts high, high-low-high clocks data in or out
+    //    pygmySPI->PortSCK->SBRR = pygmySPI->PinSCK;
+    //} // else
+    
 } 
 /*
 void spiWriteWord( PYGMYSPIPORT *pygmySPI, u16 uiWord )
@@ -590,17 +588,17 @@ u8 spiReadByte( PYGMYSPIPORT *pygmySPI )
 {
     // Clocks in 8 bits
     u16 i;
-	u8 ucByte;
-	
+    u8 DataByte;
+
     pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;             // Clock starts low, low-high-low clocks data in or out
-	/*for( i = 24, ucByte = 0; i < 32; i++ ){                   // 
-		pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
-        if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
-            ucByte |= PYGMY_INVBITMASKS[ i ];
-			//ucByte |= ( BIT7 >> i );                        //
-        } // if                                             //
-		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
-    } // for*/
+	//for( i = 24, ucByte = 0; i < 32; i++ ){                   // 
+	//	pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
+        //if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
+        //    ucByte |= PYGMY_INVBITMASKS[ i ];
+	//		//ucByte |= ( BIT7 >> i );                        //
+        //} // if                                             //
+	//	pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
+        // } // for
 	for( i = 0, ucByte = 0; i < 8; i++ ){                   // 
 		pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
         if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
@@ -609,7 +607,51 @@ u8 spiReadByte( PYGMYSPIPORT *pygmySPI )
         } // if                                             //
 		pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
     } // for
-	return( ucByte );
+    
+    
+    /*if( ( pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        // Mode 1
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	
+        for( i = 0, DataByte = 0; i < 8; i++ ){                   // 
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
+            if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
+                DataByte |= ( BIT7 >> i );                        //
+            } // if                                             //
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
+        } // for
+    } else if( ( pygmySPI->CR & 0x03 ) == SPIMODE2 ){
+        // Mode 2
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	
+        for( i = 0, DataByte = 0; i < 8; i++ ){                   // 
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
+            if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
+                DataByte |= ( BIT7 >> i );                        //
+            } // if                                             //
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
+        } // for
+    } else if( ( pygmySPI->CR & 0x03 ) == SPIMODE3 ){
+        // Mode 3
+        pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	
+        for( i = 0, DataByte = 0; i < 8; i++ ){                   // 
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
+            if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
+                DataByte |= ( BIT7 >> i );                        //
+            } // if                                             //
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
+        } // for
+    } else{
+        // Mode 0
+        pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;	
+        for( i = 0, DataByte = 0; i < 8; i++ ){                   // 
+            pygmySPI->PortSCK->BRR = pygmySPI->PinSCK;          // clock must start low, transition high 			
+            if( pygmySPI->PortMISO->IDR & pygmySPI->PinMISO ){    // Test port input for high and set bit in ucByte
+                DataByte |= ( BIT7 >> i );                        //
+            } // if                                             //
+            pygmySPI->PortSCK->BSRR = pygmySPI->PinSCK;	        // Low transition finishes clock sequence
+        } // for
+    } // else
+
+    return( DataByte );*/
 }
 
 void spiReadBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen )
@@ -636,6 +678,12 @@ void spiWriteBuffer( PYGMYSPIPORT *pygmySPI, u8 *ucBuffer, u16 uiLen )
 
 void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI, u8 ucCR )
 {
+    if( ( pygmySPI->CR & 0x03 ) == SPIMODE0 || (pygmySPI->CR & 0x03 ) == SPIMODE1 ){
+        pinSet( ucSCK, LOW );
+    } else{
+        pinSet( ucSCK, HIGH );
+    } // else
+    pinSet( ucCS, HIGH );
     pinConfig( ucCS, OUT );
     pinConfig( ucSCK, OUT );
     if( ucMOSI != NONE ){
@@ -656,9 +704,7 @@ void spiConfig( PYGMYSPIPORT *pygmySPI, u8 ucCS, u8 ucSCK, u8 ucMISO, u8 ucMOSI,
     pygmySPI->PinSCK    = sysGenerateBit( ucSCK % 16 );//PYGMY_BITMASKS[ ucSCK % 16 ];   
     
     pygmySPI->CR        = ucCR;//0xFF;
-
-    pinSet( ucSCK, LOW );
-    pinSet( ucCS, HIGH );
+    //pinSet( ucCS, HIGH );
 }
 
 //--------------------------------------I2C Hardware Interface-------------------------------------
@@ -1170,7 +1216,6 @@ void streamSetSTDIO( u8 ucStream )
     globalStreams[ STDIO ].TXIndex      = globalStreams[ ucStream ].TXIndex;
     globalStreams[ STDIO ].TXLen        = globalStreams[ ucStream ].TXLen;
     globalStreams[ STDIO ].Put          = globalStreams[ ucStream ].Put;
-    globalStreams[ STDIO ].Putc         = globalStreams[ ucStream ].Putc;
     globalStreams[ STDIO ].Get          = globalStreams[ ucStream ].Get;
     globalStreams[ STDIO ].RXBuffer     = globalStreams[ ucStream ].RXBuffer;
     globalStreams[ STDIO ].TXBuffer     = globalStreams[ ucStream ].TXBuffer;
@@ -1315,17 +1360,6 @@ u8 streamSetPut( u8 ucStream, void *ptrFunc )
     return( 0 );
 }
 
-u8 streamSetPutc( u8 Stream, void *Func )
-{
-    if( Stream < MAXCOMPORTS ){
-        globalStreams[ Stream ].Putc = Func;
-    
-        return( 1 );
-    } // if
-
-    return( 0 );
-}
-
 u8 streamSetGet( u8 ucStream, void *ptrFunc )
 {
     if( ucStream < MAXCOMPORTS ){
@@ -1440,21 +1474,6 @@ void USART1_IRQHandler( void )
     u8 ucChar;
 
     if( USART1->SR & USART_RXNE){
-        if( globalStreams[ COM1 ].CR & PYGMY_STREAMS_USERHANDLER ){
-            globalStreams[ COM1 ].Get();
-        } else{
-            ucChar = USART1->DR;
-            streamHandler( COM1, ucChar );
-        } // else
-    } // if
-    if( USART1->SR & USART_TXE ){
-       streamTXChar( COM1, USART2 );
-    } // if
-    USART1->SR = 0;
-}
-    /*u8 ucChar;
-
-    if( USART1->SR & USART_RXNE){
         ucChar = USART1->DR;
         streamHandler( COM1, ucChar );
     } // if
@@ -1462,7 +1481,7 @@ void USART1_IRQHandler( void )
        streamTXChar( COM1, USART1 );
     } // if
     USART1->SR = 0;
-}*/
+}
 
 u8 putcUSART1( u8 Byte )
 {
@@ -1512,22 +1531,7 @@ u8 putsUSART1FIFO( u8 *ucBuffer )
 #ifdef __PYGMYSTREAMCOM2
 void USART2_IRQHandler( void )
 {
-    u8 ucChar;
-
-    if( USART2->SR & USART_RXNE){
-        if( globalStreams[ COM2 ].CR & PYGMY_STREAMS_USERHANDLER ){
-            globalStreams[ COM2 ].Get();
-        } else{
-            ucChar = USART2->DR;
-            streamHandler( COM2, ucChar );
-        } // else
-    } // if
-    if( USART2->SR & USART_TXE ){
-       streamTXChar( COM2, USART2 );
-    } // if
-    USART2->SR = 0;
-}
-/*    u16 i;
+    u16 i;
     u8 ucChar, *ucChars;
 
     if( USART2->SR & USART_RXNE){
@@ -1562,24 +1566,10 @@ void USART2_IRQHandler( void )
     //   streamTXChar( COM2, USART2 );
     //} // if
     USART2->SR = 0;
-}*/
+}
 //#else
 
 //#endif
-
-u8 putcUSART2( u8 Byte )
-{
-    u16 i;
-    
-    for( i = 0; i < 1000; i++ ){
-        if( USART2->SR & USART_TXE ){
-            USART2->DR = Byte;
-            return( TRUE );
-        } // if
-    } // for
-
-    return( FALSE );
-}
 
 u8 putsUSART2( u8 *ucBuffer )
 { 
@@ -1632,13 +1622,13 @@ void USART3_IRQHandler( void )
     USART3->SR = 0;
 }
 
-u8 putcUSART3( u8 Byte )
+u8 putcUSART3( u8 ucData )
 {
     u16 i;
 
     for( i = 0; i < 1000; i++ ){
         if( USART3->SR & USART_TXE ){
-            USART3->DR = Byte;
+            USART3->DR = ucData;
             return( TRUE );
         } // if
     } // for

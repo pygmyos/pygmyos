@@ -24,7 +24,7 @@
 //#include <malloc.h>
 //#include "alloc.h"
 #include "pygmy_profile.h"
-
+//#include "pygmy_gui.h"
 //const u8 PYGSYS_INVBITS[] = { 0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };
 const u8 PYGMY_DAYSINMONTH[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 //const u32 PYGMY_BITMASKS[] = { BIT0,BIT1,BIT2,BIT3,BIT4,BIT5,BIT6,BIT7,BIT8,BIT9,BIT10,BIT11,BIT12,BIT13,BIT14,BIT15,
@@ -39,13 +39,14 @@ PYGMYMESSAGE        pygmyGlobalMessages[ PYGMY_MAXMESSAGES ];
 PYGMYSYSTEM         pygmyGlobalData;
 
 PYGMYCOMMANDQUEUE   *pygmyGlobalQueues[ PYGMY_MAXQUEUES ];
-#ifndef __PYGMY_SYS_HEAPLEN 
+/*#ifndef __PYGMY_SYS_HEAPLEN 
     #ifdef __PYGMYNEBULA_HP
         #define __PYGMY_SYS_HEAPLEN 92160
     #else
         #define __PYGMY_SYS_HEAPLEN 2048
     #endif
 #endif
+*/
 //u8 globalHeap[ __PYGMY_SYS_HEAPLEN ];
                            
 //--------------------------------------------------------------------------------------------
@@ -53,7 +54,7 @@ PYGMYCOMMANDQUEUE   *pygmyGlobalQueues[ PYGMY_MAXQUEUES ];
 void HardFault_Handler( void )
 { 
   print( COM3, "\rHard Fault" );
-  PYGMY_RESET;
+ // PYGMY_RESET;
 }
 
 /*void *sysAllocate( u32 ulLen )
@@ -95,40 +96,59 @@ u8 sysInit( void )
 {
     u16 i;
 
-    pygmyGlobalData.Status = 0;
-    pygmyGlobalData.MCUID = DESC_STM32F103HD;//descriptorGetID( );//
-    pygmyGlobalData.XTAL = 12000000;
-    
+    //RCC->APB2ENR |= (RCC_IOPBEN|RCC_IOPCEN|RCC_IOPAEN);
+    //pygmyGlobalData.Status = 0;
+    //pygmyGlobalData.MCUID = fpecMCUID( );
+    //pygmyGlobalData.XTAL = PYGMY_XTAL;
+    //pygmyGlobalData.PLL = BIT16|BIT1;
+
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
-        pygmyGlobalData.XTAL = 16000000;
-        pygmyGlobalData.MainClock = 32000000;
-        pygmyGlobalData.DelayTimer = PYGMY_TIMER11;
-        pygmyGlobalData.PWMTimer = PYGMY_TIMER9;
+        pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY1;
+        pygmyGlobalData.MainClock     = 32000000;
+        pygmyGlobalData.DelayTimer    = PYGMY_TIMER11;
+        pygmyGlobalData.PWMTimer      = PYGMY_TIMER9;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F100MD || pygmyGlobalData.MCUID == DESC_STM32F100HD ){
-        pygmyGlobalData.MainClock = 24000000;
-        pygmyGlobalData.DelayTimer = PYGMY_TIMER15;
-        pygmyGlobalData.PWMTimer = PYGMY_TIMER16;
+        pygmyGlobalData.MainClock     = 24000000;
+        pygmyGlobalData.DelayTimer    = PYGMY_TIMER15;
+        pygmyGlobalData.PWMTimer      = PYGMY_TIMER16;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F103XLD ){
-        pygmyGlobalData.MainClock = 72000000;
-        pygmyGlobalData.DelayTimer = PYGMY_TIMER9;
-        pygmyGlobalData.PWMTimer = PYGMY_TIMER10;
+        pygmyGlobalData.FlashControl  = (FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2);
+        pygmyGlobalData.PLL           = RCC_PLL_X9|BIT16|BIT15|BIT14|BIT1;
+        pygmyGlobalData.MainClock     = 72000000;
+        pygmyGlobalData.DelayTimer    = PYGMY_TIMER9;
+        pygmyGlobalData.PWMTimer      = PYGMY_TIMER10;
         PYGMY_RCC_TIMER9_ENABLE;
         PYGMY_RCC_TIMER10_ENABLE;
-        //PYGMY_RCC_TIMER10_ENABLE;
     } else if ( pygmyGlobalData.MCUID == DESC_STM32F103HD ){
-        pygmyGlobalData.MainClock = 72000000;
-        pygmyGlobalData.DelayTimer = PYGMY_TIMER1;
-        pygmyGlobalData.PWMTimer = PYGMY_TIMER8;
+        pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2;
+        pygmyGlobalData.MainClock     = 72000000;
+        pygmyGlobalData.DelayTimer    = PYGMY_TIMER1;
+        pygmyGlobalData.PWMTimer      = PYGMY_TIMER8;
     } else{ // STM32F103LD and MD
-        pygmyGlobalData.MainClock = 72000000;
-        pygmyGlobalData.DelayTimer = PYGMY_TIMER1;
-        pygmyGlobalData.PWMTimer = PYGMY_TIMER0;
+        pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2; 
+        pygmyGlobalData.MainClock     = 72000000;
+        pygmyGlobalData.DelayTimer    = PYGMY_TIMER1;
+        pygmyGlobalData.PWMTimer      = PYGMY_TIMER0;
     } // else
-    
+    //FPEC->ACR = pygmyGlobalData.FlashControl;
+    PYGMY_RCC_HSI_ENABLE;
+    PYGMY_RCC_HSE_ENABLE;
+    while( !PYGMY_RCC_HSE_READY );
+    RCC->CFGR2 = 0;
+    RCC->CFGR = pygmyGlobalData.PLL;
+    PYGMY_RCC_PLL_ENABLE;
+    while( !PYGMY_RCC_PLL_READY );
     sysEnableTimerClock( pygmyGlobalData.DelayTimer );
     // The following implements default stream config from the profile
     // If no defaults are defined, configuration must be done manually
-    
+    /*GPIOB->CRH &= ~( PIN10_CLEAR | PIN11_CLEAR );
+    GPIOB->CRH |= ( PIN10_OUT50_ALTPUSHPULL | PIN11_IN_FLOAT );
+
+    USART3->BRR = ( ( (72000000 >> 3 ) / 2304000 ) << 4 ) + ( ( ( 72000000 / 230400 ) ) & 0x0007 );
+    //USART3->BRR = ( ( (ulClock >> 3 ) / 9600 ) << 4 ) + ( ( ( ulClock / 9600 ) ) & 0x0007 );
+    USART3->CR3 = USART_ONEBITE;
+    USART3->CR1 = ( USART_OVER8 | USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
+    return;*/
     #ifdef __PYGMYSTREAMS
         streamInit();
         
@@ -157,6 +177,7 @@ u8 sysInit( void )
             streamSetPut( COM2, putsUSART2 );
         #endif
         #ifdef __PYGMYSTREAMCOM3 // USB and STDIO on Nebulas
+            comOpen( COM3, 230400, 0 );
             #ifdef __PYGMYCOMMANDS
                 streamSetGet( COM3, cmdGetsCOM3 );
                 streamEnableEcho( COM3 );
@@ -198,7 +219,9 @@ u8 sysInit( void )
     #endif
     timeInit();
     #ifdef __PYGMYFILES
-        fileMountRoot();
+        #ifdef __PYGMY_PFATLITE
+            fileMountRoot();
+        #endif
     #endif
     
     #ifdef __PYGMYTASKS
@@ -749,13 +772,13 @@ u32 pdiaEncodeString( u8 *ucString )
 {
     u32 ulSum;
     // Warning!!! Only use with strings under 16384 bytes long!
-
+    //print( COM3, "\rPDIA (%s): ", ucString );
     pdiaEncode( 0, PDIA_NEW, &ulSum );
     for( ; *ucString; ){
         pdiaEncode( *(ucString++), PDIA_ADD, &ulSum );
     } // for
     pdiaEncode( 0, PDIA_END, &ulSum );
-    
+    //print( COM3, "0x%08X", ulSum);
     return( ulSum );
 }
 
@@ -1307,6 +1330,9 @@ void print( u8 ucStream, u8 *ucBuffer, ... )
     u16 uiLen;
     va_list ap;
      
+    if( ucBuffer == NULL ){
+        return;
+    } // if
     ucValue[ 2 ] = 0;
     va_start( ap, ucBuffer );
     for( ; *ucBuffer; ucBuffer++ ){
@@ -1450,8 +1476,7 @@ void delay( u32 ulDelay )
         // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
         // multipurpose timers and must share Timer1. In this case, Timer1
-        // should not be used for PWM output.
-        
+        // should not be used for PWM output. 
         
         PYGMY_RCC_TIMER1_ENABLE;
         TIM1->CR1 = 0;                          // Disable before configuring timer
@@ -1460,6 +1485,7 @@ void delay( u32 ulDelay )
             TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
             ulDelay &= 0x0000FFFF;
         } // 
+        print( COM3, "\rDelay: %d", ulDelay );
         //ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
         if( ulDelay < 60 ){
             ulDelay = 60;
@@ -1604,7 +1630,8 @@ void mcoDisable( void )
 
 //--------------------------------------------------------------------------------------------
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------
-void SysTick_Handler( void )
+ //void f () __attribute__ ((weak, 
+__attribute__ ((weak)) void SysTick_Handler( void ) 
 {
     PYGMY_WATCHDOG_REFRESH; 
     
@@ -1624,6 +1651,9 @@ void SysTick_Handler( void )
     #ifdef __PYGMYSPRITES
         guiSpriteProcess( );
     #endif
+    //if( pygmyGlobalData.XModem ){
+    //    xmodemProcessTimer( pygmyGlobalData.XModem );
+    //} // if
 }
 
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------

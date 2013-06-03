@@ -17,7 +17,7 @@
     You should have received a copy of the GNU Lesser General Public License
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
-
+#include <stdlib.h>
 #include "pygmy_profile.h"
 #include "pygmy_socket.h"
 
@@ -172,7 +172,7 @@ u8 socketHandler( u8 *ucBuffer )
         #ifdef __PYGMY_DEBUG_SOCKETS
             print( COM3, "\rCRC Fail!!!" );
         #endif // __PYGMY_DEBUG_SOCKETS
-        return;
+        return( FALSE );
     } // else
     ucBuffer = ucBuffer + 6;
     if( pygmyPacket.Command == SOCKET_OPEN ){
@@ -597,7 +597,7 @@ u8 socketSaveData( PYGMYSOCKET *pygmySocket, PYGMYPACKET *pygmyPacket )
     #ifdef __PYGMY_PFATLITE
     return( filePutBuffer( &pygmySocket->File, pygmyPacket->Len, pygmyPacket->Payload ) );
     #else
-    return( filePutBuffer( pygmySocket->File, pygmyPacket->Len, pygmyPacket->Payload ) );
+    return( filePutBuffer( pygmySocket->File, pygmyPacket->Payload, pygmyPacket->Len ) );
     #endif // __PYGMY_PFATLITE
 }
 
@@ -960,7 +960,7 @@ void socketSendData( PYGMYSOCKET *pygmySocket )
         pygmySocket->Len = fileGetBuffer( &pygmySocket->File, 24, pygmySocket->Payload+6 );
     #else
         //pygmySocket->Len = fileGetBuffer( pygmySocket->File, 24, ucBuffer );//pygmySocket->Payload+6 );
-        pygmySocket->Len = fileGetBuffer( pygmySocket->File, 24, pygmySocket->Payload+6 );
+        pygmySocket->Len = fileGetBuffer( pygmySocket->File, pygmySocket->Payload+6, 24 );
     #endif // __PYGMY_PFATLITE
     pygmySocket->Command = SOCKET_DATA; 
     if( pygmySocket->Len == 0 ){

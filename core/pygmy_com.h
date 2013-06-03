@@ -367,6 +367,7 @@ typedef struct {
                 u16 TXIndex;
                 u16 TXLen;
                 PYGMYCMDPTR Put;
+                PYGMYCMDPTR Putc;
                 PYGMYVOIDPTR Get;
                 u8 *RXBuffer;
                 u8 *TXBuffer;
@@ -546,12 +547,14 @@ typedef struct{
 
 //--------------------------------End Pygmy OS Comports----------------------------------------  
 //---------------------------------------------------------------------------------------------
-
+u8 comOpen( u8 Port, u32 BaudRate, u8 Options );
 void comConfig( u8 ucPort, u8 ucProtocol, u8 ucOptions, u32 uiRate );
 void comDisable( u8 ucPort );
 void comEnable( u8 ucPort );
 u16 comGenerateBaud( u32 ulClock, u32 ulRate );
+u8 putcUSART1( u8 Byte );
 u8 putsUSART1( u8 *ucBuffer );
+u8 putcUSART2( u8 Byte );
 u8 putsUSART2( u8 *ucBuffer );
 u8 putcUSART3( u8 ucData );
 u8 putBufferUSART3( u8 *ucBuffer, u16 uiLen );
@@ -577,10 +580,13 @@ void spiWriteByte( PYGMYSPIPORT *pygmySPI, u8 ucByte );
 void spiWriteWord( PYGMYSPIPORT *pygmySPI, u16 uiWord );
 void spiWriteLong( PYGMYSPIPORT *pygmySPI, u32 ulLong );
 u8 spiReadByte( PYGMYSPIPORT *pygmySPI );
+void spiPutCommand( PYGMYSPIPORT *pygmySPI, u8 ucByte );
 void spiPutChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 ucByte );
 void spiPutWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u16 uiData );
 void spiPutLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u32 ulData );
 void spiPutBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen );
+u32 spiGetLong( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
+u16 spiGetWord( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
 u8 spiGetChar( PYGMYSPIPORT *pygmySPI, u32 ulAddress );
 void spiGetBuffer( PYGMYSPIPORT *pygmySPI, u32 ulAddress, u8 *ucBuffer, u32 ulLen );
 
@@ -624,6 +630,7 @@ u8 streamPopChar( u8 ucStream );
 u8 streamPeekChar( u8 ucStream );
 void streamPushChar( u8 ucStream, u8 ucChar );
 u8 streamSetPut( u8 ucStream, void *ptrFunc );
+u8 streamSetPutc( u8 Stream, void *Func );
 u8 streamSetGet( u8 ucStream, void *ptrFunc );
 u8 streamSetRXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );
 u8 streamSetTXBuffer( u8 ucStream, u8 *ucBuffer, u16 uiLen );

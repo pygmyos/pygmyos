@@ -110,12 +110,11 @@ u8 fileChangeCurrentPath( u8 *Buffer )
     // Case4: Path is relative, add path to current path and seek path
     PYGMYFILEVOLUME *Volume;
     PYGMYFILEPROPERTIES Properties;
-    PYGMYFOLDER *Folder;
     u32 i, PathLen, MemLen;
     u8 *Path, PathBool, ParamCount, *Params[ 32 ];
 
     PathLen = len( Buffer );
-    print( COM3, "\rChanging directory" );
+
     if( !strcmp( Buffer, "/" ) ){
         // Case 1: Path is root
         fileSetCurrentPath( NULL );
@@ -123,7 +122,6 @@ u8 fileChangeCurrentPath( u8 *Buffer )
         return( TRUE );
     } else if( !strcmp( Buffer, ".." ) ){
         // Case2: Path is special case "..", roll back one folder
-        print( COM3, "\rCase 2" );
         Volume = fileGetCurrentVolume( );
         if( Volume ){
             if( len( Volume->Properties.Path ) > 1 + ( len( Volume->Properties.Name ) ) ){
@@ -145,21 +143,18 @@ u8 fileChangeCurrentPath( u8 *Buffer )
     } else if( *Buffer == '/' ){
         // Case3: Path is absolute, seek path
         // First seek path to validate path exists and to retrieve correct mount point
-        print( COM3, "\rCase 3" );
         PathBool = fileTestPath( Buffer );
         if( !PathBool ){
             return( FALSE );
         } // if
-        print( COM3, "\rfileTestPath(): TRUE" );
+        
         fileSetCurrentVolume( fileGetVolumeFromFullPath( Buffer ) );
         fileSetCurrentPath( Buffer );
         return( TRUE );
     } else{
-        // Case4: Path is relative, add path to current path and seek path
-        print( COM3, "\rCase 4\rCalling fileGetCurrentVolume()" );
+        // Case4: Path is relative,  add path to current path and seek path
         Volume = fileGetCurrentVolume();
         if( Volume ){
-            print( COM3, " Found Volume" );
             // We are currently somewhere in a path
             MemLen = 2 + len( Buffer ) + len( Volume->Properties.Path );
             Path = malloc( MemLen );
@@ -170,7 +165,6 @@ u8 fileChangeCurrentPath( u8 *Buffer )
             } // if
         } else{
             // We are currently at root
-            print( COM3, " At Root" );
             MemLen = 2 + len( Buffer );
             Path = malloc( MemLen );
             if( Path ){
@@ -179,23 +173,10 @@ u8 fileChangeCurrentPath( u8 *Buffer )
             } // if
         } // else
         if( Path ){
-            print( COM3, "\rHave Path: %s", Path );
-            Folder = fileAllocateFoldersFromFullPath( Path );
-            if( !Folder ){
-                return( FALSE );
-            } // if
-
-    
-            //if( fileTestPath( Path ) ){
-                print( COM3, "\rPath tested good" );
+            if( fileTestPath( Path ) ){
                 fileSetCurrentVolume( fileGetVolumeFromFullPath( Path ) );
-                print( COM3, "\rSet current volume" );
                 fileSetCurrentPath( Path );
-                print( COM3, "\rSet current path" );
-            //} // if
-            print( COM3, "\rCalling fileFreeFolder()..." );
-            fileFreeFolder( Folder );
-            print( COM3, "\rDone." );
+            } // if
         } // if
         return( TRUE );
     } // else
@@ -320,6 +301,7 @@ PYGMYFILEVOLUME *fileNewVolume( PYGMYMEMIO *MemIO, u8 *Name, ... )
     // This function creates a new volume on the memory interface passed
     // If there are no free sectors, the function will return NULL, otherwise, it will return a pointer to the new volume
     PYGMYFILEVOLUME *Volume, *TmpVolumes;
+    STM32MEMORY *Memory;
     va_list vaList;
     u64 TmpAddress;
     u32 i;
@@ -328,29 +310,36 @@ PYGMYFILEVOLUME *fileNewVolume( PYGMYMEMIO *MemIO, u8 *Name, ... )
     // Name must be allocated as a dynamic copy
     NameString = malloc( 1 + len( Name ) );
     if( !NameString ){
+        print( COM3, "\rMemory error" );
         return( NULL ); // RAM is full
     } // if
     strcpy( NameString, Name ); 
     Volume = malloc( sizeof( PYGMYFILEVOLUME ) );
     if( !Volume ){
+        print( COM3, "\rMemory error" );
         return( NULL ); // RAM is full
     } // if
     Volume->ParentFolder = malloc( sizeof( PYGMYFOLDER ) );
     if( !Volume->ParentFolder ){
+        print( COM3, "\rMemory error" );
         return( NULL ); // RAM is full
     } // if
     Volume->ParentFolder->Properties.Sectors = malloc( sizeof( PYGMYFILEADDRESS ) );
     if( !Volume->ParentFolder->Properties.Sectors ){
+        print( COM3, "\rMemory error" );
         return( NULL ); // RAM is full
     } // if
     Volume->Properties.Sectors = malloc( sizeof( PYGMYFILEADDRESS ) );
     if( !Volume->Properties.Sectors ){
+        print( COM3, "\rMemory error" );
         return( NULL ); // RAM is full
     } // if
     
     // Open memory interface
     va_start( vaList, Name );
+    print( COM3, "\rfileNewVolume()->Opening Port" );
     MemIO->VOpen( &Volume->Port, 0, vaList );
+    print( COM3, "..." );
     va_end( vaList );
     Volume->IO = MemIO;
     
@@ -369,16 +358,25 @@ PYGMYFILEVOLUME *fileNewVolume( PYGMYMEMIO *MemIO, u8 *Name, ... )
     Volume->ParentFolder->Properties.Length = 0;
     Volume->ParentFolder->IsRoot = TRUE; // All 
     // Find a free sector to use to create the volume entry
+    print( COM3, "\rSearching for empty sector" );
     Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress = fileFindContiguousEmptySectors( Volume, 1 ); // A Volume entry only uses 1 sector, so we seek for 1 empty sector
     if( Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress == PYGMYFILE_INVALIDADDRESS ){
         // This condition occurs if there are no sectors free to allocate
+        print( COM3, "\rFlash error" );
         return( NULL );
     } // if
     // Write the volume information to the sector
     // Volume sectors are unique and cannot be allocated by the file allocation functions
     // Allocate sector 0 manually
+    //print( COM3, "\rAddress: 0x%012llX", Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress );
+    Memory = Volume->Port;
+    print( COM3, "\rBaseAddress: 0x%08X", Memory->BaseAddress );
+    print( COM3, "\rMarking Sector @ 0x%08X", Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress );
     Volume->IO->PutWord( Volume->Port, Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress, PYGMYFILE_VOLUMESECTOR ); // Write the tag to mark the sector as a volume
+    print( COM3, "." );
+    print( COM3, "\rPutBuffer @ 0x%08X", Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress + 2 );
     Volume->IO->PutBuffer( Volume->Port, Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress + 2, globalPFATVersionTag, 12 ); // Write the filesystem version
+    print( COM3, "." );
     Volume->Properties.ID = pdiaEncodeString( NameString );
     Volume->Properties.Name = NameString;
     Volume->Properties.Length = 0;
@@ -386,14 +384,19 @@ PYGMYFILEVOLUME *fileNewVolume( PYGMYMEMIO *MemIO, u8 *Name, ... )
     Volume->Properties.SectorCount = 1;
     Volume->Properties.SectorGroups = 1;
     Volume->Status = 0;
+    print( COM3, "\rAllocating Sectors" );
     if( !fileAllocateSectors( Volume->ParentFolder, 1, &Volume->Properties ) ){
+        //print( COM3, "\rCall to Allocate Sectors failed" );
         return( NULL ); // Allocation Failed 
     } // if
+
+    print( COM3, ".\rWriting Entry" );
     fileWriteEntry( Volume->ParentFolder, &Volume->Properties );
     if( !fileAddVolume( Volume ) ){
         // ToDo: Add clean up code to handle the RAM full error
         return( FALSE );
     } // if
+    print( COM3, "." );
 
     return( Volume );
 }
@@ -453,6 +456,7 @@ PYGMYFILEVOLUME *fileSeekVolumes( PYGMYMEMIO *MemIO, ... )
                 if( !Index ){
                     break;
                 } else{
+                    //print( COM3, "\rVolume Name: %s", Properties.Name );
                     break;
                 } // else
             } // for
@@ -475,20 +479,28 @@ u8 fileFormat( PYGMYMEMIO *MemIO, u8 Force, ...  )
     
     Volume = malloc( sizeof( PYGMYFILEVOLUME ) );
     if( !Volume ){
+        print( COM3, "\rMemory error" );
         return( 0 ); // RAM is full
     } // if
-  
+    
     va_start( vaList, Force );
+    print( COM3, "\rCalling VOpen" );
     MemIO->VOpen( &Volume->Port, 0, vaList );
+    print( COM3, "..." );
     va_end( vaList );
     Volume->IO = MemIO;
+    print( COM3, "\rCalling Desc" );
     MemIO->Desc( Volume->Port, &Volume->Desc );
+    print( COM3, "..." );
     // Only erase sectors that haven't been marked as bad
     
     if( Force ){
         // Use force to mass erase the media, this is useful if the media was previously formatted with another format
+        print( COM3, "\rErase all" );
         Volume->IO->EraseAll( Volume->Port );
+        print( COM3, "..." );
     } else{
+        print( COM3, "\rErasing Sectors" );
         for( i = 0, Address = 0; i < Volume->Desc.Sectors; i++) {
             PYGMY_WATCHDOG_REFRESH;
             SectorMarker = Volume->IO->GetWord( Volume->Port, Address );
@@ -497,6 +509,7 @@ u8 fileFormat( PYGMYMEMIO *MemIO, u8 Force, ...  )
                 Volume->IO->EraseSector( Volume->Port, Address );
             } // if
             Address += Volume->Desc.SectorSize;
+            print( COM3, "." );
         } // for
     } // if
     free( Volume->Port );
@@ -890,6 +903,7 @@ u16 fileGenerateDirectAddress( PYGMYFILEVOLUME *Volume, PYGMYFILEPROPERTIES *Pro
     if( *Address > Properties->Sectors[ Properties->SectorGroups - 1 ].BaseAddress + ( Properties->Sectors[ Properties->SectorGroups - 1 ].SectorCount * Volume->Desc.SectorSize ) ){
         // Past SG boundary
         *Address = PYGMYFILE_INVALIDADDRESS;
+        print( COM3, "\rReturned invalid address" );
         return( 0 );
     } // if
     
@@ -1071,11 +1085,14 @@ u32 fileGetFreeChunks( PYGMYFOLDER *ParentFolder, u32 *ErasedChunks )
             // Generate the address, The SectorGroup information in Properties is used for this purpose
             fileGenerateDirectAddress( ParentFolder->Volume, &ParentFolder->Properties, SrcIndex * PYGMYFILE_CHUNKLEN, &SrcAddress );
             if( SrcAddress == PYGMYFILE_INVALIDADDRESS ){
+                print( COM3, "\rFailed in fileGetFreeChunks()" );
                 return( 0 );
             } // if
             SrcAddress -= PYGMYFILE_SECTORMARKERLEN; // Address is always returned indexed past the sector marker
+            print( COM3, "\rfileGetFreeChunks()->Checking: 0x%012llX", SrcAddress );
             // Load the Chunk ID 
             ID = ParentFolder->Volume->IO->GetLong( ParentFolder->Volume->Port, SrcAddress );
+            print( COM3, "\r\tID: 0x%08X", ID );
             if( ID == PYGMYFILE_ID_ERASED ){
                 *ErasedChunks += 1;
             } else if( ID == PYGMYFILE_ID_UNUSED ){
@@ -1097,10 +1114,19 @@ u8 fileRecycleChunks( PYGMYFOLDER *ParentFolder )
     u32 ChunksPerSector, ChunksToAlloc;
     u8 Buffer[ PYGMYFILE_CHUNKLEN ];
 
+    //print( COM3, "\rRecycling chunks" );
     // Allocate the new SectorGroups
     ChunksPerSector = ( ParentFolder->Volume->Desc.SectorSize / PYGMYFILE_CHUNKLEN ) - 1;
     // Always allocate one more sector than we are recycling, this helps reduce erase cycles
+    //print( COM3, "\rAllocating sectors" );
     if( fileAllocateSectors( ParentFolder, ParentFolder->Properties.SectorCount + 1, &Properties ) ){
+        //print( COM3, "\rAllocated Sectors:" );
+        //print( COM3, "\rSectorGroups: %d", Properties.SectorGroups );
+        //print( COM3, "\rSectorCount: %d", Properties.SectorCount );
+        //for( i = 0; i < Properties.SectorGroups; i++ ){
+        //    print( COM3, "\r\tSectors[%d] BaseAddress: 0x%012llX", i, Properties.Sectors[ i ].BaseAddress );
+        //    print( COM3, "\r\tSectors[%d] SectorCount: %d", i, Properties.Sectors[ i ].SectorCount );
+        //} // for
         SrcIndex = 1; // ChangedFrom: 0
         DestIndex = 1;
         // Increment through each sector, the address will be generated off an Index, so we can ignore the specifics of each sector
@@ -1111,23 +1137,32 @@ u8 fileRecycleChunks( PYGMYFOLDER *ParentFolder )
                 // Generate the address, The SectorGroup information in Properties is used for this purpose
                 fileGenerateDirectAddress( ParentFolder->Volume, &ParentFolder->Properties, SrcIndex * PYGMYFILE_CHUNKLEN, &SrcAddress );
                 if( SrcAddress == PYGMYFILE_INVALIDADDRESS ){
+                    print( COM3, "\rInvalid address in fileRecycleChunks()" );
                     return( FALSE );
                 } // if
+                //print( COM3, "\rRaw SrcAddress: 0x%012llX", SrcAddress );
                 SrcAddress -= PYGMYFILE_SECTORMARKERLEN; // Address is always returned indexed past the sector marker
                 
                 // Load the Chunk ID 
                 ID = ParentFolder->Volume->IO->GetLong( ParentFolder->Volume->Port, SrcAddress );
+                //print( COM3, "\r\tLoaded ID: 0x%08X", ID );
                 if( ID != PYGMYFILE_ID_ERASED && ID != PYGMYFILE_ID_UNUSED ){
                     // We have a Chunk to transfer
                     fileGenerateDirectAddress( ParentFolder->Volume, &Properties, DestIndex * PYGMYFILE_CHUNKLEN, &DestAddress );
                     if( DestAddress == PYGMYFILE_INVALIDADDRESS ){
+                        print( COM3, "\rInvalid address in fileRecycleChunks()" );
                         ParentFolder->Volume->Status |= PYGMYFILE_FULL;
                         return( FALSE );
                     } // if
                     DestAddress -= PYGMYFILE_SECTORMARKERLEN; // Address is always returned indexed past the sector marker
+                    //print( COM3, "\r\tSrcAddress: 0x%012llX", SrcAddress );
+                    //print( COM3, "\rDestAddress: 0x%012llX", DestAddress );
+                    print( COM3, "\rfileRecycleChunks()->SrcAddress: 0x%012llX", SrcAddress );
+                    print( COM3, "\rfileRecycleChunks()->DestAddress: 0x%012llX", DestAddress );
                     ParentFolder->Volume->IO->GetBuffer( ParentFolder->Volume->Port, SrcAddress, Buffer, PYGMYFILE_CHUNKLEN );
                     ParentFolder->Volume->IO->PutBuffer( ParentFolder->Volume->Port, DestAddress, Buffer, PYGMYFILE_CHUNKLEN );
                     // Erase the Chunk
+                    print( COM3, "\rErasing sector: 0x%012llX", SrcAddress );
                     // Was erasing chunk, decided to erase only sector, test code
                     SrcAddress = ( SrcAddress / ParentFolder->Volume->Desc.SectorSize ) * ParentFolder->Volume->Desc.SectorSize;
                     ParentFolder->Volume->IO->PutLong( ParentFolder->Volume->Port, SrcAddress, 0 );
@@ -1138,17 +1173,38 @@ u8 fileRecycleChunks( PYGMYFOLDER *ParentFolder )
         
         if( i == Properties.SectorCount && SrcIndex == ChunksPerSector ){
             // There are no free chunks remaining, this is a serious error
+            print( COM3, "\rNo free chunks remaining" );
             return( FALSE );
         } // if
 
         // Free the old SectorGroups
         
         // Move the pointer for the new SectorGroups
+        //print( COM3, "\rUpdated SectorGroups From:" );
+        //print( COM3, "\rSectorGroups: %d", ParentFolder->Properties.SectorGroups );
+        //print( COM3, "\rSectorCount: %d", ParentFolder->Properties.SectorCount );
+        //for( i = 0; i < ParentFolder->Properties.SectorGroups; i++ ){
+        //    print( COM3, "\r\tSectors[%d] BaseAddress: 0x%012llX", i, ParentFolder->Properties.Sectors[ i ].BaseAddress );
+        //    print( COM3, "\r\tSectors[%d] SectorCount: %d", i, ParentFolder->Properties.Sectors[ i ].SectorCount );
+        //} // for
         free( ParentFolder->Properties.Sectors );
         ParentFolder->Properties.Sectors = Properties.Sectors;
         ParentFolder->Properties.SectorCount = Properties.SectorCount;
         ParentFolder->Properties.SectorGroups = Properties.SectorGroups;
-        
+        //print( COM3, "\rUpdated SectorGroups To:" );
+        //print( COM3, "\rSectorGroups: %d", ParentFolder->Properties.SectorGroups );
+        //print( COM3, "\rSectorCount: %d", ParentFolder->Properties.SectorCount );
+        //for( i = 0; i < ParentFolder->Properties.SectorGroups; i++ ){
+        //    print( COM3, "\r\tSectors[%d] BaseAddress: 0x%012llX", i, ParentFolder->Properties.Sectors[ i ].BaseAddress );
+        //    print( COM3, "\r\tSectors[%d] SectorCount: %d", i, ParentFolder->Properties.Sectors[ i ].SectorCount );
+        //} // for
+        //print( COM3, "\rCalling fileUpdateSectorGroups() to update parent:" );
+        //print( COM3, "\rSectorGroups: %d", ParentFolder->Parent->Properties.SectorGroups );
+        //print( COM3, "\rSectorCount: %d", ParentFolder->Parent->Properties.SectorCount );
+        //for( i = 0; i < ParentFolder->Parent->Properties.SectorGroups; i++ ){
+        //    print( COM3, "\r\tSectors[%d] BaseAddress: 0x%012llX", i, ParentFolder->Parent->Properties.Sectors[ i ].BaseAddress );
+        //    print( COM3, "\r\tSectors[%d] SectorCount: %d", i, ParentFolder->Parent->Properties.Sectors[ i ].SectorCount );
+        //} // for
         fileUpdateSectorGroups( ParentFolder, &ParentFolder->Properties );
         //print( COM3, "..." );
         
@@ -1156,6 +1212,7 @@ u8 fileRecycleChunks( PYGMYFOLDER *ParentFolder )
         return( TRUE );
     } // if
 
+    print( COM3, "\rfileRecycleChunks() failed" );
     return( FALSE );
 }
 
@@ -1187,15 +1244,18 @@ u8 fileAllocateChunks( u32 ID, PYGMYFOLDER *ParentFolder, u8 Chunks, u64 *Addres
     } // if
     
     // Check for available contiguous chunks, this will tell us if we have sufficient space
+    print( COM3, "\rCalling fileGetFreeChunks(): " );
     EmptyChunks = fileGetFreeChunks( ParentFolder, &ErasedChunks );
+    print( COM3, "%d", EmptyChunks );
     //( Case 2: 
     if( EmptyChunks < Chunks ){
         if( ( EmptyChunks + ErasedChunks ) >= Chunks ){
             // Attempt to free available memory by recycling chunks, if there are enough chunks, we will use them, otherwise recycle and allocate
-            //print( COM3, "\rCalling fileRecycleChunks()" );
+            print( COM3, "\rCalling fileRecycleChunks()" );
             if( !fileRecycleChunks( ParentFolder ) ){
-               
+                print( COM3, "\rCalling fileAppendSectors()" );
                 if( !fileAppendSectors( ParentFolder->Parent, SectorsNeeded, &ParentFolder->Properties ) ){
+                    print( COM3, "\rError appending sectors to parent" );
                     return( FALSE );
                 } // if
                 return( FALSE );
@@ -1203,24 +1263,47 @@ u8 fileAllocateChunks( u32 ID, PYGMYFOLDER *ParentFolder, u8 Chunks, u64 *Addres
         } else {
             // We must append another sector to the ParentFolder's Parent
             if( !ParentFolder->Parent ){
+                //print( COM3, "\rAppending to root" );
                 // The code in this if statement is under test, the original is in the else below
                 // If the folder that needs sectors appended is Root, we have to replace the sector, root only supports one sector
                 // First find a free sector
+                print( COM3, "\rfileFindContiguousEmptySectors()" );
                 Address = fileFindContiguousEmptySectors( Volume, 1 );
                 if( Address == PYGMYFILE_INVALIDADDRESS ){
+                    print( COM3, "\rError: Failed to allocate sector for volume entry" );
                     return( FALSE );
                 } // if
                 // Now mark the sector as a volume (root) sector
+                //print( COM3, "\rMarking new volume sector" );
+                print( COM3, "\rfileAllocateChunks()->Allocating: 0x%012llX", Address );
                 Volume->IO->PutWord( Volume->Port, Address, PYGMYFILE_VOLUMESECTOR );
                 Volume->IO->PutBuffer( Volume->Port, Address + 2, globalPFATVersionTag, 12 ); // Write the filesystem version
-                
+                /*print( COM3, "\rWriting Entry:" );
+                print( COM3, "\r\tName: %s", ParentFolder->Properties.Name );
+                print( COM3, "\r\tSectorCount: %d", ParentFolder->Properties.SectorCount );
+                print( COM3, "\r\tSectorGroups: %d", ParentFolder->Properties.SectorGroups );
+                for( i = 0; i < ParentFolder->Properties.SectorGroups; i++ ){
+                    print( COM3, "\r\t\tBaseAddress: 0x%012llX", ParentFolder->Properties.Sectors[ i ].BaseAddress );
+                    print( COM3, "\r\t\tSectorCount: %d", ParentFolder->Properties.Sectors[ i ].SectorCount );
+                } // for
+                print( COM3, "\r\tFrom Parent:" );
+                print( COM3, "\r\tSectorCount: %d", ParentFolder->Parent->Properties.SectorCount );
+                print( COM3, "\r\tSectorGroups: %d", ParentFolder->Parent->Properties.SectorGroups );
+                for( i = 0; i < ParentFolder->Parent->Properties.SectorGroups; i++ ){
+                    print( COM3, "\r\t\tBaseAddress: 0x%012llX", ParentFolder->Parent->Properties.Sectors[ i ].BaseAddress );
+                    print( COM3, "\r\t\tSectorCount: %d", ParentFolder->Parent->Properties.Sectors[ i ].SectorCount );
+                } // for
+                */
                 if( !fileWriteEntry( ParentFolder->Parent, &ParentFolder->Properties ) ){
+                    print( COM3, "\rError: Failed to write volume entry" );
                     return( FALSE );
                 } // if
             } else{
                 // The code in this else statement is the original
                 // The folder that needs sectors appended is not root, append to Parent
+                //print( COM3, "\rAppending sector to volume" );
                 if( !fileAppendSectors( ParentFolder->Parent, SectorsNeeded, &ParentFolder->Properties ) ){
+                    print( COM3, "\rCall to fileAppendSectors() failed" );
                     return( FALSE );
                 } // if
             } // else
@@ -1243,10 +1326,12 @@ u8 fileAllocateChunks( u32 ID, PYGMYFOLDER *ParentFolder, u8 Chunks, u64 *Addres
                     Addresses[ CurrentChunk++ ] = Address;
                     Volume->IO->PutLong( Volume->Port, Address, ID );
                 } // for
+                //print( COM3, "\rfileAllocateChunks() i: %d, Chunks - i: %d", i, Chunks - i );
                 i += ( Chunks - i ); // We will allocate the number of chunks remaining in following iterations
             } else{
                 
                 ++i;
+                //print( COM3, "\rfileAllocateChunks() i: %d", i );
             } // else
         } // for
         return( TRUE );
@@ -1271,6 +1356,7 @@ u32 fileFindContiguousChunks( PYGMYFOLDER *ParentFolder, u8 Chunks )
     for( i = 0; i < EndIndex; i++ ){
         fileGenerateDirectAddress( ParentFolder->Volume, &ParentFolder->Properties, i * PYGMYFILE_CHUNKLEN, &Address );
         if( Address == PYGMYFILE_INVALIDADDRESS ){
+            print( COM3, "\rInvalid address in ileFindContiguousChunks()" );
             return( 0 );
         } // if
         Address -= PYGMYFILE_SECTORMARKERLEN;
@@ -1291,6 +1377,7 @@ u32 fileFindContiguousChunks( PYGMYFOLDER *ParentFolder, u8 Chunks )
             } // if
         } // else if
     } // for
+    //print( COM3, "\rReturned Index of 0 from fileFindContiguousChunks()" );
 
     return( 0 ); // Index of 0 is invalid, valid index would be a minimum of SectorMarkerLen
 }
@@ -1305,13 +1392,31 @@ u8 fileWriteEntry( PYGMYFOLDER *ParentFolder, PYGMYFILEPROPERTIES *Properties )
     u32 i, ID;
     u8 NameLen, Chunks, SGChunks, NameChunks, Buffer[ 27 ];
 	
-   
+    /*print( COM3, "\rWriting Entry:" );
+    print( COM3, "\r\tName: %s", Properties->Name );
+    print( COM3, "\r\tSectorCount: %d", Properties->SectorCount );
+    print( COM3, "\r\tSectorGroups: %d", Properties->SectorGroups );
+    for( i = 0; i < Properties->SectorGroups; i++ ){
+        print( COM3, "\r\t\tBaseAddress: 0x%012llX", Properties->Sectors[ i ].BaseAddress );
+        print( COM3, "\r\t\tSectorCount: %d", Properties->Sectors[ i ].SectorCount );
+    } // for
+    print( COM3, "\r\tFrom Parent:" );
+    //print( COM3, "\r\tName: %s", Properties->Name );
+    print( COM3, "\r\tSectorCount: %d", ParentFolder->Properties.SectorCount );
+    print( COM3, "\r\tSectorGroups: %d", ParentFolder->Properties.SectorGroups );
+    for( i = 0; i < Properties->SectorGroups; i++ ){
+        print( COM3, "\r\t\tBaseAddress: 0x%012llX", ParentFolder->Properties.Sectors[ i ].BaseAddress );
+        print( COM3, "\r\t\tSectorCount: %d", ParentFolder->Properties.Sectors[ i ].SectorCount );
+    } // for
+    */
     if( ParentFolder->Volume->Status & PYGMYFILE_FULL ){
+        //print( COM3, "\rFilesystem full" );
         return( FALSE );
     } // if
     NameLen = len( Properties->Name ); 
     ID = pdiaEncodeString( Properties->Name );
     if( ID == 0x00000000 || ID == 0xFFFFFFFF ){
+        //print( COM3, "\rInvalid ID" );
         return( FALSE ); // These are the only two restricted ID values
     } // if
     
@@ -1320,26 +1425,34 @@ u8 fileWriteEntry( PYGMYFOLDER *ParentFolder, PYGMYFILEPROPERTIES *Properties )
     Chunks = 1 + NameChunks + SGChunks; // This stands for LengthChunk + NameChunks + SGChunks
     Addresses = malloc( 8 * Chunks );
     if( !Addresses ){
+        //print( COM3, "\rAddresses failed" ); 
         return( FALSE );
     } // if
     
     // Check for existing entry with same ID before continuing
+    print( COM3, "\rCalling fileFindChunk()" );
     if( fileFindChunk( ID, 0, ParentFolder, &Address, Buffer ) ){
+        //print( COM3, "\rFile exists!" );
         return( FALSE ); // Files exists
     } // if
     // We allocate all the chunks we will need before we begin to write
     // We don't want to find out that we have insufficient memory after beginning write operations
+    print( COM3, "\rCalling fileAllocateChunks()" );
     if( fileAllocateChunks( ID, ParentFolder, Chunks, Addresses ) ){
+        print( COM3, "\rCalling fileWriteProperties()" );
         if( fileWriteProperties( ParentFolder, Addresses, Properties ) ){
+            //print( COM3, "\rWrite Properties" );
             if( Properties->SectorGroups ){
+                print( COM3, "\rCalling fileWriteSectorGroups()" );
                 fileWriteSectorGroups( ParentFolder, &Addresses[ NameChunks], Properties );
             } // if
+            print( COM3, "\rCalling fileWriteLength()" );
             fileWriteLength( ParentFolder, Addresses[NameChunks+SGChunks], SGChunks, Properties->Length );
             free( Addresses );
             return( TRUE );
         } // if
     } // if
-
+    //print( COM3, "\rUnable to allocate chunks" );
     free( Addresses );
 
     return( FALSE );
@@ -1352,23 +1465,36 @@ u8 fileWriteProperties( PYGMYFOLDER *ParentFolder, u64 *Addresses, PYGMYFILEPROP
     // ID must have been generated by the calling function
     u32 i, ii, NameLen;
     u8 Chunk, NameChunks;
-
-    
+	
     NameLen = len( Properties->Name );
     if( NameLen > 255 || NameLen == 0 ){
         return( TRUE ); // Bad FileName Len
     } // if
     Chunk = PYGMYFILE_NAMECHUNK;
     NameChunks = 1 + ( ( NameLen + 6 ) / PYGMYFILE_CHUNKPAYLEN );
-    // Write Chunk 0, starting with ID 
-    ParentFolder->Volume->IO->PutLong( ParentFolder->Volume->Port, Addresses[ 0 ], Properties->ID ); // ID written at allocation
+    // Write Chunk 0, starting with ID
+    // ID should have been written by the chunk allocator
+    //print( COM3, "\rID Memory Contains: 0x%08X", ParentFolder->Volume->IO->GetLong( ParentFolder->Volume->Port, Addresses[ 0 ] ) );  
+    //ParentFolder->Volume->IO->PutLong( ParentFolder->Volume->Port, Addresses[ 0 ], Properties->ID ); // ID written at allocation
     // Write Chunk Count, always 0 for first Properties ( Name ) Chunk
+    print( COM3, "\rWriting Chunk: %d", Chunk );
+    //ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ], 'F' );
+    //ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 1, 'o' );
+    //ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 2, 'o' );
+    //ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 3, 'l' );
+
     ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 4, Chunk++ );
+    //ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 5, Chunk );
     // Write 32bit Time ( stores file creation time )
-    ParentFolder->Volume->IO->PutLong( ParentFolder->Volume->Port, Addresses[ 0 ] + 5, timeGet() );
+    print( COM3, "\rWrite Time: 0x%08X", timeGet() );
+   
+    ParentFolder->Volume->IO->PutLong( ParentFolder->Volume->Port, Addresses[ 0 ] + 5, timeGet() ); 
+    
     // Write Attributes, Mask properties not supported by the volume
-    ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 9, ( Properties->Attributes & ( READ|WRITE|FOLDER ) ) );
+    print( COM3, "\rWrite Attributes: 0x%02X", Properties->Attributes );
+    ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 9, Properties->Attributes );
     // Write length of file name
+    print( COM3, "\rWrite NameLen: %d", NameLen );
     ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ 0 ] + 10, NameLen );
     if( NameLen < 22 ){
         // Entire file name will fit in Chunk 0
@@ -1509,16 +1635,24 @@ u8 fileUpdateSectorGroups( PYGMYFOLDER *ParentFolder, PYGMYFILEPROPERTIES *Prope
     ChunksPerSector = PYGMYFILE_CHUNKPAYLEN / PYGMYFILE_ADDRESSLEN;
     Chunks = 1 + ( ParentFolder->Properties.SectorGroups / ChunksPerSector ) + ( ParentFolder->Properties.SectorGroups % ChunksPerSector );
     //Chunks += ParentFolder->Properties.SectorGroups % ( PYGMYFILE_CHUNKPAYLEN / PYGMYFILE_ADDRESSLEN );
-    //print( COM3, "\r\r\r\rAllocating %d Chunks\r\r\r\r", Chunks );
+    print( COM3, "\r\r\r\rAllocating %d Chunks\r\r\r\r", Chunks );
     //Chunks = 1 + ( Properties->SectorGroups / 2 );//( PYGMYFILE_CHUNKPAYLEN / PYGMYFILE_ADDRESSLEN ) );
     //Chunks += Properties->SectorGroups % 2;//( PYGMYFILE_CHUNKPAYLEN / PYGMYFILE_ADDRESSLEN ) );
 
     fileDeleteSectorGroups( ParentFolder->Properties.ID, ParentFolder->Parent );
     if( !fileAllocateChunks( ParentFolder->Properties.ID, ParentFolder->Parent, Chunks, Addresses ) ){
+        print( COM3, "\rFailed to allocate Addresses" );
         free( Addresses );
         return( FALSE );
     } // if
-    
+    //print( COM3, "\rCalling fileWriteSectorGroups()" );
+    //print( COM3, "\rParentFolder->Properties.SectorGroups: %d", ParentFolder->Properties.SectorGroups );
+    //print( COM3, "\rPYGMYFILE_CHUNKPAYLEN / PYGMYFILE_ADDRESSLEN: %d", PYGMYFILE_CHUNKPAYLEN / PYGMYFILE_ADDRESSLEN );
+    //print( COM3, "\rChunks: %d", Chunks );
+    //print( COM3, "\r\tAddresses: %d", Chunks );
+    //for( i = 0; i < Chunks; i++ ){
+    //    print( COM3, "\r%d: 0x%012llX", i, Addresses[ i ] );
+    //} // for
     fileWriteSectorGroups( ParentFolder->Parent, Addresses, Properties );
     free( Addresses );
 
@@ -1539,7 +1673,9 @@ u8 fileWriteSectorGroups( PYGMYFOLDER *ParentFolder, u64 *Addresses, PYGMYFILEPR
     
     SectorCount = 1 + ( Properties->SectorGroups/2); // This is the number of sector chunks that will be required
     FreeChunks = fileGetFreeChunks( ParentFolder, &ErasedChunks );
+    //print( COM3, "\rFree Chunks: %d, Chunks Required: %d", FreeChunks, SectorCount );
     if( FreeChunks < SectorCount ){
+          //print( COM3, "\rNot enough chunks to continue" );
           if( ErasedChunks ){
               // If there are any erased chunks, free them before appending
               fileRecycleChunks( ParentFolder );
@@ -1548,28 +1684,59 @@ u8 fileWriteSectorGroups( PYGMYFOLDER *ParentFolder, u64 *Addresses, PYGMYFILEPR
               // There are sufficient chunks if we recycle the erased chunks
               if( !fileAppendSectors( ParentFolder, 1, &ParentFolder->Properties ) ){
                   // There is no memory left on the physical device
+                  print( COM3, "\rfileWriteSectorGroups()->Error" );
               } //if
           } //if
     } 
     //SectorCount = Properties->SectorCount;
-   
+    /*print( COM3, "\rWriting SectorGroups" );
+    print( COM3, "\r\tSectorCount: %d", SectorCount );
+    print( COM3, "\r\tSectorGroups: %d", Properties->SectorGroups );
+    for( i = 0; i < Properties->SectorGroups; i++ ){
+        print( COM3, "\r\tBaseAddress: 0x%012llX", Properties->Sectors[ i ].BaseAddress );
+        print( COM3, "\r\tSectorCount: %d", Properties->Sectors[ i ].SectorCount );
+    } // for
+    print( COM3, "\r\tParent:" );
+    print( COM3, "\r\t\tSectorCount: %d", ParentFolder->Properties.SectorCount );
+    print( COM3, "\r\t\tSectorGroups: %d", ParentFolder->Properties.SectorGroups );
+    for( i = 0; i < ParentFolder->Properties.SectorGroups; i++ ){
+        print( COM3, "\r\t\tBaseAddress: 0x%012llX", ParentFolder->Properties.Sectors[ i ].BaseAddress );
+        print( COM3, "\r\t\tSectorCount: %d", ParentFolder->Properties.Sectors[ i ].SectorCount );
+    } // for
+    print( COM3, "\rAddresses:");
+    for( i = 0; i < Properties->SectorGroups/2; i++ ){
+        print( COM3, " 0x%012llX", Addresses[ i ] );
+    } // for
+    */
     for( i = 0, ii = 0, AddressIndex = 0; ii < Properties->SectorGroups; ii++ ){
+        //print( COM3, "\rSectorCountPost == %d", SectorCount );
         if( ii == Properties->SectorGroups ){
             // All groups have been written
+            //print( COM3, "\rDone writing SectorGroups" );
             return( TRUE );
         } // if
+        //print( COM3, "\ri == %d", i );
+        //print( COM3, "\rii == %d", ii );
+        //print( COM3, "\rSectorGroups: %d", Properties->SectorGroups );
         fileConvertAddressToBuffer( &Properties->Sectors[ ii ], Buffer );
         //ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ AddressIndex ] + 4 + ( i * 9 ), PYGMYFILE_SGCHUNK + ii );
         if( i == 0 ){
+            //print( COM3, "\rSectorGroup[ %d ]: 0x%012llX", AddressIndex, Addresses[ AddressIndex ] + 5 + ( i * 9 ) );
             ParentFolder->Volume->IO->PutChar( ParentFolder->Volume->Port, Addresses[ AddressIndex ] + 4, PYGMYFILE_SGCHUNK + AddressIndex );
         } // if
-
+        
+        //print( COM3, "\rfileWriteSectorGroups()->Address[ %d ]+5: 0x%012llX", AddressIndex, Addresses[ AddressIndex ] + 5 + ( i * 9 ) );
         ParentFolder->Volume->IO->PutBuffer( ParentFolder->Volume->Port, Addresses[ AddressIndex ] + 5 + ( i * 9 ), Buffer, 9 );
-        SectorCount -= Properties->Sectors[ ii ].SectorCount; // Decrement the number of sectors in the last SG       
+        SectorCount -= Properties->Sectors[ ii ].SectorCount; // Decrement the number of sectors in the last SG
+        
         
         if( (++i) == 2 ){
             ++AddressIndex;
             i = 0;
+            //++ii;
+            //print( COM3, "\rSectorCountPre == %d", SectorCount );
+            //--SectorCount;
+            //
 	} // if
     } // for
 
@@ -1666,16 +1833,28 @@ u8 fileFindChunkAddress( u32 ID, u8 Chunk, PYGMYFOLDER *ParentFolder, u64 *Addre
 
     EntryCount = ParentFolder->Volume->Desc.SectorSize / PYGMYFILE_CHUNKLEN; // 32 is length of chunks
     
+    //print( COM3, "\rEntryCount: %d", EntryCount );
     for( i = 0; i < ParentFolder->Properties.SectorGroups; i++ ){ // This is the number of parent sectors containing chunks to sort
+        //print( COM3, "\rParentFolder->Properties.SectorGroups: %d", ParentFolder->Properties.SectorGroups );
+        //print( COM3, "\rParentFolder->Properties.Sectors[ i ].SectorCount: %d", ParentFolder->Properties.Sectors[ i ].SectorCount );
+        //print( COM3, "\r1 " );
         for( ii = 0; ii < ParentFolder->Properties.Sectors[ i ].SectorCount; ii++ ){ // Iterate through Chunks and process matches
+            //print( COM3, " 2" );
             for( iii = 1; iii < EntryCount; iii++ ){
+                //print( COM3, " 3" );
                 *Address = ParentFolder->Properties.Sectors[ i ].BaseAddress +
                     ( ii * ParentFolder->Volume->Desc.SectorSize ) + ( iii * PYGMYFILE_CHUNKLEN );
                 // Load the first 5 bytes of the chunk, this contains the ID and the chunk number
+                //print( COM3, "\rCalling IO->GetBuffer(), Address: 0x%012llX", *Address );
                 ParentFolder->Volume->IO->GetBuffer( ParentFolder->Volume->Port, *Address, Buffer, 5 ); 
+                //print( COM3, "..." );
                 TmpID = convertBufferToU32( Buffer, BIGENDIAN );
                 TmpChunk = Buffer[ 4 ];
-                
+                //print( COM3, "\rBuffer:" );
+                //for( j = 0; j < 5; j++ ){
+                //    print( COM3, " %02X", Buffer[ i ] );
+                //} // for
+                //print( COM3, "\rFound ID: 0x%08X, Chunk: %d", TmpID, TmpChunk );
                 if( TmpID == ID && TmpChunk == Chunk ){
                     // We found the chunk requested, load the 27 byte payload and return
                     return( TRUE );
@@ -1732,7 +1911,18 @@ u8 fileLoadProperties( u32 ID, PYGMYFOLDER *ParentFolder, PYGMYFILEPROPERTIES *P
 
     if( !fileFindChunk( ID, 0, ParentFolder, &Address, Buffer ) ){
         // No Name Chunk means the file doesn't exist
-        
+        //print( COM3, "\rFailed to find ID: 0x%08X", ID );
+        //print( COM3, "\rParentFolder->Properties.SectorGroups: %d", ParentFolder->Properties.SectorGroups );
+        //print( COM3, "\rParentFolder->Properties.SectorCount: %d", ParentFolder->Properties.SectorCount );
+        //print( COM3, "\r\tAddress: 0x%012llX\r\t", Address );
+        //for( i = 0; i < ParentFolder->Properties.SectorGroups; i++ ){
+        //    print( COM3, "\r\tBaseAddress: 0x%012llX", ParentFolder->Properties.Sectors[i].BaseAddress );
+        //    print( COM3, "\r\tSectorCount: %d", ParentFolder->Properties.Sectors[i].SectorCount );
+        //} // for
+        //print( COM3, "\r\tBuffer:");
+        //for( i = 0; i < 21; i++ ){
+        //        print( COM3, " %02X", Buffer[ i ] );
+        //} // for
         return( FALSE );
     } // if
     Properties->Time = convertBufferToU32( Buffer, BIGENDIAN );
@@ -1740,6 +1930,7 @@ u8 fileLoadProperties( u32 ID, PYGMYFOLDER *ParentFolder, PYGMYFILEPROPERTIES *P
     NameLen = Buffer[ 5 ];
     Properties->Name = malloc( NameLen );
     if( !Properties->Name ){
+        print( COM3, "\rName == NULL" );
         return( FALSE );
     } // if
     Chunks = 1 + ( ( NameLen + 6 ) / 27 );
@@ -1759,6 +1950,11 @@ u8 fileLoadProperties( u32 ID, PYGMYFOLDER *ParentFolder, PYGMYFILEPROPERTIES *P
     for( i = 1, NameIndex = 21; i < Chunks && i < PYGMYFILE_SGCHUNK; i++ ){
         if( !fileFindChunk( ID, i, ParentFolder, &Address, Buffer ) ){
             // This indicates file system corruption and is a serious failure
+            //print( COM3, "\rfileLoadProperties() Failed" );
+            //print( COM3, "\r\tAddress: 0x%012llX\r\t", Address );
+            //for( i = 0; i < 21; i++ ){
+            //    print( COM3, " %02X", Buffer[ i ] );
+            //} // for
             free( Properties->Name );
             return( FALSE );
         } // if
@@ -1840,15 +2036,25 @@ u8 fileDeleteEntry( u32 ID, PYGMYFOLDER *ParentFolder )
     u64 Address;
     u32 i;
     
+
+    print( COM3, "\rCalling fileDeleteProperties()" );
     if( !fileDeleteProperties( ID, ParentFolder ) ){
+        print( COM3, "...Failed" );
         return( FALSE );
     } // if
+    print( COM3, "..." );
+    print( COM3, "\rCalling fileDeleteSectorGroups()" );
     if( !fileDeleteSectorGroups( ID, ParentFolder ) ){
+        print( COM3, "...Failed" );
         return( FALSE );
     } // if
+    print( COM3, "..." );
+    print( COM3, "\rCalling fileDeleteLength" );
     if( !fileDeleteLength( ID, ParentFolder ) ){
+        print( COM3, "...Failed" );
         return( FALSE );
     } // if
+    print( COM3, "..." );
 
     return( TRUE );
 }
@@ -1859,10 +2065,15 @@ u8 fileDeleteProperties( u32 ID, PYGMYFOLDER *ParentFolder )
     u32 i;
 
     for( i = PYGMYFILE_PROPERTIESCHUNK; i < PYGMYFILE_SGCHUNK; i++ ){
+        print( COM3, "\rCalling fileFindChunkAddress()" );
         if( !fileFindChunkAddress( ID, i, ParentFolder, &Address ) ){
+            print( COM3, "...Found" );
             return( TRUE );
         } // else
+        print( COM3, "..." );
+        print( COM3, "\rfileDeleteChunk()" );
         fileDeleteChunk( ParentFolder->Volume, Address );
+        print( COM3, "..." );
     } // for
 
     return( FALSE );
@@ -1934,6 +2145,7 @@ PYGMYFILE *fileOpen( u8 *FileName, u8 Attributes, u32 Length )
     } else{
         File->Volume = fileGetCurrentVolume();
         if( !File->Volume ){
+            //print( COM3, "\rNo volume mounted" );
             return( NULL ); // No volume mounted
         } // if
         File->Properties.Name = TmpName;
@@ -1941,38 +2153,43 @@ PYGMYFILE *fileOpen( u8 *FileName, u8 Attributes, u32 Length )
         if( !File->Properties.Path ){
             return( NULL );
         } // if
+        //print( COM3, "\rCopying Path: %s", File->Volume->Properties.Path );
         strcpy( File->Properties.Path, File->Volume->Properties.Path );
     } // else
+    //print( COM3, "\rAllocating folders from path: %s", File->Properties.Path );
     //File->ParentFolder = fileAllocateFoldersFromPath( File->Volume, File->Properties.Path );
     File->ParentFolder = fileAllocateFoldersFromFullPath( File->Properties.Path );
     File->Properties.Length = 0;
     File->Properties.ID = pdiaEncodeString( File->Properties.Name );
-    File->Properties.Attributes = Attributes & ( READ|WRITE|FOLDER );
+    
     // Generate ID
     // We now have a volume, Path and Name, time to verify path and load entry
     // Test for an existing file
-    
     if( ( Attributes & WRITE ) && !( Attributes & APPEND ) ){ 
+        print( COM3, "\rWrite Mode" );
         // Write mode, erase existing file
         if( fileFindChunk( File->Properties.ID, 0, File->ParentFolder, &Address, Buffer )){
             fileDeleteEntry( File->Properties.ID, File->ParentFolder );
         } // if
         if( !fileAllocateSectors( File->ParentFolder, 1 + ( Length / File->Volume->Desc.SectorSize ), &File->Properties ) ){
+            print( COM3, "\rFailed to allocate sectors" );
             return( NULL );
         } // if
-        //File->Properties.Attributes &= ( FOLDER|READ|WRITE );
+        File->Properties.Attributes = ( READ|WRITE );
         if( !fileWriteEntry( File->ParentFolder, &File->Properties ) ){
             return( NULL );
         } // if
         File->Index = 0;
+        //print( COM3, "\r
     } else if( ( Attributes & WRITE ) && ( Attributes & APPEND ) ){
+        print( COM3, "\rAppend Mode" );
         //File->Properties.Attributes = (WRITE|READ);
         if( !fileLoadEntry( File->Properties.ID, File->ParentFolder, &File->Properties ) ){
             //return( NULL );
             if( !fileAllocateSectors( File->ParentFolder, 1 + ( Length / File->Volume->Desc.SectorSize ), &File->Properties ) ){
                 return( NULL );
             } // if
-            //File->Properties.Attributes &= ~APPEND; //( FOLDER|READ|WRITE );
+            File->Properties.Attributes = ( READ|WRITE );
             if( !fileWriteEntry( File->ParentFolder, &File->Properties ) ){
                 return( NULL );
             } // if
@@ -1981,13 +2198,52 @@ PYGMYFILE *fileOpen( u8 *FileName, u8 Attributes, u32 Length )
         File->Index = File->Properties.Length;
     } else{
         // Read mode
+        print( COM3, "\rRead Mode" );
         if( !fileLoadEntry( File->Properties.ID, File->ParentFolder, &File->Properties ) ){
             return( NULL );
         } // if
         File->Index = 0;
     } // else
     
-   
+    /*
+    if( Attributes & WRITE && !( Attributes & APPEND ) ){
+        // First check to see if the file exists
+        
+        // now create a new file
+        if( !fileAllocateSectors( File->ParentFolder, 1 + ( Length / File->Volume->Desc.SectorSize ), &File->Properties ) ){
+            //print( COM3, "...Failed" );
+            return( NULL );
+        } // if
+        //print( COM3, "..." );
+        File->Properties.Attributes = ( READ|WRITE );
+        if( Attributes & FOLDER ){
+            File->Properties.Attributes |= FOLDER;
+        } // if
+        //File->Properties.Length = Length;
+        //print( COM3, "\rCalling fileWriteEntry()" );
+        if( !fileWriteEntry( File->ParentFolder, &File->Properties ) ){
+            //print( COM3, "...Failed" );
+            return( NULL );
+        } // if
+        //print( COM3, "..." );
+    } // if
+    
+    // Open the file, this verifies that all information was correctly written or already existed
+    
+    if( !( File->Properties.Attributes & WRITE ) ){
+        if( !fileLoadEntry( File->Properties.ID, File->ParentFolder, &File->Properties ) ){
+            return( NULL );
+        } // if
+    } // if
+    File->Properties.Attributes = Attributes;
+    File->Index = 0;
+    if( Attributes & APPEND ){
+        print( COM3, "\rOpen in Append Mode" );
+        // If the file was opened for APPEND
+        File->Index = File->Properties.Length;
+        print( COM3, "\rSetting Index to Length: %d", File->Properties.Length );
+    } // if
+    */
     return( File );
 }
 
@@ -2011,124 +2267,13 @@ PYGMYFILEVOLUME *fileFindVolume( u8 *VolumeName )
 
 PYGMYFOLDER *fileAllocateFoldersFromFullPath( u8 *Path )
 {
-    PYGMYFILEVOLUME *Volume;
-    PYGMYFOLDER *ParentFolder, *Folder;
-    u32 ID, i, FolderCount;
-    u8 *FolderName, *FullPath, MaxVolumes;
-    
-    i = len( Path );
-    FullPath = malloc( i + 2 );
-    if( !FullPath ){
-        return( NULL );
-    } // if
-    strcpy( FullPath, Path );
-    if( FullPath[ i - 1 ] != '/' ){
-        FullPath[ i ] = '/';
-        FullPath[ i + 1 ] = '\0';
-        print( COM3, "\rFullPath[ i - 1 ] != '/'" );
-    } // if
-    print( COM3, "\rEntering fileAllocateFoldersFromFullPath(): %s", FullPath );
-    
-    ParentFolder = malloc( sizeof( PYGMYFOLDER ) );
-    if( !ParentFolder ){
-        return( NULL );
-    } // if
-    Folder = malloc( sizeof( PYGMYFOLDER ) );
-    if( !Folder ){
-        free( ParentFolder );
-        return( NULL );
-    } // if
-    FolderName = strtok( FullPath, "/" );
-    // Get a volume
-    MaxVolumes = fileGetVolumeCount( );
-    //ID = pdiaEncodeString( FolderName );
-    for( i = 0; i < MaxVolumes; i++ ){
-        Volume = fileGetVolume( i );
-        //if( Volume->Properties.ID == ID ){
-        if( !strcmp( Volume->Properties.Name, FolderName ) ){
-            //print( COM3, "\rFound Volume: %s", Volume->Properties.Name );
-            break;
-        } // if
-    } // for
-    if( i == MaxVolumes ){
-        return( NULL ); // No matches, volume name must be invalid
-    } // if
-    print( COM3, "\rFound Volume: %s", Volume->Properties.Name );
-    ParentFolder->Properties.Sectors = malloc( sizeof( PYGMYFILEADDRESS ) );
-    if( !ParentFolder->Properties.Sectors ){
-        return( NULL );
-    } // if
-    // Manually create a base folder for the media entry point
-    ParentFolder->Volume = Volume;
-    fileCopyProperties( &Volume->ParentFolder->Properties, &ParentFolder->Properties );
-    ParentFolder->Properties.Sectors[ 0 ].BaseAddress = Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress;
-    ParentFolder->Properties.Sectors[ 0 ].SectorCount = 1;
-    
-    FolderCount = countCharInString( '/', Path ) - 1;
-    if( FolderCount == 0 ){
-        return( ParentFolder );
-    } // if
-    for( i = 0; i < FolderCount; i++ ){
-        FolderName = strtok( NULL, "/" );
-        if( !FolderName ){
-            print( COM3, "\rFailed to allocate FolderName" );
-            return( Folder );
-        } // if
-            // Allocate the next folder, but only if there will be another entry
-            Folder = malloc( sizeof( PYGMYFOLDER ) );
-            if( !Folder ){
-                return( NULL );
-            } // if
-            Folder->Properties.Name = FolderName;
-            Folder->Properties.Path = NULL;
-        
-        ID = pdiaEncodeString( FolderName );
-        print( COM3, "\rCalling fileLoadEntry(): %s, 0x%08X", FolderName, ID );
-        if( !fileLoadEntry( ID, ParentFolder, &Folder->Properties ) ){
-            // We may not able to load the entry because the path contains a file
-            // Attempt to load the properties and check the attributes for a file
-            if( fileLoadProperties( ID, ParentFolder, &Folder->Properties ) ){
-                if( !( Folder->Properties.Attributes & FOLDER ) ){
-                    // The entry exists and is not a folder
-                    if( i + 1 == FolderCount ){
-                        // This is a file included as the end-point in the path
-                        return( ParentFolder );
-                    } else{
-                        // This is an error
-                        return( NULL );
-                    } // else
-                } // if
-            }// if
-            print( COM3, " Failed on: %s", FolderName );
-            return( NULL );
-            // ID doesn't exist
-        }  // else
-        if( !( Folder->Properties.Attributes & FOLDER ) ){
-            if( i + 1 == FolderCount ){
-                return( ParentFolder );
-            } else{
-                return( NULL );
-            } // else
-        } // if
-        Folder->Properties.ID = ID;
-        Folder->Parent = ParentFolder; // Set ParentFolder
-        Folder->Volume = Volume;
-        ParentFolder = Folder; // Promote Folder
-    } // for
-    print( COM3, "\rReturning Folder" );
-
-    return( Folder );
-}
-
-/*PYGMYFOLDER *fileAllocateFoldersFromFullPath( u8 *Path )
-{
     // Folder structures contain the parent/child relationships used by the file system to allocate sectors
     // Start at the root and allocate each folder and link
     // Return pointer to the last Folder, this can be linked to a file in this way: file->ParentFolder = Folder;
     // Return NULL if the Path is invalid
     PYGMYFILEVOLUME *Volume;
     PYGMYFOLDER *ParentFolder, *Folder;
-    u32 ID, i, FolderCount;
+    u32 ID, i;
     u8 MaxVolumes, *FullPath, *FolderName;
     
     // First allocate an initial pair of folders
@@ -2137,14 +2282,6 @@ PYGMYFOLDER *fileAllocateFoldersFromFullPath( u8 *Path )
     if( !ParentFolder || !Folder ){
         return( NULL );
     } // if
-    ParentFolder->Volume = NULL;
-    ParentFolder->Properties.Name = NULL;
-    ParentFolder->Properties.Path = NULL;
-    ParentFolder->Parent; // Parent Folder, this allows a Volume->...->Folder->File relationship
-    Folder->Volume = NULL;
-    Folder->Properties.Name = NULL;
-    Folder->Properties.Path = NULL;
-    Folder->Parent = NULL; // Parent Folder, this allows a Volume->...->Folder->File relationship
     Path = removeLeadingWhitespace( Path );
     //print( COM3, "\rAllocating folders from path: %s", Path );
     // All paths will be created equal, start by detecting path type
@@ -2164,7 +2301,6 @@ PYGMYFOLDER *fileAllocateFoldersFromFullPath( u8 *Path )
         } // if
         strcpy( FullPath, Path );
     } // else
-    print( COM3, "\rAllocating from Full Path: %s", FullPath );
     // Now we have a full path, time to separate volume name and step through folders
     FolderName = strtok( FullPath, "/" );
     MaxVolumes = fileGetVolumeCount( );
@@ -2178,43 +2314,36 @@ PYGMYFOLDER *fileAllocateFoldersFromFullPath( u8 *Path )
         } // if
     } // for
     if( i == MaxVolumes ){
+        //print( COM3, "\rVolume out of range or not mounted" );
         return( NULL ); // No matches, volume name must be invalid
     } // if
-    print( COM3, "\rFound Volume: %s", Volume->Properties.Name );
     ParentFolder->Properties.Sectors = malloc( sizeof( PYGMYFILEADDRESS ) );
     if( !ParentFolder->Properties.Sectors ){
         return( NULL );
     } // if
     // Manually create a base folder for the media entry point
+    //print( COM3, "\rCreating entry point" );
     ParentFolder->Volume = Volume;
     fileCopyProperties( &Volume->ParentFolder->Properties, &ParentFolder->Properties );
     ParentFolder->Properties.Sectors[ 0 ].BaseAddress = Volume->ParentFolder->Properties.Sectors[ 0 ].BaseAddress;
     ParentFolder->Properties.Sectors[ 0 ].SectorCount = 1;
-    print( COM3, "\rSeeking through folders" );
-    FolderCount = countCharInString( '\\', FullPath );
+   
+    /*ParentFolder->Properties.Sectors[ 0 ].BaseAddress = 0LL;
+    ParentFolder->Properties.Sectors[ 0 ].SectorCount = 1;
+    ParentFolder->Properties.SectorGroups = 1;
+    ParentFolder->Properties.SectorCount = 1;
+    ParentFolder->Properties.ID = 0;
+    ParentFolder->Properties.Name = NULL;
+    ParentFolder->Properties.Path = NULL;
+    ParentFolder->IsRoot = TRUE;*/
+
     for( i = 0; i < PYGMYFILE_MAXFOLDERDEPTH && FolderName; i++ ){
         ID = pdiaEncodeString( FolderName );
-
         if( !fileLoadEntry( ID, ParentFolder, &Folder->Properties ) ){
-            print( COM3, "\rfileLoadEntry() Failed on: %s", FolderName );
-            return( ParentFolder );
+            print( COM3, "\rfileLoadEntry() Failed" );
             // ID doesn't exist
         }  // else
-        if( !( Folder->Properties.Attributes & FOLDER ) ){
-            if( i == FolderCount ){
-                return( ParentFolder );
-            } else{
-                return( NULL );
-            } // if
-        } // if
-        // ToTest: The following statement should prevent accessing a file as a folder
-        //if( !( Folder->Properties.Attributes & FOLDER ) && ){
-        //    //print( COM3, "\rCalling fileFreeFolder()" );
-        //    //fileFreeFolder( Folder );
-        //    print( COM3, "\rFreed folder, returning" );
-        //    return( NULL );
-        //} // if
-        
+
         Folder->Properties.ID = ID;
         Folder->Parent = ParentFolder; // Set ParentFolder
         Folder->Volume = Volume;
@@ -2229,12 +2358,11 @@ PYGMYFOLDER *fileAllocateFoldersFromFullPath( u8 *Path )
             Folder->Properties.Name = FolderName;
             Folder->Properties.Path = NULL;
         } // if
-        //} // if
     } // for
-    print( COM3, "\rReturning Folder" );
-
+    
     return( Folder );
-}*/
+}
+
 
 u8 fileTestPath( u8 *Path )
 {
@@ -2275,14 +2403,11 @@ u8 fileTestPath( u8 *Path )
         strcat( FullPath, "/" );
     } // else
     // Now we have a full path, time to separate volume name and step through folders
-    //print( COM3, "\rTesting Path: %s", FullPath );
-    print( COM3, "\rAllocating Folders From Path: %s", FullPath );
     Folder = fileAllocateFoldersFromFullPath( FullPath );
     if( !Folder ){
         return( FALSE );
     } // if
-
-    fileFreeFolder( Folder );
+    
     return( TRUE );
 }
 
@@ -2313,6 +2438,7 @@ u32 fileFindNextID( PYGMYFOLDER *ParentFolder, u32 Index, PYGMYFILEPROPERTIES *P
     for( i = 0; i < ParentFolder->Volume->Desc.ChunksPerSector; i++ ){
         fileGenerateDirectAddress( ParentFolder->Volume, &ParentFolder->Properties, Index, &Address );
         if( Address == PYGMYFILE_INVALIDADDRESS ){
+            print( COM3, "\rFound Invalid Address in fileFindNextID()" );
             return( 0 );
         } // if
         Index += PYGMYFILE_CHUNKLEN; // Index to next chunk
@@ -2339,6 +2465,7 @@ u32 fileFindNextID( PYGMYFOLDER *ParentFolder, u32 Index, PYGMYFILEPROPERTIES *P
             break; // Failed to load properties or length
         } // if
     } // for
+    print( COM3, "\rReturning 0 in fileFindNextID()" );
 
     return( 0 );
 }
@@ -2422,9 +2549,11 @@ u64 fileFindContiguousEmptySectors( PYGMYFILEVOLUME *Volume, u32 Count )
         if( !Address ){
             Found = 0;
         } else{
+            //print( COM3, "\rFound Empty Sector: 0x%012llX", Address );
             ++Found;
         } // else
         if( Found == Count ){
+            //print( COM3, "\rFound Empty %d Sectors @ 0x%012llX", Count, Address );
             return( Address );
         } // if
     } // for
@@ -2455,7 +2584,8 @@ u8 fileAllocateSectors( PYGMYFOLDER *ParentFolder, u32 RequestedSectors, PYGMYFI
     // Subdivide number of requested sectors until suitable level of granularity is reached
     for( i = 0; i < RequestedSectors; ){
         Count = RequestedSectors / ( 1 + i ); // Test for
-        Address = fileFindContiguousEmptySectors( Volume, Count );
+        Address = fileFindContiguousEmptySectors( Volume, Count );// - PYGMYFILE_SECTORMARKERLEN;
+        print( COM3, "\rAllocateSectors()->Address: 0x%012llX", Address );
         if( Address != 0 ){
             // If return is non-zero, add sector group and continue
             TmpAddress = realloc( Properties->Sectors, sizeof( PYGMYFILEADDRESS ) * ( Properties->SectorGroups + 1 ) );
@@ -2470,6 +2600,7 @@ u8 fileAllocateSectors( PYGMYFOLDER *ParentFolder, u32 RequestedSectors, PYGMYFI
             // Tag Sectors from this group
             for( ii = 0; ii < Count; ii++ ){
                 Volume->IO->PutWord( Volume->Port, Address + (ii * SectorSize), PYGMYFILE_ACTIVESECTOR );
+                //(u64)Properties->Sectors[ Properties->SectorGroups ].BaseAddress + (u64)( ii * Volume->Desc.SectorSize ), PYGMYFILE_ACTIVESECTOR );
             } // for
             ++Properties->SectorGroups; // Increment after marking sectors to save on arithmetic operations
             Properties->SectorCount += Count;
@@ -2481,6 +2612,7 @@ u8 fileAllocateSectors( PYGMYFOLDER *ParentFolder, u32 RequestedSectors, PYGMYFI
     
     return( TRUE );
 }
+//#pragma pop_options
 
 u8 fileSetPath( PYGMYFILE *File, u8 *Path )
 {
@@ -2523,28 +2655,13 @@ u8 fileDelete( u8 *Name  )
     u8 *FullPath;
     
     Name = removeLeadingWhitespace( Name );
-    if( Name[ 0 ] != '/' ){
-        FullPath = malloc( 2 + len( fileGetCurrentPath() ) + len( Name ) );
-        if( !FullPath ){
-            return( FALSE );
-        } // if
-        strcpy( FullPath, fileGetCurrentPath( ) );
-        strcat( FullPath, "/" );
-        strcat( FullPath, Name );
-    } else{
-        FullPath = malloc( len( Name ) + 1 );
-        if( !FullPath ){
-            return( FALSE );
-        } // if
-        strcpy( FullPath, Name );
-    } // else
-    print( COM3, "\rCalling fileAllocateFoldersFromFullPath(): %s", FullPath );
+    FullPath = malloc( 2 + len( fileGetCurrentPath() ) + len( Name ) );
+    strcpy( FullPath, fileGetCurrentPath( ) );
+    strcat( FullPath, "/" );
+    strcat( FullPath, Name );
     ParentFolder = fileAllocateFoldersFromFullPath( FullPath );
-    if( !ParentFolder ){
-        return( FALSE );
-    } // if
     ParentFolder->Properties.Path = FullPath;
-    print( COM3, "\rCalling fileDeleteAdvanced()" );
+    
     fileDeleteAdvanced( ParentFolder );
 
     return( TRUE );
@@ -2590,14 +2707,12 @@ u8 fileDeleteAdvanced( PYGMYFOLDER *ParentFolder )
                 if( !fileDeleteAdvanced( Folder ) ){
                     break;
                 } // if
-                print (COM3, "\rCalling fileDeleteEntry()" );
                 fileDeleteEntry( Folder->Properties.ID, Folder->Parent->Parent );
                 // ToTest: Added following call to fileFreeFolder()
                 fileFreeFolder( Folder );
             } else{
                 Folder->Properties.ID = pdiaEncodeString( Folder->Properties.Name );
                 Folder->Properties.Path = ParentFolder->Properties.Path;
-                print (COM3, "\rCalling fileDeleteEntry()" );
                 fileDeleteEntry( Folder->Properties.ID, ParentFolder );
             } // if
         } else{
@@ -2606,7 +2721,6 @@ u8 fileDeleteAdvanced( PYGMYFOLDER *ParentFolder )
             ParentFolder->Properties.ID = pdiaEncodeString( ParentFolder->Properties.Name );
             FullPath = strrchr( ParentFolder->Properties.Path, '/' ); // Find last entry, this will be the file or folder name
             *FullPath = '\0'; // Remove Name from Path
-            print (COM3, "\rCalling fileDeleteEntry()" );
             fileDeleteEntry( ParentFolder->Properties.ID, ParentFolder->Parent );
             break;
         } // else
@@ -2678,48 +2792,26 @@ u8 fileFreeFolder( PYGMYFOLDER *Folder )
     // All Parent Folders must be freed before returning
     PYGMYFOLDER *ParentFolder;
     u32 i;
-    return( TRUE );
+         
     for( i = 0; i < PYGMYFILE_MAXFOLDERDEPTH; i++ ){
         ParentFolder = Folder->Parent;
         if( ParentFolder->IsRoot ){
             // If this is the last folder, or root folder, free the current and the root
             fileFreeSectorGroups( ParentFolder->Properties.Sectors );
-            if( ParentFolder->Properties.Name ){
-                free( ParentFolder->Properties.Name );
-            } // if
-            if( ParentFolder->Properties.Path ){
-                free( ParentFolder->Properties.Path );
-            } // if
-            if( ParentFolder ){
-                free( ParentFolder );
-            } // if
-            if( ParentFolder->Properties.Sectors ){
-                fileFreeSectorGroups( ParentFolder->Properties.Sectors );
-            } // if
-            if( Folder->Properties.Name ){
-                free( Folder->Properties.Name );
-            } // if
-            if( Folder->Properties.Path ){
-                free( Folder->Properties.Path );
-            } // if
-            if( Folder ){
-                free( Folder );
-            } // if
+            free( ParentFolder->Properties.Name );
+            free( ParentFolder->Properties.Path );
+            free( ParentFolder );
+            fileFreeSectorGroups( ParentFolder->Properties.Sectors );
+            free( Folder->Properties.Name );
+            free( Folder->Properties.Path );
+            free( Folder );
             return( TRUE );
         } // if
         // To free a folder, we must free the sector groups, name, path and finally the folder
-        if(  ParentFolder->Properties.Sectors ){
-            fileFreeSectorGroups( ParentFolder->Properties.Sectors );
-        } // if
-        if( Folder->Properties.Name ){
-            free( Folder->Properties.Name );
-        } // if
-        if( Folder->Properties.Path ){
-            free( Folder->Properties.Path );
-        } // if
-        if( Folder ){
-            free( Folder );
-        } // if
+        fileFreeSectorGroups( ParentFolder->Properties.Sectors );
+        free( Folder->Properties.Name );
+        free( Folder->Properties.Path );
+        free( Folder );
     } // for
 
     return( FALSE );
@@ -2762,184 +2854,16 @@ u8 fileFlush( PYGMYFILE *File )
     return( TRUE );
 }
 
-void filePrintProperties( PYGMYFILEPROPERTIES *Properties )
+u8 fileRename( u8 *ucName, u8 *ucNewName )
 {
-    u32 i, ii;
 
-    print( COM3, "\rID: 0x%08X", Properties->ID );
-    print( COM3, "\rTime: %t", Properties->Time );
-    print( COM3, "\rLength: %d", Properties->Length );
-    print( COM3, "\rName: %s", Properties->Name );
-    print( COM3, "\rPath: %s", Properties->Path );
-    print( COM3, "\rAttributes:" );
-    if( Properties->Attributes & READ ){
-        print( COM3, " READ" ); 
-    } //if
-    if( Properties->Attributes & WRITE ){
-        print( COM3, " WRITE" );
-    } // if 
-    if( Properties->Attributes & FOLDER ){
-        print( COM3, " FOLDER" );
-    } // if
-    if( Properties->Attributes & APPEND ){
-        print( COM3, " APPEND" );
-    } // else if
-    print( COM3, "\rSectorGroups: %d", Properties->SectorGroups );
-    print( COM3, "\rSectorCount: %d", Properties->SectorCount );
-    for( i = 0; i < Properties->SectorGroups; i++ ){
-        print( COM3, "\r\tBaseAddress: 0x%012llX", Properties->Sectors[ i ].BaseAddress );
-        print( COM3, "\r\tSectorCount: %d", Properties->Sectors[ i ].SectorCount );
-    } // for
 }
 
-u8 *fileCreateNameWithPath( u8 *Name )
+
+
+u8 fileCopy( u8 *ucFrom, u8 *ucTo )
 {
-    PYGMYFILEVOLUME *Volume;
-    u8 *NameWithPath;
 
-    if( Name[ 0 ] == '/' ){
-        print( COM3, "\rAlready absolute" );
-        return( Name );
-    } // if
-    Volume = fileGetCurrentVolume();
-    if( !Volume ){
-        return( NULL );
-    } // if
-    NameWithPath = malloc( len( Volume->Properties.Path ) + len( Name ) + 2 );
-    if( !NameWithPath ){
-        return( NULL );
-    } // if
-    
-    strcpy( NameWithPath, Volume->Properties.Path );
-    strcat( NameWithPath, "/" );
-    Name = removeLeadingWhitespace( Name );
-    strcat( NameWithPath, Name );
-    print( COM3, "\rCreated NameWithPath: %s", NameWithPath );
-
-    return( NameWithPath );
-}
-
-u8 *fileMakeFullPath( u8 *Path )
-{
-    PYGMYFOLDER *ParentFolder;
-    u8 *FullPath;
-    
-    Path = removeLeadingWhitespace( Path );
-    if( Path[ 0 ] != '/' ){
-        FullPath = malloc( 2 + len( fileGetCurrentPath() ) + len( Path ) );
-        if( !FullPath ){
-            return( NULL );
-        } // if
-        strcpy( FullPath, fileGetCurrentPath( ) );
-        strcat( FullPath, "/" );
-        strcat( FullPath, Path );
-    } else{
-        FullPath = malloc( len( Path ) + 1 );
-        if( !FullPath ){
-            return( NULL );
-        } // if
-        strcpy( FullPath, Path );
-    } // else
-
-    return( FullPath );
-}
-
-u8 fileRename( u8 *Name, u8 *NewName )
-{
-    PYGMYFILE *File;
-    PYGMYFILEPROPERTIES Properties;
-    u8 *FullPathName;//, *FullPathNewName;
-    
-    print( COM3, "\rEntering fileRename: %s, %s", Name, NewName );
-    FullPathName = fileMakeFullPath( Name );
-    //FullPathNewName = fileMakeFullPath( NewName );
-    NewName = fileGetNameFromPath( NewName );
-    if( !NewName ){
-        return( FALSE );
-    } // if
-    File = fileOpen( FullPathName, READ, 0 );
-    if( !File ){
-        free( FullPathName );
-        return( FALSE );
-    } // if
-    //filePrintProperties( &File->Properties );
-    fileCopyProperties( &File->Properties, &Properties );
-    if( !fileDeleteEntry( File->Properties.ID, File->ParentFolder ) ){
-        return( FALSE );
-    } // if
-    
-    //filePrintProperties( &File->Properties );
-    free( File->Properties.Name );
-    File->Properties.Name = malloc( strlen( NewName ) + 1 );
-    if( !File->Properties.Name ){
-        free( FullPathName );
-        return( FALSE );
-    } // if
-   
-    strcpy( File->Properties.Name, NewName );
-    //File->Properties.Name = NewNameAndPath;
-    File->Properties.ID = pdiaEncodeString( File->Properties.Name );
-    //filePrintProperties( &File->Properties );
-
-    if( !fileWriteEntry( File->ParentFolder, &File->Properties ) ){
-        free( FullPathName );
-        return( FALSE );
-    } // if 
-    fileClose( File );
-    free( FullPathName );
-
-    return( TRUE );
-}
-
-u8 fileCopy( u8 *FileNameFrom, u8 *FileNameTo )
-{
-    PYGMYFILE *FileFrom, *FileTo;
-    u32 i, ii, len;
-    u8 TmpChar, Buffer[ 128 ];
-
-    FileFrom = fileOpen( FileNameFrom, READ, 0 );
-    if( !FileFrom ){
-        return( FALSE );
-    } // if
-    FileTo = fileOpen( FileNameTo, WRITE, FileFrom->Properties.Length );
-    if( !FileTo ){
-        fileClose( FileFrom );
-        return( FALSE );
-    } // if
-    //print( COM3, "\rFileFrom:" );
-    filePrintProperties( &FileFrom->Properties );
-    //print( COM3, "\rFileTo:" );
-    //filePrintProperties( &FileTo->Properties );
-    for( i = 0; i < FileFrom->Properties.Length; ){
-        len = fileReadBytes( FileFrom, Buffer, 128 );
-        /*if( isPrintable( TmpChar ) ){
-            print( COM3, "%c", TmpChar );
-        } else{
-            print( COM3, "(%02X)", TmpChar );
-        } // else
-        */
-        fileWriteBytes( FileTo, Buffer, len );
-        /*print( COM3, "\rReading Buffer: " );
-        len = fileReadBytes( FileFrom, Buffer, 128 );
-        for( ii = 0; ii < len; ii++ ){
-            if( isPrintable( Buffer[ ii ] ) ){
-                print( COM3, "%c", Buffer[ ii ] );
-            } else{
-                print( COM3, "(%02X)", Buffer[ ii ] );
-            } // else
-        } // for
-        fileWriteBytes( FileTo, Buffer, len );
-        i += len;*/
-        i += len;
-        if( len == 0 ){
-            break;
-        } // if
-    } // for
-
-    fileClose( FileFrom );
-    fileClose( FileTo );
-
-    return( TRUE );
 }
 
 u8 fileGetChar( PYGMYFILE *pygmyFile )
@@ -2963,68 +2887,66 @@ u8 *fileGetString( PYGMYFILE *File )
     u32 i;
     u8 *Buffer, TmpChar;
     
-    Buffer = malloc( 2 );
+    Buffer = malloc( 1 );
     if( !Buffer ){
         return( NULL ); // 
     } // if
-    
-    for( i = 0; i < 1024 && !( File->Properties.Attributes & EOF ); i++ ){
+    Buffer[ 0 ] = TmpChar;
+
+    for( i = 1; i < 1024; i++ ){
         if( !fileReadBytes( File, &TmpChar, 1 ) ){
-            // zero bytes remaining
             break;
         } // if
-        
+        if( !File->Properties.Attributes & EOF ){
+            return( NULL );
+        } // if
         if( isPrintable( TmpChar ) ){
-            Buffer = realloc( Buffer, i + 2 );
-            if( !Buffer ){
-                return( NULL ); // memory error
-            } // if
             Buffer[ i ] = TmpChar;
+            Buffer = realloc( Buffer, i + 2 );
         } else{
-            break;
+            Buffer[ i+1 ] = '\0';
+            return( Buffer );
         } // else
     } // for
-    Buffer[ i ] = '\0';
-
-    return( Buffer );
+    
+    return( NULL );
 }
 
-u32 fileReadBytes( PYGMYFILE *File, u8 *Buffer, u32 Len )
+u8 fileReadBytes( PYGMYFILE *File, u8 *Buffer, u32 Len )
 {
     u64 Address;
-    u32 i, ii, BufLen;
+    u32 i, SectorSize, BufLen;
 
     // The filesystem must mark the Volume as busy during a transaction to prevent the resource from being accessed in the middle of an operation
     if( File->Volume->Status & (PYGMYFILE_FULL|PYGMYFILE_LOCKED|PYGMYFILE_BUSY) ){
-        //print( COM3, "\rError: fileReadBytes()->FileBusy" );
         return( FALSE );
     } // if
     File->Volume->Status |= PYGMYFILE_BUSY;
-    if( ( File->Properties.Length - File->Index ) < Len ){
-        // There aren't len bytes left in the file
-        Len = File->Properties.Length - File->Index;
-        File->Properties.Attributes &= EOF;
+    /*
+    if( ( File->Properties.Length + Len ) >= ( ( SectorSize - 2 ) * File->Properties.SectorCount ) ){
+        // End of allocated sectors has been reached
+        File->Volume->Status &= ~PYGMYFILE_BUSY; // Clear busy flag before returning
+        return( FALSE );
     } // if
+    */
     for( i = 0; i < Len; ){
-        BufLen = fileGenerateDirectAddress( File->Volume, &File->Properties, File->Index, &Address ); // BufLen is the number of bytes remaining in the current sector group
-        if( ( Len - i ) <= BufLen ){
-            BufLen = Len - i;
-        } // if
+        // Calculate parameters for buffer write to flash
+        BufLen = fileGenerateDirectAddress( File->Volume, &File->Properties, File->Index, &Address );
+        //if( BufLen == 0 ){
         if( Address == PYGMYFILE_INVALIDADDRESS){
             return( FALSE ); // We attempted to seek past the allocated sectors
         } // if
-        File->Volume->IO->GetBuffer( File->Volume->Port, Address, Buffer + i, BufLen );
-        //Buffer[ i ] = File->Volume->IO->GetChar( File->Volume->Port, Address );
-        File->Index += BufLen;
+        
+        if( BufLen + i > Len ){
+            BufLen = Len - i;
+        } // if
+        File->Volume->IO->GetBuffer( File->Volume->Port, Address, Buffer+i, Len );
+        File->Index += Len;
         i += BufLen;
     } // for
     File->Volume->Status &= ~PYGMYFILE_BUSY; // Clear busy flag before returning
-    if( File->Index > File->Properties.Length ){
-        // End of File Reached
-        File->Properties.Attributes &= EOF;
-    } // if
 
-    return( Len ); // return the number of bytes read
+    return( TRUE );
 }
 
 u8 fileWriteBytes( PYGMYFILE *File, u8 *Buffer, u32 Len )
@@ -3035,11 +2957,13 @@ u8 fileWriteBytes( PYGMYFILE *File, u8 *Buffer, u32 Len )
     u32 i, BufLen;
     
     if( File->Volume->Status & (PYGMYFILE_FULL|PYGMYFILE_LOCKED|PYGMYFILE_BUSY) ){
+        print( COM3, "\rFile locked or busy" );
         return( FALSE );
     } // if
     File->Volume->Status |= PYGMYFILE_BUSY;
     if( ( File->Properties.Length + Len ) > ( ( File->Volume->Desc.SectorSize - PYGMYFILE_SECTORMARKERLEN ) * File->Properties.SectorCount ) ){
         if( !fileAppendSectors( File->ParentFolder, 1, &File->Properties ) ){
+            print( COM3, "\rfileWriteBytes()->Failed to append a sector" );
             return( FALSE );
          } // else
     } // if
@@ -3047,21 +2971,22 @@ u8 fileWriteBytes( PYGMYFILE *File, u8 *Buffer, u32 Len )
         // Calculate parameters for buffer write to flash
         BufLen = fileGenerateDirectAddress( File->Volume, &File->Properties, File->Index, &Address ); 
        // if( ! ){
-        /*if( File->Volume->IO->GetWord( File->Volume->Port, ( Address / 4096 ) * 4096 ) == 0 ){
+        if( File->Volume->IO->GetWord( File->Volume->Port, ( Address / 4096 ) * 4096 ) == 0 ){
             print( COM3, "\rWriting to Erased Sector @ 0x%012llX", Address );
         } // if
-        */
         //} // if
         if( Address < 4096 ){
-            
-            /*for( i = 0; i < File->Properties.SectorGroups; i++ ){
+            print( COM3, "\rWriting to invalid address!" );
+            print( COM3, "\rSectorGroups: %d", File->Properties.SectorGroups );
+            print( COM3, "\rSectorCount: %d", File->Properties.SectorCount );
+            for( i = 0; i < File->Properties.SectorGroups; i++ ){
                 print( COM3, "\r\tBaseAddress: 0x%012llX", File->Properties.Sectors[ i ].BaseAddress );
                 print( COM3, "\r\tSectorCount: %d", File->Properties.Sectors[ i ].SectorCount );
             } // for
-            */
             return( FALSE );
         } // if
         if( Address == PYGMYFILE_INVALIDADDRESS){
+            print( COM3, "\rEnd of file: Invalid address found in fileWriteBytes" );
             File->Volume->Status &= ~PYGMYFILE_BUSY;
             return( FALSE );
         } // if
@@ -3098,11 +3023,7 @@ u8 filePutChar( PYGMYFILE *File, u8 Data )
 
 u16 fileGetWord( PYGMYFILE *File, u8 Endian )
 {
-    u8 Buffer[ 2 ];
-    
-    fileReadBytes( File, Buffer, 2 );
 
-    return( convertBufferToU16( Buffer, Endian ) );
 }
 
 u8 filePutWord( PYGMYFILE *File, u16 Data, u8 Endian )
@@ -3116,11 +3037,7 @@ u8 filePutWord( PYGMYFILE *File, u16 Data, u8 Endian )
 
 u32 fileGetLong( PYGMYFILE *File, u8 Endian )
 {
-    u8 Buffer[ 4 ];
-    
-    fileReadBytes( File, Buffer, 4 );
 
-    return( convertBufferToU32( Buffer, Endian ) );
 }
 
 u8 filePutLong( PYGMYFILE *File, u32 Data, u8 Endian )
@@ -3161,150 +3078,6 @@ u8 fileSeek( PYGMYFILE *File, u8 Origin, s32 Index )
         } // if
     } // else
     
-    return( FALSE );
-}
-
-u8 *fileFind( PYGMYFILEVOLUME *Volume, u8 *FileName )
-{
-    // This function searches for a file in the Volume specified
-    //ParentFolder = fileAllocateFoldersFromFullPath( fileGetCurrentPath() );
-    PYGMYFILEPROPERTIES Properties;
-    PYGMYFOLDER *ParentFolder, *Folder;
-    u32 i, MaxFiles, Index;
-    u8* FullPath;
-
-    print( COM3, "\rFind: %s", FileName );
-    FileName = removeLeadingWhitespace( FileName );
-    FullPath = malloc( 2 + len( fileGetCurrentPath() ) + len( FileName ) );
-    if( !FullPath ){
-        print( COM3, "\rMemory allocation error" );
-    } // if
-    strcpy( FullPath, fileGetCurrentPath( ) );
-    strcat( FullPath, "/" );
-    strcat( FullPath, FileName );
-    print( COM3, "\rCalling fileAllocateFoldersFromFullPath(): %s", FullPath );
-    ParentFolder = fileAllocateFoldersFromFullPath( FullPath );
-    if( !ParentFolder ){
-        print( COM3, "\rFailed to allocate folders" );
-        return( NULL );
-    } // if
-    ParentFolder->Properties.Path = FullPath;
-
-    //ParentFolder = fileAllocateFoldersFromFullPath( Volume->Properties.Path );
-    Index = 0;
-    MaxFiles = 50; //( ParentFolder->Properties.SectorCount * ParentFolder->Volume->Desc.SectorSize ) / PYGMYFILE_CHUNKLEN;
-
-    print( COM3, "\rSearching at: %s", ParentFolder->Properties.Path );
-
-    for( i = 0; i < MaxFiles; i++ ){
-        // Look to see if the folder contains files or folders
-        Folder = malloc( sizeof( PYGMYFOLDER ) );
-        if( !Folder ){
-            break; // Memory Error
-        } // if
-        Folder->Volume = ParentFolder->Volume;
-        Index = fileFindNextID( ParentFolder, Index, &Properties );
-        if( !Index ){
-            break;
-        } // if
-        
-        print( COM3, "\rChecking %d: 0x%08X, %s", Index, Properties.ID, Properties.Name );
-        if( Properties.ID != 0xFFFFFFFF && Properties.Attributes & FOLDER ){
-            print( COM3, "\rFound Folder" );
-            // The folder contains another folder, step into and repeat
-            FullPath = malloc( 2 + len( ParentFolder->Properties.Path ) + len( Folder->Properties.Name ) );
-            if( !FullPath ){
-                // We have run out of RAM
-                return( FALSE );
-            } // if
-            Folder->Properties.ID = pdiaEncodeString( Folder->Properties.Name );
-            strcpy( FullPath, ParentFolder->Properties.Path );
-            strcat( FullPath, "/" );
-            strcat( FullPath, Folder->Properties.Name );
-            print( COM3, "\rCalling fileAllocateFoldersFromFullPath() with: %s", FullPath );
-            Folder->Parent = fileAllocateFoldersFromFullPath( FullPath );
-            Folder->Properties.Path = FullPath;
-            print( COM3, "\rCalling fileFind() with: %s", FullPath );
-            // Call self recursively to step through
-            if( fileFind( Volume, FileName ) ){
-                break;
-            } // if
-            print( COM3, "\rFound %s @ %s", FileName, Volume->Properties.Path );
-            // ToTest: Added following call to fileFreeFolder()
-            fileFreeFolder( Folder );
-        } else{
-            // print filename, file length, and size of file on media
-        //if( !Properties.Attributes & FOLDER ){
-            if( !strcmp( FileName, Properties.Name ) ){
-                print( COM3, "\rFound %s @ %s", FileName, Volume->Properties.Path );
-                //print( COM3, "\r%t %10d %10d %s", Properties.Time, Properties.Length, Properties.SectorCount * Volume->Desc.SectorSize, Properties.Name );
-            } // if
-        } // if
-     } // for
-
-    /*PYGMYFOLDER *Folder;
-    u32 i, MaxFiles;
-    u8 *FullPath;
-    
-    MaxFiles = ( ParentFolder->Properties.SectorCount * ParentFolder->Volume->Desc.SectorSize ) / PYGMYFILE_CHUNKLEN;
-    
-    for( i = 0; i < MaxFiles; i++ ){
-        // Look to see if the folder contains files or folders
-        Folder = malloc( sizeof( PYGMYFOLDER ) );
-        if( !Folder ){
-            break; // Memory Error
-        } // if
-        Folder->Volume = ParentFolder->Volume;
-        if( fileFindNextID( ParentFolder, 0, &Folder->Properties ) ){
-            // The folder is not empty
-            if( Folder->Properties.Attributes & FOLDER ){
-                // The folder contains another folder, step into and repeat
-                FullPath = malloc( 2 + len( ParentFolder->Properties.Path ) + len( Folder->Properties.Name ) );
-                if( !FullPath ){
-                    // We have run out of RAM
-                    return( FALSE );
-                } // if
-                Folder->Properties.ID = pdiaEncodeString( Folder->Properties.Name );
-                strcpy( FullPath, ParentFolder->Properties.Path );
-                strcat( FullPath, "/" );
-                strcat( FullPath, Folder->Properties.Name );
-                Folder->Parent = fileAllocateFoldersFromFullPath( FullPath );
-                Folder->Properties.Path = FullPath;
-                // Call self recursively to step through
-                if( !fileDeleteAdvanced( Folder ) ){
-                    break;
-                } // if
-                fileDeleteEntry( Folder->Properties.ID, Folder->Parent->Parent );
-                // ToTest: Added following call to fileFreeFolder()
-                fileFreeFolder( Folder );
-            } else{
-                Folder->Properties.ID = pdiaEncodeString( Folder->Properties.Name );
-                Folder->Properties.Path = ParentFolder->Properties.Path;
-                fileDeleteEntry( Folder->Properties.ID, ParentFolder );
-            } // if
-        } else{
-            // There may not be an ID and the Path will have the file or folder name appended to it
-            // We must first generate a valid ID and then remove the file or folder name from the path
-            ParentFolder->Properties.ID = pdiaEncodeString( ParentFolder->Properties.Name );
-            FullPath = strrchr( ParentFolder->Properties.Path, '/' ); // Find last entry, this will be the file or folder name
-            *FullPath = '\0'; // Remove Name from Path
-            fileDeleteEntry( ParentFolder->Properties.ID, ParentFolder->Parent );
-            break;
-        } // else
-    } // for
-
-    return(  );*/
-}
-
-u8 fileEOF( PYGMYFILE *File )
-{
-    if( File->Properties.Attributes & EOF ){
-        return( TRUE );
-    } // if
-    if( File->Index == File->Properties.Length ){
-        return( TRUE );
-    } // if
-
     return( FALSE );
 }
 

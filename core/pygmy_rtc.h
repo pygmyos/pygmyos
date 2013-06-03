@@ -71,10 +71,10 @@ typedef struct
 #endif
 
 void resetBackupDomain( void );
-void initTime( void );
+void timeInit( void );
 void rtcClearFlags( void );
-void setTime( u32 ulTime );
-u32 getTime( void );
+void timeSet( u32 ulTime );
+u32 timeGet( void );
 u32 convertSystemTimeToSeconds( PYGMYTIME *pygmyTime );
 void convertSecondsToSystemTime( u32 ulSeconds, PYGMYTIME *pygmyTime );
 

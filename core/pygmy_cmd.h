@@ -18,12 +18,10 @@
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
 
-//#include "pygmy_profile.h"
-#ifndef __PYGMY_HEADER_CMD
-	#define __PYGMY_HEADER_CMD
 
 #pragma once
-
+#include "pygmy_profile.h"
+#include "pygmy_type.h"
 extern const PYGMYCMD STDCOMMANDS[];
 extern const PYGMYCMD PYGMYSTDCOMMANDS[];
 
@@ -40,6 +38,7 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds );
 u8 cmd_set( u8 *ucBuffer );
 
 u8 cmdNull( u8 *ucBuffer );
+u8 cmd_play( u8 *ucBuffer );
 u8 cmd_volume( u8 *ucBuffer );
 u8 cmd_reset( u8 *ucBuffer );
 u8 cmd_peek( u8 *ucBuffer );
@@ -82,5 +81,7 @@ u8 cmd_rfsend( u8 *ucBuffer );
 u8 cmd_eeprom( u8 *ucBuffer );
 u8 cmd_gassensor( u8 *ucBuffer );
 
-#endif // __PYGMY_HEADER_
+//extern const u8 PYGMY_confirm[];
+
+
 

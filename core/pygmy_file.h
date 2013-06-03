@@ -102,9 +102,7 @@
 #define PYGMY_FILE_FAT_B                            0x00003000
 #define PYGMY_FILE_DATA                             0x00004000
 
-#define START                       1
-#define CURRENT                     2
-#define END                         4
+
 
 #define SST_ID                      0xBF
 #define SST_ID_MEMTYPE              0x25 // FLASH
@@ -156,7 +154,7 @@ typedef struct PYGMYFILE_TYPEDEF {
 // ----------------------------- End Platform specific defines -----------------------------
 
 extern PYGMYFILEVOLUME pygmyRootVolume;     
-extern PYGMYSPIPORT pygmyFlashSPI;
+//extern PYGMYSPIPORT pygmyFlashSPI;
        
 u16 fileAllocateContiguousFATEntries( u16 uiID, u16 uiEntries );
 u32 filePreAllocate( PYGMYFILE *pygmyFile, u32 ulSize );

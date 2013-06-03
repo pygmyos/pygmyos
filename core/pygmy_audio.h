@@ -35,7 +35,7 @@ void generateSquareWave( u8 *ucBuffer, u16 uiFrequency, u16 uiSampleRate, u16 ui
 void generateTriangleWave( u8 *ucBuffer, u16 uiFrequency, u16 uiSampleRate, u16 uiAmplitude );
 void generateSawWave( u8 *ucBuffer, u16 uiFrequency, u16 uiSampleRate, u16 uiAmplitude );
 void blendWaves( u8 *ucBufferDest, u16 uiBufferDestLen, u8 *ucBuffer, u16 uiBufferLen );
-void dac1Output( u8* ucBuffer, u16 uiBufferLen, u16 uiSampleRate, u8 uiMode );
-void dac2Output( u8* ucBuffer, u16 uiBufferLen, u16 uiSampleRate, u8 uiMode );
+void dac1Output( u8* ucBuffer, u32 uiBufferLen, u16 uiSampleRate, u8 uiMode );
+void dac2Output( u8* ucBuffer, u32 uiBufferLen, u16 uiSampleRate, u8 uiMode );
 
 #endif // __PYGMY_HEADER_AUDIO

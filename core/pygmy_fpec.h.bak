@@ -147,7 +147,7 @@ u8 fpecUnlock( u8 Bank );
 u8 fpecProcessIHEX( u8 *Buffer );
 u8 fpecWriteLong( u16 *Address, u32 Data );
 u8 fpecWriteWord( u16 *Address, u16 Data );
-u8 fpecWriteByte( u32 Address, u8 Data );
+u8 fpecWriteByte( u32 Address, u8 Data )l
 u8 fpecEraseProgramMemory( void );
 u8 fpecErasePage( u32 Address );
 u8 fpecEraseRange( u32 AddressStart, u32 AddressEnd );

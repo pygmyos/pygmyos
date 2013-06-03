@@ -17,7 +17,7 @@
     You should have received a copy of the GNU Lesser General Public License
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
-
+#include <stdlib.h>
 #include "pygmy_profile.h"
 
 // Timer1 CH1, PA8 is the dedicated MasterClock Out

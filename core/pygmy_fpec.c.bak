@@ -193,7 +193,7 @@ u8 fpecWriteByte( u32 Address, u8 Data )
 {
     u16 WordData, *WordAddress;
     
-    if( !(Address % 2) ){
+    /*if( !(Address % 2) ){
         // Even address
         
         WordData = ( Data << 8 ) | 0x00FF;
@@ -203,7 +203,7 @@ u8 fpecWriteByte( u32 Address, u8 Data )
         WordData = Data | 0xFF00; 
         
     } // else
-    
+    */
 
     if( Address % 2 ){
         --Address;

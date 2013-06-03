@@ -182,7 +182,7 @@ typedef struct {
                 u8 **Switches; // params that start with - or --
                 u16 ParamCount;
                 u16 SwitchCount;
-                } PYGMYPARAMLIST;
+                } PARAMLIST;
 /*typedef struct {
                 PYGMYFILE File;
                 u32 Status;

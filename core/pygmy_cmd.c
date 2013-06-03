@@ -19,10 +19,11 @@
 ***************************************************************************/
 
 #include "pygmy_profile.h"
-#include "profiles/nebula/shields/gasSensor.h"
-#include "profiles/digipots/mcp443x.h"
-#include "profiles/eeprom/at24hc02b.h"
+//#include "profiles/nebula/shields/gasSensor.h"
+//#include "profiles/digipots/mcp443x.h"
+//#include "profiles/eeprom/at24hc02b.h"
 
+extern u8 PYGMY_confirm[];
 extern u8 globalHumidity[];
 extern void volumeSet( void );
 
@@ -47,6 +48,7 @@ const PYGMYCMD PYGMYCORECOMMANDS[] = {
                                     };
 
 const PYGMYCMD PYGMYSTDCOMMANDS[] = { 
+                                    {(u8*)"play",       cmd_play},
                                     {(u8*)"volume",     cmd_volume},
                                     {(u8*)"reset",      cmd_reset},
                                     {(u8*)"peek",       cmd_peek},
@@ -195,7 +197,7 @@ void cmdInit( void )
     #ifndef __PYGMYCMDMAXLISTS
         #define __PYGMYCMDMAXLISTS 1
     #endif // __PYGMYCMDMAXLISTS
-    for( i = 0; i < __PYGMY_MAXCOMMANDPORTS; i++ ){
+    /*for( i = 0; i < __PYGMY_MAXCOMMANDPORTS; i++ ){
         globalCMDPorts[ i ].SPI = 0xFF;
         globalCMDPorts[ i ].I2C = 0xFF;
     } // for
@@ -205,6 +207,7 @@ void cmdInit( void )
     for( i = 0; i < __PYGMY_MAXCOMMANDI2CPORTS; i++ ){
         globalI2CPorts[ i ].CR = 0xFF;
     } // for
+    */
     globalCMDPrompt = "\r> ";
     globalCMDError = "\rerror\r> ";
     globalCMDUnsupported = "\runsupported\r> ";
@@ -223,6 +226,7 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
     } // if
         
     for( ii = 0; 1; ii++ ){
+        //if( isStringSame( 0, pygmyCmds[ ii ].Name ) ){
         if( isStringSame( NULL, pygmyCmds[ ii ].Name ) ){
             print( STDIO, globalCMDUnsupported);
             return( 0 );
@@ -246,8 +250,17 @@ u8 cmdExecute( u8 *ucBuffer, PYGMYCMD *pygmyCmds )
 
 //--------------------------------------Standard Commands-------------------------------------
 //--------------------------------------------------------------------------------------------
+u8 cmd_play( u8 *ucBuffer )
+{
+    //dac2Output( (u8*)PYGMY_confirm, 46065, 32000, 0 );
+    //dac1Output( (u8*)PYGMY_confirm, 46065, 16000, 0 );
+
+    return( TRUE );
+}
+
 u8 cmd_volume( u8 *ucBuffer )
 {
+    /*
     PYGMYI2CPORT pygmyI2C;
     u8 ucVol, ucAddress, ucLen, *ucParams[ 2 ];
     
@@ -284,7 +297,7 @@ u8 cmd_volume( u8 *ucBuffer )
     i2cWriteByte( &pygmyI2C, pygmyI2C.Address );
     i2cWriteByte( &pygmyI2C, ucVol );
     i2cStop( &pygmyI2C );
-    
+    */
     return( TRUE );
 }
 
@@ -475,7 +488,7 @@ u8 cmd_ps( u8 *ucBuffer )
 
 u8 cmd_kill( u8 *ucBuffer )
 {
-    PYGMYTASK *pygmyTask;
+    /*PYGMYTASK *pygmyTask;
     u16 i;
     u8 *ucParam;
 
@@ -496,7 +509,7 @@ u8 cmd_kill( u8 *ucBuffer )
     } else{
         taskDelete( ucParam );
     } // else
-
+    */
     return( TRUE );
 }
 

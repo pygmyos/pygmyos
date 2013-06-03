@@ -82,30 +82,31 @@ void audioPlayWave( u8 *ucName )
     interruptEnable( DMA1_CH3_IRQ );
     dac1Output( globalAudioBuffer, 1024, ulSampleRate, PYGMY_DAC_CONTINUOUS );
 }
-
+/*
 void DMA1_Channel3_IRQHandler( void )
 {
-    if( !( DMA1->ISR & BIT10 ) ){
+    print( COM3, "\rInvalid IRQ" );
+    if( !( DMA2->ISR & BIT10 ) ){
         // Test For Channel3 Half Transfer Flag, BIT10
-        DMA1->IFCR = ( BIT8|BIT9|BIT10|BIT11);
+        DMA2->IFCR = ( BIT8|BIT9|BIT10|BIT11);
         return;
     } // if
     fileGetBuffer( &pygmyAudioFile, 512, globalAudioBuffer + ( globalAudioPage * 512 ) );
     if( globalAudioPage ){
         globalAudioPage = 0;
-        DMA1_CH3->CMAR = (volatile u32)(volatile u32*)globalAudioBuffer; 
+        DMA2_CH3->CMAR = (volatile u32)(volatile u32*)globalAudioBuffer; 
     } else{
         globalAudioPage = 1;
     } // else
-    DMA1->IFCR = ( BIT8|BIT9|BIT10|BIT11);
+    DMA2->IFCR = ( BIT8|BIT9|BIT10|BIT11);
     //PYGMY_DMA1_CH3_DISABLE;
     //DMA1_CH3->CNDTR = 1024 ; // length of test  
     
     if( (fileIsEOF( &pygmyAudioFile ) ) ){
-        PYGMY_DMA1_CH3_DISABLE;
+        PYGMY_DMA2_CH3_DISABLE;
     } // if
     
-}
+}*/
 
 void generateSineWave( u8 *ucBuffer, u16 uiFrequency, u16 uiSampleRate, u16 uiAmplitude )
 {
@@ -204,52 +205,65 @@ void blendWaves( u8 *ucBufferDest, u16 uiBufferDestLen, u8 *ucBuffer, u16 uiBuff
     } // if
 }
 
-void dac1Output( u8* ucBuffer, u16 uiBufferLen, u16 uiSampleRate, u8 uiMode )
+void dac1Output( u8* ucBuffer, u32 uiBufferLen, u16 uiSampleRate, u8 uiMode )
 {
-    //DMA1_Channel3->CCR &= ~DMA_EN;
-    PYGMY_DMA1_CH3_DISABLE;
+    PYGMY_RCC_AFIO_ENABLE;
+    PYGMY_RCC_GPIOA_ENABLE;
+    PYGMY_RCC_TIMER6_ENABLE;
+    PYGMY_RCC_TIMER7_ENABLE
+    
+    PYGMY_RCC_DMA2_ENABLE;
+    PYGMY_RCC_DAC_ENABLE;
+    DAC1_INIT; // PA5
+    PYGMY_DMA2_CH3_DISABLE;
 
     TIM6->CNT = 0; // Counter
     TIM6->PSC = 0; // Prescaler register
-    TIM6->ARR = pygmyGlobalData.MainClock / uiSampleRate; // Auto Reload Register
-    TIM6->DIER = 0;//BIT0 is Update Interrupt Enabled, BIT8 is Update DMA request Enabled
+    TIM6->ARR = 72000000 / uiSampleRate; // Auto Reload Register
+    TIM6->DIER = BIT8;//BIT0 is Update Interrupt Enabled, BIT8 is Update DMA request Enabled
     TIM6->CR2 = BIT5; // 
     TIM6->CR1 = BIT0; // BIT0 is Counter Enable
     DAC->CR |=  DAC_DMAEN1 | DAC_TEN1 | DAC_BOFF1|DAC_EN1; // 
 
-    DMA1_CH3->CNDTR = uiBufferLen; // length of test
-    DMA1_CH3->CPAR = (volatile u32)(volatile u32*)&DAC->DHR8R1;
-    DMA1_CH3->CMAR = (volatile u32)(volatile u32*)ucBuffer; 
+    DMA2_CH3->CNDTR = uiBufferLen; // length of test
+    DMA2_CH3->CPAR = (volatile u32)(volatile u32*)&DAC->DHR8R1;
+    DMA2_CH3->CMAR = (volatile u32)(volatile u32*)ucBuffer; 
     // Must be enabled last
     if( uiMode & PYGMY_DAC_CONTINUOUS ){
-        DMA1_CH3->CCR =  DMA_HTIE | DMA_MINC | DMA_CIRC | DMA_DIR | DMA_EN; // MINC set = Memory address inc mode, DIR set = mem to peripheral
+        DMA2_CH3->CCR =  DMA_HTIE | DMA_MINC | DMA_CIRC | DMA_DIR | DMA_EN; // MINC set = Memory address inc mode, DIR set = mem to peripheral
     } else{
-        DMA1_CH3->CCR =  DMA_HTIE | DMA_MINC | DMA_DIR | DMA_EN;
+        DMA2_CH3->CCR =  DMA_HTIE | DMA_MINC | DMA_DIR | DMA_EN;
     } // else
 }
 
-void dac2Output( u8* ucBuffer, u16 uiBufferLen, u16 uiSampleRate, u8 uiMode )
+void dac2Output( u8* ucBuffer, u32 uiBufferLen, u16 uiSampleRate, u8 uiMode )
 {
-    //DMA1_Channel4->CCR &= ~DMA_EN;
+    DMA2_CH4->CCR &= ~DMA_EN;
+    PYGMY_RCC_AFIO_ENABLE;
+    PYGMY_RCC_GPIOA_ENABLE
+    PYGMY_RCC_TIMER7_ENABLE;
     
-    PYGMY_DMA1_CH4_DISABLE;
-
+    PYGMY_RCC_DMA2_ENABLE;
+    PYGMY_RCC_DAC_ENABLE;
+    DAC2_INIT;
+    TIM7->CR1 |= BIT0;
     TIM7->CNT = 0; // Counter
     TIM7->PSC = 0; // Prescaler register
-    TIM7->ARR = PYGMY_CLOCK_MAIN / uiSampleRate; // Auto Reload Register
-    TIM7->DIER = 0;//BIT0 is Update Interrupt Enabled, BIT8 is Update DMA request Enabled
+    TIM7->ARR = 72000000 / (u32)uiSampleRate; // Auto Reload Register
+    TIM7->DIER = BIT8|BIT0;//BIT0 is Update Interrupt Enabled, BIT8 is Update DMA request Enabled
     TIM7->CR2 = BIT5; // 
     TIM7->CR1 = BIT0; // BIT0 is Counter Enable
+    
     DAC->CR |= BIT20 | DAC_DMAEN2 | DAC_TEN2 | DAC_EN2; // BIT20 is Channel2, Timer 7 select
-
-    DMA1_CH4->CNDTR = uiBufferLen; // length of test
-    DMA1_CH4->CPAR = (volatile u32)(volatile u32*)&DAC->DHR8R2;
-    DMA1_CH4->CMAR = (volatile u32)(volatile u32*)ucBuffer; 
+    
+    DMA2_CH4->CNDTR = uiBufferLen; // length of test
+    DMA2_CH4->CPAR = (volatile u32)(volatile u32*)&DAC->DHR8R2;
+    DMA2_CH4->CMAR = (volatile u32)(volatile u32*)ucBuffer; 
     // Must be enabled last
     if( uiMode & PYGMY_DAC_CONTINUOUS ){
-        DMA1_CH4->CCR = DMA_MINC | DMA_CIRC | DMA_DIR | DMA_EN; // MINC set = Memory address inc mode, DIR set = mem to peripheral
+        DMA2_CH4->CCR = DMA_MINC | DMA_CIRC | DMA_DIR | DMA_EN; // MINC set = Memory address inc mode, DIR set = mem to peripheral
     } else{
-        DMA1_CH4->CCR = DMA_MINC | DMA_DIR | DMA_EN;
+        DMA2_CH4->CCR = DMA_MINC | DMA_DIR | DMA_EN;
     } // else
 }
 

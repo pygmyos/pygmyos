@@ -38,6 +38,7 @@ extern const PYGMYPAIR PYGMYNEBULAPINS[];
 //extern const u8 PYGMYHEXCHARS[];
 u8 *convertPinToString( u8 ucPin );
 u8 convertStringToPin( u8 *ucBuffer );
+u8 convertStringToPort( u8 *Buffer );
 void convertU16ToBuffer( u16 uiData, u8 *ucBuffer, u8 ucEndian );
 void convertU32ToBuffer( u32 ulData, u8 *ucBuffer, u8 ucEndian );
 u16 convertBufferToU16( u8 *ucBuffer, u8 ucEndian );
@@ -64,6 +65,8 @@ u16 len( u8 *ucString );
 u8 replaceLastChar( u8 *ucString, u8 ucChar, u8 ucNewChar );
 u8 replaceChars( u8 *ucBuffer, u8 *ucChars, u8 ucChar );
 u8 *seekStringInString(  u8 *ucString, u8 *ucBuffer );
+void freeParameterList( PYGMYPARAMLIST *Parameters );
+u8 getAllParameters( u8 *Buffer, PYGMYPARAMLIST *Parameters );
 u16 getAllSubStrings( u8 *ucBuffer, u8 *ucStrings[], u16 uiLen, u8 ucMode );
 u8 *getNextSubString( u8 *ucBuffer, u8 ucMode );
 void convertFloatToString( double fData, u8 *ucFormat, u8 *ucBuffer );
@@ -85,5 +88,7 @@ u8 getBase64Code( u8 ucChar );
 u16 convertBase64ToBuffer( u8 *ucBufferIn, u8 *ucBufferOut );
 void convertBase64ToString( u8 *ucBuffer, u8 *ucString );
 void convertStringToBase64( u8 *ucString, u8 *ucBase64 );
+u32 convertDateStringToSeconds( u8 *Buffer );
+u32 countCharInString( u8 Char, u8 *String );
 
 #endif // __PYGMY_HEADER_STRING

@@ -35,15 +35,13 @@
 #define SOCKET_TYPE_MASK        0x7F    
 #define SOCKET_TX               0x80
 #define SOCKET_RX               0x00
- 
- enum{   
-        SOCKET_BLANK,           // 
-        SOCKET_COMLINK,         // Com Link
-        SOCKET_FILE,            // File TX Request
-        SOCKET_AVSTREAM,        // AV Streaming Data         
-        SOCKET_CONTROL,         // Control/Movement
-        SOCKET_CMDLINE
-    };
+  
+#define SOCKET_BLANK            0 // 
+#define SOCKET_COMLINK          1 // Com Link
+#define SOCKET_FILE             2 // File TX Request
+#define SOCKET_AVSTREAM         3 // AV Streaming Data         
+#define SOCKET_CONTROL          4 // Control/Movement
+#define SOCKET_CMDLINE          5 
 
 typedef struct {
                 #ifdef __PYGMY_PFATLITE

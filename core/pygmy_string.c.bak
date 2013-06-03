@@ -17,6 +17,8 @@
     You should have received a copy of the GNU Lesser General Public License
     along with PygmyOS.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************************/
+#include <stdlib.h>
+#include <string.h>
 #include <math.h>
 #include <float.h>
 #include "pygmy_profile.h"
@@ -27,38 +29,42 @@
 const u8 PYGMYHEXCHARS[] = { '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F' };
 const u8 PYGMYBASE64CHARS[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
-#ifdef __PYGMYNEBULA
-    #define PYGMYMAXPINS  27
+//#ifdef __PYGMYNEBULA
+    #define PYGMYMAXPINS  31
     const PYGMYPAIR PYGMYNEBULAPINS[] = {
-                                        { (u8*)"LED0",  LED0 },
-                                        { (u8*)"LED1",  LED1 },
-                                        { (u8*)"DAC1",  DAC1 },
-                                        { (u8*)"DAC2",  DAC2 },
-                                        { (u8*)"MCO",   MCO },
-                                        { (u8*)"TX1",   TX1 },
-                                        { (u8*)"RX1",   RX1 },
-                                        { (u8*)"TX2",   TX2 },
-                                        { (u8*)"RX2",   RX2 },
-                                        { (u8*)"TA0",   TA0 },
-                                        { (u8*)"TA1",   TA1 },
-                                        { (u8*)"T0",    T0 },
-                                        { (u8*)"T1",    T1 },
-                                        { (u8*)"T2",    T2 },
-                                        { (u8*)"T3",    T3 },
-                                        { (u8*)"A0",    A0 },
-                                        { (u8*)"A1",    A1 },
-                                        { (u8*)"A2",    A2 },
-                                        { (u8*)"A3",    A3 },
-                                        { (u8*)"A4",    A4 },
-                                        { (u8*)"A5",    A5 },
-                                        { (u8*)"A6",    A6 },
-                                        { (u8*)"A7",    A7 },
-                                        { (u8*)"D0",    D0 },
-                                        { (u8*)"D1",    D1 },
-                                        { (u8*)"D2",    D2 },
-                                        { (u8*)"D3",    D3 },
+                                        { (u8*)"LED0",        LED0 },
+                                        { (u8*)"LED1",        LED1 },
+                                        { (u8*)"DAC1",        DAC1 },
+                                        { (u8*)"DAC2",        DAC2 },
+                                        { (u8*)"MCO",         MCO },
+                                        { (u8*)"TX1",         TX1 },
+                                        { (u8*)"RX1",         RX1 },
+                                        { (u8*)"TX2",         TX2 },
+                                        { (u8*)"RX2",         RX2 },
+                                        { (u8*)"TA0",         TA0 },
+                                        { (u8*)"TA1",         TA1 },
+                                        { (u8*)"T0",          T0 },
+                                        { (u8*)"T1",          T1 },
+                                        { (u8*)"T2",          T2 },
+                                        { (u8*)"T3",          T3 },
+                                        { (u8*)"A0",          A0 },
+                                        { (u8*)"A1",          A1 },
+                                        { (u8*)"A2",          A2 },
+                                        { (u8*)"A3",          A3 },
+                                        { (u8*)"A4",          A4 },
+                                        { (u8*)"A5",          A5 },
+                                        { (u8*)"A6",          A6 },
+                                        { (u8*)"A7",          A7 },
+                                        { (u8*)"D0",          D0 },
+                                        { (u8*)"D1",          D1 },
+                                        { (u8*)"D2",          D2 },
+                                        { (u8*)"D3",          D3 },
+                                        { (u8*)"FLASH_CS",    FLASH_CS },
+                                        { (u8*)"FLASH_SCK",   FLASH_SCK },
+                                        { (u8*)"FLASH_MISO",  FLASH_MISO },
+                                        { (u8*)"FLASH_MOSI",  FLASH_MOSI },
                                         { (u8*)NULL,    0 } };
-#endif // __PYGMYNEBULA
+//#endif // __PYGMYNEBULA
 
 u8 *convertPinToString( u8 ucPin )
 {
@@ -106,6 +112,78 @@ u8 convertStringToPin( u8 *ucBuffer )
     } // if
 
     return( 0xFF );
+}
+
+u8 convertStringToPort( u8 *Buffer )
+{
+    Buffer = removeLeadingWhitespace( Buffer );
+
+    if( !strcmp( Buffer, "COM1" ) ){
+        return( COM1 );
+    } else if( !strcmp( Buffer, "COM2" ) ){
+        return( COM2 );
+    } else if( !strcmp( Buffer, "COM3" ) ){
+        return( COM3 );
+    } else if( !strcmp( Buffer, "COM4" ) ){
+        return( COM4 );
+    } else if( !strcmp( Buffer, "COM5" ) ){
+        return( COM5 );
+    } else if( !strcmp( Buffer, "COM6" ) ){
+        return( COM6 );
+    } // else if
+
+    return( STDIO );
+}
+
+u32 convertDateStringToSeconds( u8 *Buffer )
+{
+    // This function converts a Date/Time string to seconds
+    //"11/20/2003 12:48:00"
+    //u16 Year;
+    //u8 Month;
+    //u8 Day;
+    //u8 Hour;
+    //u8 Minute;
+    //u8 Second;
+    PYGMYTIME Time;
+    u32 Seconds;
+    u8 *TmpString, TmpBuffer[8];
+
+    TmpString = TmpBuffer;
+    TmpString = (u8*)strtok ( Buffer, ": /" );
+    if( !TmpString ){
+        return( FALSE );
+    } // if
+    Time.Month = convertStringToInt( TmpString );
+    TmpString = strtok ( NULL, ": /" );
+    if( !TmpString ){
+        return( FALSE );
+    } // if
+    Time.Day = convertStringToInt( TmpString );
+    TmpString = strtok ( NULL, ": /" );
+    if( !TmpString ){
+        return( FALSE );
+    } // if
+    Time.Year = convertStringToInt( TmpString );
+    TmpString = strtok ( NULL, ": /" );
+    if( !TmpString ){
+        return( FALSE );
+    } // if
+    Time.Hour = convertStringToInt( TmpString );
+    TmpString = strtok ( NULL, ": /" );
+    if( !TmpString ){
+        return( FALSE );
+    } // if
+    Time.Minute = convertStringToInt( TmpString );
+    TmpString = strtok ( NULL, ": /" );
+    if( !TmpString ){
+        return( FALSE );
+    } // if
+    Time.Second = convertStringToInt( TmpString );
+
+    Seconds = convertSystemTimeToSeconds( &Time );
+    
+    return( Seconds );
 }
 
 void copyBuffer( u8 *ucFrom, u8 *ucTo, u16 uiLen )
@@ -214,6 +292,19 @@ u32 convertBufferToU32( u8 *ucBuffer, u8 ucEndian )
     } // else
 
     return( ulData );
+}
+
+u32 countCharInString( u8 Char, u8 *String )
+{
+    u32 i, Matches;
+
+    for( i = 0, Matches = 0; String[ i ]; i++ ){
+        if( String[ i ] == Char ){
+            ++Matches;
+        } // if
+    } // for
+
+    return( Matches );
 }
 
 u8 *removeLeadingWhitespace( u8 *ucString )
@@ -434,6 +525,156 @@ s8 isStringSame( u8 *ucBuffer, u8 *ucString )
     } // for
     
     return( 1 );
+}
+
+u8 getAllParameters( u8 *Buffer, PYGMYPARAMLIST *Parameters ) 
+{
+    // This function breaks a buffer of chars into an array of strings
+    // ParamArray is allocated by this function and must be freed by the calling function
+    // parameters are separated by double quotes and spaces
+    u32 i, ii, BufferLen;
+    u8 Quotes;
+    
+    Parameters->SwitchCount = 0;
+    Parameters->ParamCount = 0;
+    Quotes = FALSE;
+    BufferLen = len( Buffer );
+
+    if( BufferLen < 1 ){
+        return( FALSE );
+    } // if
+    Parameters->Switches = malloc( sizeof( void * ) );
+    if( !Parameters->Switches ){
+        return( FALSE );
+    } // if
+    Parameters->Params = malloc( sizeof( void * ) );
+    if( !Parameters->Params ){
+        free( Parameters->Switches );
+        return( FALSE );
+    } // if
+    
+    for( i = 0; i < BufferLen; i++ ){
+        // Skip spaces until a parameter or name is found
+        // Parameters start with a - or --
+        if( Buffer[ i ] == '-' ){
+            // This is a parameter
+            ++i;
+            if( Buffer[ i ] == '-' ){
+                ++i; // This parameter is prefixed with --
+            } // if
+            Parameters->Switches = realloc( Parameters->Switches, ( Parameters->SwitchCount + 1 ) * 4 );
+            if( !Parameters->Switches ){
+                freeParameterList( Parameters );
+                return( FALSE );
+            } // if
+            
+            Parameters->Switches[ Parameters->SwitchCount ] = malloc( 2 );
+            if( !Parameters->Switches[ Parameters->SwitchCount ] ){
+                // If memory allcoation failed, cleanup and return
+                freeParameterList( Parameters );
+                return( FALSE );
+            } // if
+            
+            // copy the parameter, break on whitespace or end of buffer
+            for( ii = 0; ii < BufferLen && Buffer[ i ] != ' ' && Buffer[ i ] != ','; ii++, i++ ){
+            //for( ii = 0; ii < BufferLen && Buffer[ i ] != ' '; ii++, i++ ){
+                // allocate another byte for the next char
+                Parameters->Switches[ Parameters->SwitchCount ] = realloc( Parameters->Switches[ Parameters->SwitchCount ], 1 + ( ii + 2 ) );
+                // append the char
+                Parameters->Switches[ Parameters->SwitchCount ][ ii ] = Buffer[ i ];
+            } // for
+            Parameters->Switches[ (Parameters->SwitchCount)++ ][ ii ] = '\0'; // Terminate string and increment parameter counter
+        } else if( Buffer[ i ] != ' ' &&  Buffer[ i ] != ',' ){
+            // This is a name
+            if( Buffer[ i ] == '\"' ){
+                Quotes = TRUE;
+                ++i;
+            } else{
+                Quotes = FALSE;
+            } // else
+            Parameters->Params = realloc( Parameters->Params, ( Parameters->ParamCount + 1 ) * 4 );
+            Parameters->Params[ Parameters->ParamCount ] = malloc( 2 );
+            if( !Parameters->Params || !Parameters->Params[ Parameters->ParamCount ] ){
+                // memory allocation failed, cleanup and return with error
+                freeParameterList( Parameters );
+                return( FALSE );
+            } // if
+            // Copy the name
+            for( ii = 0; ii < BufferLen; ii++, i++ ){
+                Parameters->Params[ Parameters->ParamCount ] = realloc( Parameters->Params[ Parameters->ParamCount ], ii + 3 );
+                if( !Parameters->Params[ Parameters->ParamCount ] ){
+                    freeParameterList( Parameters );
+                    return( FALSE );
+                } // if
+                
+                if( Quotes ){
+                    if( Buffer[ i ] == '\"' ){
+                        ++i;
+                        Quotes = FALSE;
+                        break; // The end of string has been reached, terminate the string and break
+                    } // if
+                    if( Buffer[ i ] == '\\' ){
+                        ++i;
+                        if( Buffer[ i ] == 'r'){
+                            print( COM3, "\rFound Escape Sequence: Carriage Return" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x0D;  // carriage return escape sequence
+                        } else if( Buffer[ i ] == 't' ){ 
+                            print( COM3, "\rFound Escape Sequence: Tab" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x09;  // horizontal tab escape sequence
+                        } else if( Buffer[ i ] == 'n' ){          
+                            print( COM3, "\rFound Escape Sequence: Newline" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii++ ] = 0x0D;// For a newline, add a carriage return followed by a linefeed
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x0A;
+                            ++BufferLen; // Increase BufferLen to accommodate the additional character
+                        } else if( Buffer[ i ] == 'l' ){
+                            print( COM3, "\rFound Escape Sequence: Line Feed" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x0A;  // line feed escape sequence
+                        } else if( Buffer[ i ] == 'f' ){
+                            print( COM3, "\rFound Escape Sequence: Form Feed" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x0C;  // form feed/page break escape sequence
+                        } else if( Buffer[ i ] == '\"' ){
+                            print( COM3, "\rFound Escape Sequence: Double Quote" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x22;  // double quotes escape sequence
+                        } else if( Buffer[ i ] == '\'' ){
+                            print( COM3, "\rFound Escape Sequence: Single Quote" );
+                            Parameters->Params[ Parameters->ParamCount ][ ii ] = 0x27;  // single quotes escape sequence
+                        } // else if
+                        continue;
+                    } // if
+                } else if( Buffer[ i ] == ' ' ){
+                    break; // The end of string has been reached, terminate the string and break
+                } // else
+                Parameters->Params[ Parameters->ParamCount ][ ii ] = Buffer[ i ];
+            } // for
+            Parameters->Params[ Parameters->ParamCount++ ][ ii ] = '\0'; // Terminate string
+        } // else if
+    } // for
+
+    return( TRUE );
+}
+
+void freeParameterList( PYGMYPARAMLIST *Parameters )
+{
+    u32 i;
+  
+    return;
+    if( Parameters->Params ){
+        for( i = 0; i < Parameters->ParamCount; i++ ){ 
+            if( Parameters->Params[ i ] ){
+                free( Parameters->Params[ i ] );
+            } // if
+        } // for
+        free( Parameters->Params );
+    } // if
+    if( Parameters->Switches ){
+        for( i = 0; i < Parameters->SwitchCount; i++ ){
+            if( Parameters->Switches[ i ] ){
+                free( Parameters->Switches[ i ] );
+            } // if
+        } // for
+        free( Parameters->Switches );
+    } // if
+    
 }
 
 u16 getAllSubStrings( u8 *ucBuffer, u8 *ucStrings[], u16 uiLen, u8 ucMode )
@@ -742,6 +983,24 @@ void convertIntToString( s64 lData, u8 *ucFormat, u8 *ucBuffer )
     } // for
     //putcUSART3( ')' );
     *ucBuffer = '\0';
+}
+
+u8 replaceLastChar( u8 *ucString, u8 ucChar, u8 ucNewChar )
+{
+    // Warning! Do not use with constant strings!
+    // Replaces last occurance of ucChar with ucNewChar
+    // Returns location of char
+    u16 i;
+
+    i = len( ucString );
+    for( ; i; ){
+        if( ucString[ --i ] == ucChar ){
+            ucString[ i ] = ucNewChar;
+            break;
+        } // if
+    } // for
+
+    return( i );
 }
 
 void appendString( u8 *ucFrom, u8 *ucTo )
