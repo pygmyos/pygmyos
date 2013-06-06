@@ -96,25 +96,32 @@ u8 sysInit( void )
 {
     u16 i;
 
-    //RCC->APB2ENR |= (RCC_IOPBEN|RCC_IOPCEN|RCC_IOPAEN);
-    //pygmyGlobalData.Status = 0;
-    //pygmyGlobalData.MCUID = fpecMCUID( );
-    //pygmyGlobalData.XTAL = PYGMY_XTAL;
-    //pygmyGlobalData.PLL = BIT16|BIT1;
+    RCC->APB2ENR |= (RCC_IOPBEN|RCC_IOPCEN|RCC_IOPAEN);
+    pygmyGlobalData.Status = 0;
+    pygmyGlobalData.MCUID = fpecMCUID( );
+    pygmyGlobalData.XTAL = PYGMY_XTAL;
+    pygmyGlobalData.PLL = BIT16|BIT1;
 
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
         pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY1;
         pygmyGlobalData.MainClock     = 32000000;
+        pygmyGlobalData.BaudClock     = 32000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER11;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER9;
+        PYGMY_RCC_TIMER11_ENABLE;
+        PYGMY_RCC_TIMER9_ENABLE;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F100MD || pygmyGlobalData.MCUID == DESC_STM32F100HD ){
         pygmyGlobalData.MainClock     = 24000000;
+        pygmyGlobalData.BaudClock     = 24000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER15;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER16;
+        PYGMY_RCC_TIMER15_ENABLE;
+        PYGMY_RCC_TIMER16_ENABLE;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F103XLD ){
         pygmyGlobalData.FlashControl  = (FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2);
         pygmyGlobalData.PLL           = RCC_PLL_X9|BIT16|BIT15|BIT14|BIT1;
         pygmyGlobalData.MainClock     = 72000000;
+        pygmyGlobalData.BaudClock     = 36000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER9;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER10;
         PYGMY_RCC_TIMER9_ENABLE;
@@ -122,15 +129,20 @@ u8 sysInit( void )
     } else if ( pygmyGlobalData.MCUID == DESC_STM32F103HD ){
         pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2;
         pygmyGlobalData.MainClock     = 72000000;
+        pygmyGlobalData.BaudClock     = 36000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER1;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER8;
+        PYGMY_RCC_TIMER1_ENABLE;
+        PYGMY_RCC_TIMER8_ENABLE;
     } else{ // STM32F103LD and MD
         pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2; 
         pygmyGlobalData.MainClock     = 72000000;
+        pygmyGlobalData.BaudClock     = 36000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER1;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER0;
+        PYGMY_RCC_TIMER1_ENABLE;
     } // else
-    //FPEC->ACR = pygmyGlobalData.FlashControl;
+    FPEC->ACR = pygmyGlobalData.FlashControl;
     PYGMY_RCC_HSI_ENABLE;
     PYGMY_RCC_HSE_ENABLE;
     while( !PYGMY_RCC_HSE_READY );
@@ -518,6 +530,11 @@ u8 sysGetPWMTimer( void )
 u32 sysGetMainClock( void )
 {
     return( pygmyGlobalData.MainClock );
+}
+
+u32 sysGetBaudClock( void )
+{
+    return( pygmyGlobalData.BaudClock );
 }
 
 void sysSetMainClock( u32 ulFreq )
@@ -1469,9 +1486,18 @@ void delay( u32 ulDelay )
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
     
     TIMER *pygmyTimer;
-    u32 i;
+    u32 i, ClockDiv, Prescaler;
     
     PYGMY_WATCHDOG_REFRESH;
+    ClockDiv = pygmyGlobalData.MainClock / 1000000;
+    ulDelay *= ClockDiv;
+    if( ulDelay > 0x0000FFFF ){
+        Prescaler = ulDelay >> 16;
+        ulDelay &= 0x0000FFFF;
+    } else{
+        Prescaler = 0;
+    } // else
+
     if( pygmyGlobalData.DelayTimer == PYGMY_TIMER1 ){
         // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
@@ -1480,44 +1506,26 @@ void delay( u32 ulDelay )
         
         PYGMY_RCC_TIMER1_ENABLE;
         TIM1->CR1 = 0;                          // Disable before configuring timer
-        ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
-        if( ulDelay > 0x0000FFFF ){
-            TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-            ulDelay &= 0x0000FFFF;
-        } // 
-        print( COM3, "\rDelay: %d", ulDelay );
-        //ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
-        if( ulDelay < 60 ){
-            ulDelay = 60;
-        } // 
         TIM1->CR2 = 0;                          //
         TIM1->SMCR = 0;                         //
         TIM1->DIER = 0;                         // DMA and interrupt enable register
         TIM1->CNT = 0;                          // Count Register
-        TIM1->ARR =  ulDelay - 60; // Auto Reload Register
+        TIM1->PSC = Pescaler;
+        TIM1->ARR =  ulDelay ; // Auto Reload Register
         TIM1->SR = 0;
         TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
     } else {
         //
         pygmyTimer = sysGetTimer( pygmyGlobalData.DelayTimer );
-        PYGMY_RCC_TIMER9_ENABLE;
         pygmyTimer->CR1 = 0;                          // Disable before configuring timer
-        ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
-        if( ulDelay > 0x0000FFFF ){
-            pygmyTimer->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-            ulDelay &= 0x0000FFFF;
-        } // 
-        //ulDelay *= ( pygmyGlobalData.MainClock / 1000000 );
-        if( ulDelay < 60 ){ 
-            // Minimum number of cycles supported
-            ulDelay = 60;
-        } // 
+        
         pygmyTimer->CR2 = 0;                          //
         pygmyTimer->SMCR = 0;                         //
         pygmyTimer->DIER = 0;                         // DMA and interrupt enable register
         pygmyTimer->CNT = 0;                          // Count Register
-        pygmyTimer->ARR =  ulDelay - 60; // Auto Reload Register
+        pygmyTimer->PSC = Prescaler;
+        pygmyTimer->ARR =  ulDelay; // Auto Reload Register
         pygmyTimer->SR = 0;
         pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while(( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete

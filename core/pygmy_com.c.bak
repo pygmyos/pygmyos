@@ -132,7 +132,7 @@ u8 comOpen( u8 Port, u32 BaudRate, u8 Options )
         Uart = USART6;
     } // else if
     #endif // __PYGMYSTREAMCOM6        
-    Uart->CR3 = USART_ONEBITE;
+    Uart->CR3 = 0;//USART_ONEBITE;
     // Warning! CTS and RTS are not supported on UART4-UART5
     if( Options & RTS ){
         Uart->CR3 |= USART_RTSE;
@@ -140,7 +140,7 @@ u8 comOpen( u8 Port, u32 BaudRate, u8 Options )
     if( Options & CTS ){
         Uart->CR3 |= USART_CTSE;
     } // if
-    MainClock = sysGetMainClock();
+    MainClock = sysGeBaudClock();
     Uart->BRR = ( ( ( MainClock >> 3 ) / BaudRate ) << 4 ) + ( ( ( MainClock / BaudRate ) ) & 0x0007 );
     if( Options & TXIE ){
         Uart->CR1 = ( USART_OVER8 | USART_UE | USART_TXEIE | USART_RXNEIE | USART_TE | USART_RE  );

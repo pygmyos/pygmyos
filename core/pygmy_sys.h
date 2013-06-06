@@ -224,6 +224,7 @@ typedef struct {
 typedef struct {
                 PYGMYXMODEM XModem;
                 u32 MainClock;
+                u32 BaudClock;
                 u32 XTAL;
                 u32 FlashControl;
                 u32 PLL;
@@ -1148,6 +1149,7 @@ void sysFree( void *vPtr );
 void sysHeapInit( void );
 u8 sysInit( void );
 u32 sysGetMainClock( void );
+u32 sysGetBaudClock( void );
 void sysSetMainClock( u32 ulFreq );
 u32 sysGetXTAL( void );
 void sysSetXTAL( u32 ulFreq );

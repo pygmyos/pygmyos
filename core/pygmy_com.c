@@ -140,7 +140,7 @@ u8 comOpen( u8 Port, u32 BaudRate, u8 Options )
     if( Options & CTS ){
         Uart->CR3 |= USART_CTSE;
     } // if
-    MainClock = sysGetMainClock();
+    MainClock = sysGetBaudClock();
     Uart->BRR = ( ( ( MainClock >> 3 ) / BaudRate ) << 4 ) + ( ( ( MainClock / BaudRate ) ) & 0x0007 );
     if( Options & TXIE ){
         Uart->CR1 = ( USART_OVER8 | USART_UE | USART_TXEIE | USART_RXNEIE | USART_TE | USART_RE  );
