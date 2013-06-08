@@ -1224,8 +1224,8 @@ u32 getIDCode( void );
 u32 getIDRevision( void );
 
 //void enableXTAL( void );
-void delayms( u32 ulDelay );
-void delay( u32 ulDelay );
+void delayms( u32 Delay );
+void delay( u32 Delay );
 void mcoEnable( u8 ucSource );
 void mcoDisable( void );
 void stopwatchStart( void );

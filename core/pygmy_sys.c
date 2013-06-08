@@ -1472,38 +1472,37 @@ void setMainClock( u32 ulClock )
     SYSTICK->VAL = ( pygmyGlobalData.MainClock * 2 ) / 1000; // 24000;
     SYSTICK->CTRL = 0x07;   // Enable system timer  
 }
-
 #pragma push_options
 #pragma optimize ("O0")
-void delayms( u32 ulDelay )
+
+void delayms( u32 Delay )
 {
-    delay( ulDelay * 1000 );
+    delay( Delay * 1000 );
 }
 
-void delay( u32 ulDelay )
+void delay( u32 Delay )
 {
     // This function uses a general purpose timer to provide an accurate microsecond delay
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
     
     TIMER *pygmyTimer;
-    u32 i, ClockDiv, Prescaler;
+    u32 i;
+    u32 Prescaler;
     
     PYGMY_WATCHDOG_REFRESH;
-    ClockDiv = pygmyGlobalData.MainClock / 1000000;
-    ulDelay *= ClockDiv;
-    if( ulDelay > 0x0000FFFF ){
-        Prescaler = ulDelay >> 16;
-        ulDelay &= 0x0000FFFF;
-    } else{
-        Prescaler = 0;
-    } // else
-
+    Delay *= ( pygmyGlobalData.MainClock / 1000000 );
+    if( Delay > 0x0000FFFF ){
+        Prescaler = ( Delay >> 16 ) + 1;
+        Delay = ( Delay / prescalar );
+    } // 
+    if( Delay < 60 ){ 
+        return; // Delay of under 60 microseconds not supported
+    } // if 
     if( pygmyGlobalData.DelayTimer == PYGMY_TIMER1 ){
         // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
         // multipurpose timers and must share Timer1. In this case, Timer1
-        // should not be used for PWM output. 
-        
+        // should not be used for PWM output.
         PYGMY_RCC_TIMER1_ENABLE;
         TIM1->CR1 = 0;                          // Disable before configuring timer
         TIM1->CR2 = 0;                          //
@@ -1511,21 +1510,21 @@ void delay( u32 ulDelay )
         TIM1->DIER = 0;                         // DMA and interrupt enable register
         TIM1->CNT = 0;                          // Count Register
         TIM1->PSC = Prescaler;
-        TIM1->ARR =  ulDelay ; // Auto Reload Register
+        TIM1->ARR =  Delay; // Auto Reload Register
         TIM1->SR = 0;
         TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
     } else {
         //
         pygmyTimer = sysGetTimer( pygmyGlobalData.DelayTimer );
+        PYGMY_RCC_TIMER9_ENABLE;
         pygmyTimer->CR1 = 0;                          // Disable before configuring timer
-        
         pygmyTimer->CR2 = 0;                          //
         pygmyTimer->SMCR = 0;                         //
         pygmyTimer->DIER = 0;                         // DMA and interrupt enable register
         pygmyTimer->CNT = 0;                          // Count Register
+        pygmyTimer->ARR =  Delay - 60; // Auto Reload Register
         pygmyTimer->PSC = Prescaler;
-        pygmyTimer->ARR =  ulDelay; // Auto Reload Register
         pygmyTimer->SR = 0;
         pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while(( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
@@ -1579,29 +1578,6 @@ void *sysGetTimer( u8 ucTimer )
     } // switch
 }
 
-/*void delay( u32 ulDelay )
-{
-    // This function uses Timer1 to provide an accurate microsecond delay
-    // MainClock must be set to 1MHz min, 8MHz or higher recommended
-    TIM1->CR1 = 0;                          // Disable before configuring timer
-    if( ulDelay > 0x0000FFFF ){
-        TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-        ulDelay &= 0x0000FFFF;
-    } // 
-    ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
-    if( ulDelay < 60 ){
-        ulDelay = 60;
-    } // 
-    TIM1->CR2 = 0;                          //
-    TIM1->SMCR = 0;                         //
-    TIM1->DIER = 0;                         // DMA and interrupt enable register
-    TIM1->CNT = 0;                          // Count Register
-    TIM1->ARR =  ulDelay - 60; // Auto Reload Register
-    TIM1->SR = 0;
-    TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
-    while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete
-}*/
-
 void stopwatchStart( void )
 {
     //pygmyGlobalData.StopWatch = ( pygmyGlobalData.MainClock * 2 ) - SYSTICK->VAL;
@@ -1638,8 +1614,7 @@ void mcoDisable( void )
 
 //--------------------------------------------------------------------------------------------
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------
- //void f () __attribute__ ((weak, 
-__attribute__ ((weak)) void SysTick_Handler( void ) 
+void SysTick_Handler( void )
 {
     PYGMY_WATCHDOG_REFRESH; 
     
@@ -1659,9 +1634,6 @@ __attribute__ ((weak)) void SysTick_Handler( void )
     #ifdef __PYGMYSPRITES
         guiSpriteProcess( );
     #endif
-    //if( pygmyGlobalData.XModem ){
-    //    xmodemProcessTimer( pygmyGlobalData.XModem );
-    //} // if
 }
 
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------
