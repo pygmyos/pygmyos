@@ -1492,7 +1492,7 @@ void delay( u32 Delay )
     PYGMY_WATCHDOG_REFRESH;
     Delay *= ( pygmyGlobalData.MainClock / 1000000 );
     if( Delay > 0x0000FFFF ){
-        prescalar = ( Delay >> 16 ) + 1;
+        Prescaler = ( Delay >> 16 ) + 1;
         Delay = ( Delay / prescalar );
     } // 
     if( Delay < 60 ){ 
@@ -1577,29 +1577,6 @@ void *sysGetTimer( u8 ucTimer )
             return( NULL );
     } // switch
 }
-
-/*void delay( u32 ulDelay )
-{
-    // This function uses Timer1 to provide an accurate microsecond delay
-    // MainClock must be set to 1MHz min, 8MHz or higher recommended
-    TIM1->CR1 = 0;                          // Disable before configuring timer
-    if( ulDelay > 0x0000FFFF ){
-        TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-        ulDelay &= 0x0000FFFF;
-    } // 
-    ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
-    if( ulDelay < 60 ){
-        ulDelay = 60;
-    } // 
-    TIM1->CR2 = 0;                          //
-    TIM1->SMCR = 0;                         //
-    TIM1->DIER = 0;                         // DMA and interrupt enable register
-    TIM1->CNT = 0;                          // Count Register
-    TIM1->ARR =  ulDelay - 60; // Auto Reload Register
-    TIM1->SR = 0;
-    TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
-    while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete
-}*/
 
 void stopwatchStart( void )
 {

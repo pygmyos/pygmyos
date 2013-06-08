@@ -1493,7 +1493,7 @@ void delay( u32 Delay )
     Delay *= ( pygmyGlobalData.MainClock / 1000000 );
     if( Delay > 0x0000FFFF ){
         Prescaler = ( Delay >> 16 ) + 1;
-        Delay = ( Delay / prescalar );
+        Delay = ( Delay / Prescaler );
     } // 
     if( Delay < 60 ){ 
         return; // Delay of under 60 microseconds not supported
@@ -1577,6 +1577,7 @@ void *sysGetTimer( u8 ucTimer )
             return( NULL );
     } // switch
 }
+
 
 void stopwatchStart( void )
 {
