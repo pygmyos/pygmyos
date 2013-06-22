@@ -51,7 +51,7 @@
 #define CSR_LSION_BB              (PERIPH_BB_BASE + (CSR_OFFSET * 32) + (LSION_BitNumber * 4))
 
 // ---------------------- RCC registers bit mask ------------------------ 
-#define CR_HSEBYP_RESET           ((u32)0xFFFBFFFF)
+/*#define CR_HSEBYP_RESET           ((u32)0xFFFBFFFF)
 #define CR_HSEBYP_SET             ((u32)0x00040000)
 #define CR_HSEON_RESET            ((u32)0xFFFEFFFF)
 #define CR_HSEON_SET              ((u32)0x00010000)
@@ -76,7 +76,87 @@
 #define FLAG_MASK                 ((u8)0x1F) // RCC Flag Mask 
 #define BDCR_BASE                 (PERIPH_BASE + BDCR_OFFSET) // BDCR register base address 
 
-#define HSEStartUp_TimeOut        ((u8)0xFF)
+#define HSEStartUp_TimeOut        ((u8)0xFF)*/
+//------------------------------------------------------------------------------
+//----------------------------------RCC Defines---------------------------------
+// CR
+#define PYGMY_RCC_CR_PLLRDY             BIT25
+#define PYGMY_RCC_CR_PLLON              BIT24
+#define PYGMY_RCC_CR_CSSON              BIT19
+#define PYGMY_RCC_CR_HSEBYP             BIT18
+#define PYGMY_RCC_CR_HSERDY             BIT17
+#define PYGMY_RCC_CR_HSEON              BIT16
+#define PYGMY_RCC_CR_HSIRDY             BIT1
+#define PYGMY_RCC_CR_HSION              BIT0
+// CFGR
+#define PYGMY_RCC_CFGR_MCO_MASK         (BIT26|BIT25|BIT24)
+#define PYGMY_RCC_CFGR_MCO_OFF          0
+#define PYGMY_RCC_CFGR_MCO_SYSCLOCK     BIT26
+#define PYGMY_RCC_CFGR_MCO_HSI          (BIT26|BIT24)
+#define PYGMY_RCC_CFGR_MCO_HSE          (BIT26|BIT25)
+#define PYGMY_RCC_CFGR_MCO_PLL          (BIT26|BIT25|BIT24)
+#define PYGMY_RCC_CFGR_USBPRE           BIT22 // Prescale the USB clock, 0 = PLL/1.5, 1 = PLL/1
+#define PYGMY_RCC_CFGR_PLL_MULMASK      (BIT21|BIT20|BIT19|BIT18) // Multiplier for HSE/HSI to generate SYSCLOCK of desired frequency
+#define PYGMY_RCC_CFGR_PLLXTPRE         BIT17 // Pre-divide the HSE clock before the PL, 0 = no division, 1 = HSE/2
+#define PYGMY_RCC_CFGR_PLSRC            BIT16 // PLL Source, 0 = HSI/2, 1 = HSE
+#define PYGMY_RCC_CFGR_ADCPRE_MASK      (BIT15|BIT14)
+#define PYGMY_RCC_CFGR_ADCPRE_2         0  
+#define PYGMY_RCC_CFGR_ADCPRE_4         BIT14
+#define PYGMY_RCC_CFGR_ADCPRE_6         BIT15
+#define PYGMY_RCC_CFGR_ADCPRE_8         (BIT15|BIT14)
+#define PYGMY_RCC_CFGR_PPRE2_MASK       (BIT13|BIT12|BIT11) // High Speed Prescaler for APB2
+#define PYGMY_RCC_CFGR_PPRE2_0          0 // HCLK/1
+#define PYGMY_RCC_CFGR_PPRE2_2          BIT13 // HCLK/2
+#define PYGMY_RCC_CFGR_PPRE2_4          (BIT13|BIT11) //HCLK/4
+#define PYGMY_RCC_CFGR_PPRE2_8          (BIT13|BIT12) //HCLK/8
+#define PYGMY_RCC_CFGR_PPRE2_16         (BIT13|BIT12|BIT11) // HCLK/16
+#define PYGMY_RCC_CFGR_PPRE1_MASK       (BIT10|BIT9|BIT8) // Low speed prescaler for APB1, These bits must be set such that APB1 does not exceed 36 MHz
+#define PYGMY_RCC_CFGR_PPRE1_0          0 // HCLK/1
+#define PYGMY_RCC_CFGR_PPRE1_2          BIT10 // HCLK/2
+#define PYGMY_RCC_CFGR_PPRE1_4          (BIT10|BIT8) // HCLK/4
+#define PYGMY_RCC_CFGR_PPRE1_8          (BIT10|BIT9) // HCLK/8
+#define PYGMY_RCC_CFGR_PPRE1_16         (BIT10|BIT9|BIT8) // HCLK/16
+#define PYGMY_RCC_CFGR_HPRE_MASK        (BIT7|BIT6|BIT5|BIT4) // AHB prescaler for SYSCLK
+#define PYGMY_RCC_CFGR_HPRE_0           0 // HCLK/1
+#define PYGMY_RCC_CFGR_HPRE_2           BIT7 // HCLK/2
+#define PYGMY_RCC_CFGR_HPRE_4           (BIT7|BIT4) // HCLK/4
+#define PYGMY_RCC_CFGR_HPRE_8           (BIT7|BIT5) // HCLK/8
+#define PYGMY_RCC_CFGR_HPRE_16          (BIT7|BIT5|BIT4) // HCLK/16
+#define PYGMY_RCC_CFGR_HPRE_64          (BIT7|BIT6) // HCLK/64
+#define PYGMY_RCC_CFGR_HPRE_128         (BIT7|BIT6|BIT4) // HCLK/128
+#define PYGMY_RCC_CFGR_HPRE_256         (BIT7|BIT6|BIT5) // HCLK/256
+#define PYGMY_RCC_CFGR_HPRE_512         (BIT7|BIT6|BIT5|BIT4) // HCLK/512
+#define PYGMY_RCC_CFGR_SWS_MASK         (BIT3|BIT2) // System clock switch status
+#define PYGMY_RCC_CFGR_SWS_HSI          0
+#define PYGMY_RCC_CFGR_SWS_HSE          BIT2
+#define PYGMY_RCC_CFGR_SWS_PLL          BIT3
+#define PYGMY_RCC_CFGR_SW_MASK          (BIT1|BIT0) // system clock switch
+#define PYGMY_RCC_CFGR_SW_HSI           0
+#define PYGMY_RCC_CFGR_SW_HSE           BIT0
+#define PYGMY_RCC_CFGR_SW_PLL           BIT1
+// CIR, Clock Interrupt Register
+#define PYGMY_RCC_CIR_CSSC              BIT23 // Clock security system interrupt clear This bit is set by software to clear the CSSF flag: 0 = No effect, 1 = Clear CSSF flag
+#define PYGMY_RCC_CIR_PLLRDYC           BIT20
+#define PYGMY_RCC_CIR_HSERDYC           BIT19
+#define PYGMY_RCC_CIR_HSIRDYC           BIT18
+#define PYGMY_RCC_CIR_LSERDYC           BIT17
+#define PYGMY_RCC_CIR_LSIRDYC           BIT16
+#define PYGMY_RCC_CIR_PLLRDYIE          BIT12
+#define PYGMY_RCC_CIR_HSERDYIE          BIT11
+#define PYGMY_RCC_CIR_HSIRDYIE          BIT10
+#define PYGMY_RCC_CIR_LSERDYIE          BIT9
+#define PYGMY_RCC_CIR_LSIRDYIE          BIT8
+#define PYGMY_RCC_CIR_CSSF              BIT7 // Clock security system interrupt flag, set by hardware when a failure is detected in the external 4-16 MHz oscillator, cleared by software setting the CSSC bit.
+                                             // 0 = No clock security interrupt caused by HSE clock failure
+                                             // 1 = Clock security interrupt caused by HSE clock failure
+#define PYGMY_RCC_CIR_PLLRDYF           BIT4 // PLL Ready Flag
+#define PYGMY_RCC_CIR_HSERDYF           BIT3 // HSE Ready Flag
+#define PYGMY_RCC_CIR_HSIRDYF           BIT2 // HSI Ready Flag
+#define PYGMY_RCC_CIR_LSERDYF           BIT1 // LSE Ready Flag
+#define PYGMY_RCC_CIR_LSIRDYF           BIT0 // LSI Ready Flag
+// 
+//--------------------------------End RCC Defines-------------------------------
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 //-----------------------------System Specific Types----------------------------
@@ -995,8 +1075,9 @@ typedef struct
 //---------------------------------------------------------------------------------------------
 //---------------------------------------Clock Macro Defs---------------------------------------
 
-#define PYGMY_RCC_HSE_READY                ( RCC->CR & RCC_HSERDY )
-#define PYGMY_RCC_PLL_READY                ( RCC->CR & RCC_PLLRDY )
+#define PYGMY_RCC_HSE_READY                 ( RCC->CR & RCC_HSERDY )
+#define PYGMY_RCC_HSI_READY                 ( RCC->CR & RCC_HSIRDY )
+#define PYGMY_RCC_PLL_READY                 ( RCC->CR & RCC_PLLRDY )
 #define PYGMY_RCC_PLL_ENABLE                RCC->CR |= RCC_PLLON;
 #define PYGMY_RCC_PLL_DISABLE               RCC->CR &= ~RCC_PLLON;
 #define PYGMY_RCC_LSE_ENABLE                RCC->CR |= RCC_LSEON;
@@ -1150,7 +1231,7 @@ void sysHeapInit( void );
 u8 sysInit( void );
 u32 sysGetMainClock( void );
 u32 sysGetBaudClock( void );
-void sysSetMainClock( u32 ulFreq );
+u8 sysSetMainClock( u32 Clock );
 u32 sysGetXTAL( void );
 void sysSetXTAL( u32 ulFreq );
 void *sysGetTimer( u8 ucTimer );
@@ -1224,8 +1305,8 @@ u32 getIDCode( void );
 u32 getIDRevision( void );
 
 //void enableXTAL( void );
-void delayms( u32 ulDelay );
-void delay( u32 ulDelay );
+void delayms( u32 Delay );
+void delay( u32 Delay );
 void mcoEnable( u8 ucSource );
 void mcoDisable( void );
 void stopwatchStart( void );
