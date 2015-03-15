@@ -34,7 +34,9 @@ const u8 PYGMY_DAYSINMONTH[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 
 
 // Global System Variables                          
                            
-PYGMYTASK           pygmyGlobalTasks[ PYGMY_MAXTASKS ];
+//PYGMYTASK           pygmyGlobalTasks[ PYGMY_MAXTASKS ];
+u32 pygmyGlobalTaskCount;
+PYGMYTASK           *pygmyGlobalTasks;
 PYGMYMESSAGE        pygmyGlobalMessages[ PYGMY_MAXMESSAGES ];
 PYGMYSYSTEM         pygmyGlobalData;
 
@@ -87,8 +89,7 @@ void sysHeapInit( void )
     } // for
 }*/
 
-//-------------------------------Pygmy OS Memory Allocation Wrappers--------------------------
-//--------------------------------------------------------------------------------------------
+//-------------------------------Pygmy OS Memory Allocation Wrappers
   
 //--------------------------------------------------------------------------------------------
 //-----------------------------------Pygmy OS Basic Functions--------------------------------- 
@@ -100,7 +101,7 @@ u8 sysInit( void )
     pygmyGlobalData.Status = 0;
     pygmyGlobalData.MCUID = fpecMCUID( );
     pygmyGlobalData.XTAL = PYGMY_XTAL;
-    pygmyGlobalData.PLL = BIT16|BIT1;
+    pygmyGlobalData.PLL = PYGMY_RCC_CFGR_PLSRC |PYGMY_RCC_CFGR_SW_PLL; //BIT16|BIT1;
 
     if( pygmyGlobalData.MCUID == DESC_STM32L152 ){
         pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY1;
@@ -111,6 +112,7 @@ u8 sysInit( void )
         PYGMY_RCC_TIMER11_ENABLE;
         PYGMY_RCC_TIMER9_ENABLE;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F100MD || pygmyGlobalData.MCUID == DESC_STM32F100HD ){
+        pygmyGlobalData.FlashControl = 0;
         pygmyGlobalData.MainClock     = 24000000;
         pygmyGlobalData.BaudClock     = 24000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER15;
@@ -119,17 +121,18 @@ u8 sysInit( void )
         PYGMY_RCC_TIMER16_ENABLE;
     } else if( pygmyGlobalData.MCUID == DESC_STM32F103XLD ){
         pygmyGlobalData.FlashControl  = (FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2);
-        pygmyGlobalData.PLL           = RCC_PLL_X9|BIT16|BIT15|BIT14|BIT1;
+        pygmyGlobalData.PLL           = PYGMY_RCC_CFGR_PLSRC|PYGMY_RCC_CFGR_ADCPRE_8|PYGMY_RCC_CFGR_SW_PLL;//BIT16|BIT15|BIT14|BIT1;
+        //pygmyGlobalData.PLL           = RCC_PLL_X9|PYGMY_RCC_CFGR_PLSRC|PYGMY_RCC_CFGR_ADCPRE_8|PYGMY_RCC_CFGR_SW_PLL;//BIT16|BIT15|BIT14|BIT1;
         pygmyGlobalData.MainClock     = 72000000;
-        pygmyGlobalData.BaudClock     = 36000000;
-        pygmyGlobalData.DelayTimer    = PYGMY_TIMER9;
+        pygmyGlobalData.BaudClock     = 72000000;
+        pygmyGlobalData.DelayTimer    = PYGMY_TIMER9;;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER10;
         PYGMY_RCC_TIMER9_ENABLE;
         PYGMY_RCC_TIMER10_ENABLE;
     } else if ( pygmyGlobalData.MCUID == DESC_STM32F103HD ){
         pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2;
         pygmyGlobalData.MainClock     = 72000000;
-        pygmyGlobalData.BaudClock     = 36000000;
+        pygmyGlobalData.BaudClock     = 72000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER1;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER8;
         PYGMY_RCC_TIMER1_ENABLE;
@@ -137,30 +140,17 @@ u8 sysInit( void )
     } else{ // STM32F103LD and MD
         pygmyGlobalData.FlashControl  = FPEC_ACR_PRFTBE | FPEC_ACR_LATENCY2; 
         pygmyGlobalData.MainClock     = 72000000;
-        pygmyGlobalData.BaudClock     = 36000000;
+        pygmyGlobalData.BaudClock     = 72000000;
         pygmyGlobalData.DelayTimer    = PYGMY_TIMER1;
         pygmyGlobalData.PWMTimer      = PYGMY_TIMER0;
         PYGMY_RCC_TIMER1_ENABLE;
     } // else
-    FPEC->ACR = pygmyGlobalData.FlashControl;
-    PYGMY_RCC_HSI_ENABLE;
-    PYGMY_RCC_HSE_ENABLE;
-    while( !PYGMY_RCC_HSE_READY );
-    RCC->CFGR2 = 0;
-    RCC->CFGR = pygmyGlobalData.PLL;
-    PYGMY_RCC_PLL_ENABLE;
-    while( !PYGMY_RCC_PLL_READY );
+   
+    sysSetMainClock( 72000000 );
     sysEnableTimerClock( pygmyGlobalData.DelayTimer );
     // The following implements default stream config from the profile
     // If no defaults are defined, configuration must be done manually
-    /*GPIOB->CRH &= ~( PIN10_CLEAR | PIN11_CLEAR );
-    GPIOB->CRH |= ( PIN10_OUT50_ALTPUSHPULL | PIN11_IN_FLOAT );
-
-    USART3->BRR = ( ( (72000000 >> 3 ) / 2304000 ) << 4 ) + ( ( ( 72000000 / 230400 ) ) & 0x0007 );
-    //USART3->BRR = ( ( (ulClock >> 3 ) / 9600 ) << 4 ) + ( ( ( ulClock / 9600 ) ) & 0x0007 );
-    USART3->CR3 = USART_ONEBITE;
-    USART3->CR1 = ( USART_OVER8 | USART_UE | USART_RXNEIE | USART_TE | USART_RE  );
-    return;*/
+   
     #ifdef __PYGMYSTREAMS
         streamInit();
         
@@ -537,12 +527,12 @@ u32 sysGetBaudClock( void )
     return( pygmyGlobalData.BaudClock );
 }
 
-void sysSetMainClock( u32 ulFreq )
+/*void sysSetMainClock( u32 ulFreq )
 {
     // ToDo: Add preverification code for clock
     // ToDo: Add code to apply clock settings to RCC
     pygmyGlobalData.MainClock = ulFreq;
-}
+}*/
 
 u32 sysGetXTAL( void )
 {
@@ -874,7 +864,7 @@ u16 taskProcess( void )
     u16 i;
 
     ulTime = timeGet();
-    for( i = 0; i < PYGMY_MAXTASKS; i++ ){
+    for( i = 0; i < pygmyGlobalTaskCount; i++ ){
         if( pygmyGlobalTasks[ i ].ID != PYGMY_BLANKID ){
             if( pygmyGlobalTasks[ i ].Expire ){
                 if( pygmyGlobalTasks[ i ].Expire == ulTime ){
@@ -901,10 +891,18 @@ u16 taskProcess( void )
     return( 1 );
 }
 
-void taskInit( void )
+u8 taskInit( void )
 {
-    u16 i;
+    pygmyGlobalTaskCount = 0;
+    pygmyGlobalTasks = malloc( sizeof( PYGMYTASK ) );
+    if( !pygmyGlobalTasks ){
+         return( FALSE );
+    } // if
+    pygmyGlobalTaskCount = 1;
 
+    return( TRUE );
+    /*u16 i;
+    
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         pygmyGlobalTasks[ i ].Name          = NULL;
         pygmyGlobalTasks[ i ].ID            = PYGMY_BLANKID;
@@ -915,6 +913,7 @@ void taskInit( void )
         pygmyGlobalTasks[ i ].Expire        = 0;
     } // for   
     pygmyGlobalData.Status |= PYGMY_TASK_INIT;
+    */
 }
 
 u8 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
@@ -928,32 +927,23 @@ u8 taskNewSimple( u8 *ucName, u32 ulTimer, PYGMYFUNCPTR EventHandler )
     return( taskNew( ucName, ulTimer, ulTimer, 0, EventHandler ) );
 }
 
-//u16 taskNew( u8 *ucName, u16 uiID, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
 u8 taskNew( u8 *ucName, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR EventHandler )
 { 
+    PYGMYTASK *TmpTask;
     u16 i;
 
-    //if( uiID >= PYGMY_SERVICEDID ){
-    //    return( 0 );
-    //} // if
-    /*for( i = 0; i < PYGMY_MAXTASKS; i++ ){
-        if( uiID && ( pygmyGlobalTasks[ i ].ID == uiID || 
-            isStringSame( ucName, pygmyGlobalTasks[ i ].Name ) ) ){
-            return( 0 );
-            //return( PYGMY_TASK_EXISTS );
-        } // if
-    } // for
-    */
     if( taskIsRunning( ucName ) ){
         return( FALSE );
     } // if
+    TmpTask = realloc( pygmyGlobalTasks, ( pygmyGlobalTaskCount + 1 ) * sizeof( PYGMYTASK ) );
+    if( !TmpTask ){
+        return( FALSE );
+    } // if
+    pygmyGlobalTasks = TmpTask;
+    ++pygmyGlobalTaskCount;
     for( i = 0; i < PYGMY_MAXTASKS; i++ ){
         if( pygmyGlobalTasks[ i ].ID == PYGMY_BLANKID ){
-            //if( uiID ){
-            //    pygmyGlobalTasks[ i ].ID = uiID; // ID was provided
-            //} else{
-                pygmyGlobalTasks[ i ].ID = PYGMY_TEMPID | i; // Generate unique ID
-            //} // else
+            pygmyGlobalTasks[ i ].ID = PYGMY_TEMPID | i; // Generate unique ID
             pygmyGlobalTasks[ i ].Busy          = 0;
             pygmyGlobalTasks[ i ].Name          = ucName;
             pygmyGlobalTasks[ i ].Timer         = ulTimer;
@@ -966,15 +956,13 @@ u8 taskNew( u8 *ucName, u32 ulTimer, u32 ulReload, u32 ulExpire, PYGMYFUNCPTR Ev
             pygmyGlobalTasks[ i ].TimeStamp     = timeGet( );
             pygmyGlobalTasks[ i ].Expire        = ulExpire;
 
-            //return( PYGMY_TASK_SUCCESS );
-            return( TRUE );//pygmyGlobalTasks[ i ].ID );
+            return( TRUE );
         } // if
     } // for
 
     return( FALSE );
 }
 
-//u8 taskIsRunning( u8 *ucName, u16 uiID )
 u8 taskIsRunning( u8 *ucName )
 {
     // Return 1 for task found and 0 for not found
@@ -1455,55 +1443,72 @@ u8 putsFILE( u8 *ucBuffer )
 //--------------------------------------------------------------------------------------------
 //---------------------------------------Pygmy OS XTAL----------------------------------------
 
-void setMainClock( u32 ulClock )
+u8 sysSetMainClock( u32 Clock )
 {
+    u32 Multiplier;
     // ToDo: Upgrade this function with selectable prescaler and multiplier  
-    PYGMY_RCC_HSE_ENABLE;
-    while( !(PYGMY_RCC_HSE_READY) );
+    if( ( Clock > PYGMY_MAX_XTAL ) || ( Clock % PYGMY_XTAL ) ){
+        return( FALSE ); // Do not change clock if requested frequency is out of range
+    } // if
+    Multiplier = 0x0F & (Clock / PYGMY_XTAL);
+    pygmyGlobalData.MainClock = Clock;
+    pygmyGlobalData.BaudClock = Clock;
+    FPEC->ACR = pygmyGlobalData.FlashControl;
+
+    PYGMY_RCC_PLL_DISABLE; // Always disable the PLL before making changes
+    if( !(RCC->CR & PYGMY_RCC_CR_HSION ) ){
+        // HSI Must be ON for Flash Program/Erase Operations
+        PYGMY_RCC_HSI_ENABLE; // HSI is not enabled
+        while( !(PYGMY_RCC_HSI_READY) ); // Wait for high speed internal oscillator to stabilize
+    } // if
+    
+    if( !(RCC->CR & PYGMY_RCC_CR_HSEON ) ){
+        PYGMY_RCC_HSE_ENABLE; // HSE is not enabled, enable it
+        while( !(PYGMY_RCC_HSE_READY) ); // Wait for the high speed external oscillator to stabilize
+    } // if
+    
     // The following PLL Multiplier * XTAL must not exceed 24MHz for 100 Series MCU 
     RCC->CFGR2 = 0;
-    RCC->CFGR = BIT15|BIT14|BIT16|BIT1;//BIT15|BIT14 set ADC prediv to 8
+    RCC->CFGR = pygmyGlobalData.PLL | ( ( Multiplier - 2 ) << 18 );//| (BIT15|BIT14|BIT16|BIT1);//BIT15|BIT14 set ADC prediv to 8
     PYGMY_RCC_PLL_ENABLE;
-    while( !(PYGMY_RCC_PLL_READY) );
-    // HSI Must be ON for Flash Program/Erase Operations
-    PYGMY_RCC_HSI_ENABLE;
-    PYGMY_RCC_TIMER1_ENABLE;
-    SYSTICK->LOAD = ( pygmyGlobalData.MainClock * 2 ) / 1000; // 24000; // Based on  ( 2X the System Clock ) / 1000
-    SYSTICK->VAL = ( pygmyGlobalData.MainClock * 2 ) / 1000; // 24000;
+    while( !(PYGMY_RCC_PLL_READY) ); // Wait for the phase-locked-loop to stabilize
+    
+    SYSTICK->LOAD = ( pygmyGlobalData.MainClock ) / 1000; // 24000; // Based on  ( 2X the System Clock ) / 1000
+    SYSTICK->VAL = ( pygmyGlobalData.MainClock ) / 1000; // 24000;
     SYSTICK->CTRL = 0x07;   // Enable system timer  
 }
 
 #pragma push_options
 #pragma optimize ("O0")
-void delayms( u32 ulDelay )
+
+void delayms( u32 Delay )
 {
-    delay( ulDelay * 1000 );
+    delay( Delay * 1000 );
 }
 
-void delay( u32 ulDelay )
+void delay( u32 Delay )
 {
     // This function uses a general purpose timer to provide an accurate microsecond delay
     // MainClock must be set to 1MHz min, 8MHz or higher recommended
     
     TIMER *pygmyTimer;
-    u32 i, ClockDiv, Prescaler;
+    u32 i;
+    u32 Prescaler;
     
     PYGMY_WATCHDOG_REFRESH;
-    ClockDiv = pygmyGlobalData.MainClock / 1000000;
-    ulDelay *= ClockDiv;
-    if( ulDelay > 0x0000FFFF ){
-        Prescaler = ulDelay >> 16;
-        ulDelay &= 0x0000FFFF;
-    } else{
-        Prescaler = 0;
-    } // else
-
+    Delay *= ( pygmyGlobalData.MainClock / 1000000 );
+    if( Delay > 0x0000FFFF ){
+        Prescaler = ( Delay >> 16 ) + 1;
+        Delay = ( Delay / Prescaler );
+    } // 
+    if( Delay < 60 ){ 
+        return; // Delay of under 60 microseconds not supported
+    } // if 
     if( pygmyGlobalData.DelayTimer == PYGMY_TIMER1 ){
         // F103LD, F103MD, F103HD
         // Warning! F103 devies with less than 768KB Flash do not have extra
         // multipurpose timers and must share Timer1. In this case, Timer1
-        // should not be used for PWM output. 
-        
+        // should not be used for PWM output.
         PYGMY_RCC_TIMER1_ENABLE;
         TIM1->CR1 = 0;                          // Disable before configuring timer
         TIM1->CR2 = 0;                          //
@@ -1511,21 +1516,21 @@ void delay( u32 ulDelay )
         TIM1->DIER = 0;                         // DMA and interrupt enable register
         TIM1->CNT = 0;                          // Count Register
         TIM1->PSC = Prescaler;
-        TIM1->ARR =  ulDelay ; // Auto Reload Register
+        TIM1->ARR =  Delay; // Auto Reload Register
         TIM1->SR = 0;
         TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete 
     } else {
         //
         pygmyTimer = sysGetTimer( pygmyGlobalData.DelayTimer );
+        PYGMY_RCC_TIMER9_ENABLE;
         pygmyTimer->CR1 = 0;                          // Disable before configuring timer
-        
         pygmyTimer->CR2 = 0;                          //
         pygmyTimer->SMCR = 0;                         //
         pygmyTimer->DIER = 0;                         // DMA and interrupt enable register
         pygmyTimer->CNT = 0;                          // Count Register
+        pygmyTimer->ARR =  Delay - 60; // Auto Reload Register
         pygmyTimer->PSC = Prescaler;
-        pygmyTimer->ARR =  ulDelay; // Auto Reload Register
         pygmyTimer->SR = 0;
         pygmyTimer->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
         while(( pygmyTimer->CR1 & TIM_CEN ) );         // Wait for count to complete
@@ -1579,28 +1584,6 @@ void *sysGetTimer( u8 ucTimer )
     } // switch
 }
 
-/*void delay( u32 ulDelay )
-{
-    // This function uses Timer1 to provide an accurate microsecond delay
-    // MainClock must be set to 1MHz min, 8MHz or higher recommended
-    TIM1->CR1 = 0;                          // Disable before configuring timer
-    if( ulDelay > 0x0000FFFF ){
-        TIM1->PSC = ( pygmyGlobalData.MainClock / 1000000 ) * ( ulDelay >> 16 );
-        ulDelay &= 0x0000FFFF;
-    } // 
-    ulDelay = (( pygmyGlobalData.MainClock / 1000000 ) * ulDelay);
-    if( ulDelay < 60 ){
-        ulDelay = 60;
-    } // 
-    TIM1->CR2 = 0;                          //
-    TIM1->SMCR = 0;                         //
-    TIM1->DIER = 0;                         // DMA and interrupt enable register
-    TIM1->CNT = 0;                          // Count Register
-    TIM1->ARR =  ulDelay - 60; // Auto Reload Register
-    TIM1->SR = 0;
-    TIM1->CR1 = ( TIM_ARPE | TIM_OPM | TIM_CEN );      // Enable single shot count
-    while( (TIM1->CR1 & TIM_CEN) );         // Wait for count to complete
-}*/
 
 void stopwatchStart( void )
 {
@@ -1638,8 +1621,7 @@ void mcoDisable( void )
 
 //--------------------------------------------------------------------------------------------
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------
- //void f () __attribute__ ((weak, 
-__attribute__ ((weak)) void SysTick_Handler( void ) 
+void SysTick_Handler( void )
 {
     PYGMY_WATCHDOG_REFRESH; 
     
@@ -1659,9 +1641,6 @@ __attribute__ ((weak)) void SysTick_Handler( void )
     #ifdef __PYGMYSPRITES
         guiSpriteProcess( );
     #endif
-    //if( pygmyGlobalData.XModem ){
-    //    xmodemProcessTimer( pygmyGlobalData.XModem );
-    //} // if
 }
 
 //-----------------------------------Pygmy OS IRQ Handlers------------------------------------

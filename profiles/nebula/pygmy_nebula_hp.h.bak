@@ -106,10 +106,10 @@
     #define SRAM_CS_INIT    GPIOC->CRH &= ~PIN12_CLEAR; GPIOC->CRH |= PIN12_OUT50_GPPUSHPULL; GPIOC->ODR |= BIT12
 #endif
 
-#define PYGMY_XTAL          8000000
-//#define PYGMY_SUPPLYVOLTAGE 3.3
-//#define PYGMY_XTAL          ((u32)12000000) // XTAL frequency in Hz
+#define PYGMY_XTAL          ((u32)8000000) // XTAL frequency in Hz
 #define PYGMY_HSI           ((u32)8000000) // This is a generic value for default internal frequency
+#define PYGMY_SUPPLYVOLTAGE 3.3
+
 #else
 // Pygmy Nebula Revision 2 and above
 //#ifndef __PYGMY_NEBULA_R1
@@ -230,7 +230,8 @@
 #define COM3_CTS            PB13
     #define CTS3            PB13
 
-#define PYGMY_XTAL          ((u32)12000000) // XTAL frequency in Hz
+#define PYGMY_XTAL          ((u32)8000000) // XTAL frequency in Hz
 #define PYGMY_HSI           ((u32)8000000) // This is a generic value for default internal frequency
+#define PYGMY_SUPPLYVOLTAGE 3.3
 #endif
 

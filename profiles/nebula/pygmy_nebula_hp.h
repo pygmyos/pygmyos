@@ -230,6 +230,7 @@
 #define COM3_CTS            PB13
     #define CTS3            PB13
 
+#define PYGMY_MAX_XTAL      ((u32)72000000) // Maximum main clock frequency supported
 #define PYGMY_XTAL          ((u32)8000000) // XTAL frequency in Hz
 #define PYGMY_HSI           ((u32)8000000) // This is a generic value for default internal frequency
 #define PYGMY_SUPPLYVOLTAGE 3.3
